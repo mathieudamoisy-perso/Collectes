@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,6 +51,9 @@ fun SettingsScreen(
     val selectedCommune by viewModel.selectedCommune.collectAsState()
     val calendarError by viewModel.calendarError.collectAsState()
     val context = LocalContext.current
+    val versionName = remember {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     var communeMenuExpanded by remember { mutableStateOf(false) }
     var ignoringBatteryOptimizations by remember {
@@ -193,6 +197,13 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "Version $versionName",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
