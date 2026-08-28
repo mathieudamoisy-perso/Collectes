@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.smirtom.app.data.CalendarRepository
 import com.smirtom.app.data.CollectionDay
-import com.smirtom.app.data.OfficialCalendarLinks
 import com.smirtom.app.data.PreferencesManager
 import com.smirtom.app.data.SyncState
 import com.smirtom.app.data.VexinCommune
@@ -128,9 +127,7 @@ class SettingsViewModel(
         }
     }
 
-    fun officialCalendarViewUrl(): String {
-        return OfficialCalendarLinks.onlineViewerUrl(selectedCommune.value.officialCalendarUrl)
-    }
+    fun officialCalendarViewUrl(): String = selectedCommune.value.officialCalendarUrl
 
     fun reportCalendarOpenError() {
         _calendarError.value = "Impossible d'ouvrir le navigateur"

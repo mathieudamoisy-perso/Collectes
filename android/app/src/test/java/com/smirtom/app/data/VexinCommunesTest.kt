@@ -36,4 +36,12 @@ class VexinCommunesTest {
         assertTrue(url.endsWith(".pdf"))
         assertTrue(url.contains("Magny-en-vexin", ignoreCase = true))
     }
+
+    @Test
+    fun themericourtOfficialCalendarIsDirectPdf() {
+        val url = VexinCommunes.bySlug("themericourt")!!.officialCalendarUrl
+        assertTrue(url.endsWith(".pdf"))
+        assertTrue(url.contains("Themericourt", ignoreCase = true))
+        assertTrue(url.contains("Avernes", ignoreCase = true))
+    }
 }
