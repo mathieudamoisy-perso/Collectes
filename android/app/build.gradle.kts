@@ -5,6 +5,11 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val buildStamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Paris"))
+val stampedVersionName =
+    buildStamp.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd.HHmmss"))
+val stampedVersionCode = buildStamp.toEpochSecond().toInt()
+
 android {
     namespace = "com.smirtom.app"
     compileSdk = 35
@@ -13,8 +18,8 @@ android {
         applicationId = "com.collectes.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "20260828.152952"
+        versionCode = stampedVersionCode
+        versionName = stampedVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
