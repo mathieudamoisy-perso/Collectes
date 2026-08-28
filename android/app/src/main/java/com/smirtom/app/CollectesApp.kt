@@ -4,7 +4,7 @@ import android.app.Application
 import com.smirtom.app.notifications.DailyCheckWorker
 import com.smirtom.app.notifications.NotificationHelper
 
-class SmirtomApp : Application() {
+class CollectesApp : Application() {
     override fun onCreate() {
         super.onCreate()
         NotificationHelper.createChannel(this)

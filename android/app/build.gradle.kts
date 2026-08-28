@@ -10,11 +10,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.smirtom.app"
+        applicationId = "com.collectes.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "20260828.150927"
+        versionCode = 3
+        versionName = "20260828.152952"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
