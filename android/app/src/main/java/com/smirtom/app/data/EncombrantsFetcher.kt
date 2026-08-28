@@ -40,6 +40,7 @@ class EncombrantsFetcher {
             .filter { it.year == year }
             .distinct()
             .sorted()
+            .toList()
     }
 
     private fun fallbackDates(year: Int): List<LocalDate> {
