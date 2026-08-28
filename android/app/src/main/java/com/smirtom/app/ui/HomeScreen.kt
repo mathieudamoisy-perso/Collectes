@@ -36,10 +36,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.smirtom.app.R
 import com.smirtom.app.data.CollectionDay
 import com.smirtom.app.data.SyncState
 import com.smirtom.app.data.WasteType
@@ -59,7 +57,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
+                title = { Text("Collectes de ${uiState.commune}") },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Réglages")
@@ -80,13 +78,6 @@ fun HomeScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                item {
-                    Text(
-                        text = "Commune : ${uiState.commune}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
                 if (uiState.syncState is SyncState.Error) {
                     item {
                         val sync = uiState.syncState as SyncState.Error

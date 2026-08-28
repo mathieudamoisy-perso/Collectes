@@ -25,6 +25,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.smirtom.app.data.PreferencesManager
 import com.smirtom.app.util.BatteryOptimizationHelper
 
@@ -46,7 +51,22 @@ fun SettingsScreen(
     val selectedCommune by viewModel.selectedCommune.collectAsState()
     val calendarError by viewModel.calendarError.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var communeMenuExpanded by remember { mutableStateOf(false) }
+    var ignoringBatteryOptimizations by remember {
+        mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                ignoringBatteryOptimizations =
+                    BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -104,11 +124,6 @@ fun SettingsScreen(
                         }
                     }
                 }
-                Text(
-                    text = "Magny-en-Vexin ou Théméricourt",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
 
             Column {
@@ -136,18 +151,18 @@ fun SettingsScreen(
                 )
             }
 
-            OutlinedButton(
-                onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Optimisation batterie")
+            if (!ignoringBatteryOptimizations) {
+                OutlinedButton(
+                    onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Ouvre les paramètres de l'application pour désactiver l'optimisation de la batterie et garantir les notifications push",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
-
-            Text(
-                text = "Ouvre les paramètres Android de l'application pour désactiver l'optimisation batterie et garantir les rappels.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             Button(
                 onClick = {
