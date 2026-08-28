@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Smirtom"
+rootProject.name = "Collectes"
 include(":app")

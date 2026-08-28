@@ -51,7 +51,7 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 1. Autoriser les **notifications** (indispensable)
 2. L'app télécharge le calendrier SMIRTOM (connexion Internet requise)
 3. Vérifier l'écran d'accueil : les prochaines collectes s'affichent
-4. *(Recommandé)* Désactiver l'**optimisation batterie** pour Smirtom dans les paramètres Android
+4. *(Recommandé)* Désactiver l'**optimisation batterie** pour Collectes dans les paramètres Android
 
 ## Réglages
 
