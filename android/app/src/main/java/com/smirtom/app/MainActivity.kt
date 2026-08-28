@@ -55,7 +55,8 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             uiState = homeState,
                             onRefresh = { homeViewModel.refresh(force = true) },
-                            onOpenSettings = { navController.navigate("settings") }
+                            onOpenSettings = { navController.navigate("settings") },
+                            onFilterChange = { homeViewModel.setFilter(it) }
                         )
                     }
                     composable("settings") {

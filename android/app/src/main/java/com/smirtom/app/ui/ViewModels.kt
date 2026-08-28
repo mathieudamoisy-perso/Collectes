@@ -23,6 +23,7 @@ data class HomeUiState(
     val tomorrowLabel: String = "",
     val tomorrowWasteTypes: List<WasteType> = emptyList(),
     val upcoming: List<CollectionDay> = emptyList(),
+    val activeFilter: WasteType? = null,
     val syncState: SyncState = SyncState.Idle,
     val commune: String = "Magny-en-Vexin"
 )
@@ -40,6 +41,9 @@ class HomeViewModel(
         viewModelScope.launch {
             repository.syncState.collect { sync ->
                 _uiState.value = _uiState.value.copy(syncState = sync)
+                if (sync is SyncState.Success) {
+                    loadUpcoming(_uiState.value.activeFilter)
+                }
             }
         }
         refresh()
@@ -48,21 +52,29 @@ class HomeViewModel(
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
             repository.ensureCalendarSynced(force = force)
-            loadUpcoming()
+            loadUpcoming(_uiState.value.activeFilter)
         }
     }
 
-    private suspend fun loadUpcoming() {
+    fun setFilter(filter: WasteType?) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(activeFilter = filter)
+            loadUpcoming(filter)
+        }
+    }
+
+    private suspend fun loadUpcoming(filter: WasteType?) {
         val tomorrow = LocalDate.now(zoneId).plusDays(1)
-        val tomorrowTypes = repository.getCollectionsOn(tomorrow)
-        val upcoming = repository.getUpcomingEvents(limit = 6)
+        val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
+        val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
 
         _uiState.value = _uiState.value.copy(
             tomorrowLabel = tomorrow.format(dateFormatter).replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
             },
             tomorrowWasteTypes = tomorrowTypes,
-            upcoming = upcoming
+            upcoming = filteredUpcoming,
+            activeFilter = filter
         )
     }
 }

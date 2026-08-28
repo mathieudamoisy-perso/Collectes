@@ -25,7 +25,8 @@ sealed class SyncState {
 class CalendarRepository(
     private val context: Context,
     private val fetcher: SmirtomFetcher = SmirtomFetcher(),
-    private val parser: PdfCalendarParser = PdfCalendarParser()
+    private val parser: PdfCalendarParser = PdfCalendarParser(),
+    private val encombrantsFetcher: EncombrantsFetcher = EncombrantsFetcher()
 ) {
     private val database = AppDatabase.get(context)
     private val collectionDao = database.collectionDao()
@@ -61,7 +62,11 @@ class CalendarRepository(
 
             val pdfUrl = fetcher.findPdfUrl(currentYear)
             val pdfFile = fetcher.downloadPdf(pdfUrl, fetcher.pdfCacheFile(context.filesDir, currentYear))
-            val events = parser.parse(pdfFile, currentYear)
+            val pdfEvents = parser.parse(pdfFile, currentYear)
+            val encombrantsEvents = encombrantsFetcher.toCollectionDays(
+                encombrantsFetcher.fetchDates(currentYear)
+            )
+            val events = CollectionDayMerger.merge(pdfEvents + encombrantsEvents)
 
             collectionDao.clearAll()
             collectionDao.insertAll(events.map { it.toEntity() })
@@ -85,19 +90,28 @@ class CalendarRepository(
         }
     }
 
-    suspend fun getUpcomingEvents(limit: Int = 8): List<CollectionDay> = withContext(Dispatchers.IO) {
-        collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
+    suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {
+        val events = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
             .mapNotNull { it.toCollectionDay() }
-            .take(limit)
+        applyFilter(events, filter)
     }
 
-    suspend fun getCollectionsOn(date: LocalDate): List<WasteType> = withContext(Dispatchers.IO) {
-        collectionDao.getEventOn(date.toEpochDay())?.toCollectionDay()?.wasteTypes.orEmpty()
+    private fun applyFilter(events: List<CollectionDay>, filter: WasteType?): List<CollectionDay> {
+        if (filter == null) return events
+        return events.mapNotNull { day ->
+            if (filter !in day.wasteTypes) return@mapNotNull null
+            day.copy(wasteTypes = listOf(filter))
+        }
     }
 
-    suspend fun getTomorrowCollections(): List<WasteType> {
+    suspend fun getCollectionsOn(date: LocalDate, filter: WasteType? = null): List<WasteType> = withContext(Dispatchers.IO) {
+        val types = collectionDao.getEventOn(date.toEpochDay())?.toCollectionDay()?.wasteTypes.orEmpty()
+        if (filter == null) types else types.filter { it == filter }
+    }
+
+    suspend fun getTomorrowCollections(filter: WasteType? = null): List<WasteType> {
         val tomorrow = LocalDate.now(zoneId).plusDays(1)
-        return getCollectionsOn(tomorrow)
+        return getCollectionsOn(tomorrow, filter)
     }
 
     suspend fun rescheduleReminders(reminderHour: Int) = withContext(Dispatchers.IO) {

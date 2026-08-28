@@ -3,7 +3,8 @@ package com.smirtom.app.data
 enum class WasteType(val label: String, val colorName: String) {
     ORDURES("Ordures ménagères", "gris"),
     EMBALLAGES("Emballages / papiers", "jaune"),
-    VERRE("Verre", "vert");
+    VERRE("Verre", "vert"),
+    ENCOMBRANTS("Encombrants", "orange");
 
     companion object {
         fun fromStorage(value: String): WasteType? = entries.find { it.name == value }
