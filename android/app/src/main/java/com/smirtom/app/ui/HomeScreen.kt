@@ -77,76 +77,77 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 CollectesRefreshRevealPanel(
                     state = pullToRefreshState,
-                    isRefreshing = isRefreshing,
-                    modifier = Modifier.align(Alignment.TopCenter)
+                    isRefreshing = isRefreshing
                 )
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (uiState.syncState is SyncState.Error) {
-                    item {
-                        val sync = uiState.syncState as SyncState.Error
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Erreur de synchronisation", fontWeight = FontWeight.Bold)
-                                Text(sync.message)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = onRefresh) { Text("Réessayer") }
+                        item {
+                            val sync = uiState.syncState as SyncState.Error
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                )
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("Erreur de synchronisation", fontWeight = FontWeight.Bold)
+                                    Text(sync.message)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(onClick = onRefresh) { Text("Réessayer") }
+                                }
                             }
                         }
                     }
-                }
 
-                item {
-                    TomorrowCard(
-                        tomorrowLabel = uiState.tomorrowLabel,
-                        wasteTypes = uiState.tomorrowWasteTypes,
-                        activeFilter = uiState.activeFilter
-                    )
-                }
-
-                item {
-                    WasteTypeFilterRow(
-                        activeFilter = uiState.activeFilter,
-                        onFilterChange = onFilterChange
-                    )
-                }
-
-                item {
-                    val listTitle = if (uiState.activeFilter == null) {
-                        "Toutes les collectes (${uiState.upcoming.size})"
-                    } else {
-                        "Collectes ${uiState.activeFilter.label.lowercase()} (${uiState.upcoming.size})"
-                    }
-                    Text(listTitle, style = MaterialTheme.typography.titleMedium)
-                }
-
-                if (uiState.upcoming.isEmpty()) {
                     item {
-                        Text(
-                            text = "Aucune collecte à venir pour ce filtre.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        TomorrowCard(
+                            tomorrowLabel = uiState.tomorrowLabel,
+                            wasteTypes = uiState.tomorrowWasteTypes,
+                            activeFilter = uiState.activeFilter
                         )
                     }
-                } else {
-                    items(
-                        uiState.upcoming,
-                        key = { "${it.date}_${it.wasteTypes.joinToString()}" }
-                    ) { day ->
-                        UpcomingItem(day)
+
+                    item {
+                        WasteTypeFilterRow(
+                            activeFilter = uiState.activeFilter,
+                            onFilterChange = onFilterChange
+                        )
+                    }
+
+                    item {
+                        val listTitle = if (uiState.activeFilter == null) {
+                            "Toutes les collectes (${uiState.upcoming.size})"
+                        } else {
+                            "Collectes ${uiState.activeFilter.label.lowercase()} (${uiState.upcoming.size})"
+                        }
+                        Text(listTitle, style = MaterialTheme.typography.titleMedium)
+                    }
+
+                    if (uiState.upcoming.isEmpty()) {
+                        item {
+                            Text(
+                                text = "Aucune collecte à venir pour ce filtre.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        items(
+                            uiState.upcoming,
+                            key = { "${it.date}_${it.wasteTypes.joinToString()}" }
+                        ) { day ->
+                            UpcomingItem(day)
+                        }
                     }
                 }
-            }
             }
         }
     }
