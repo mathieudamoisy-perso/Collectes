@@ -71,7 +71,7 @@ class ReminderScheduler(private val context: Context) {
             val formattedDate = collectionDate.format(
                 DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
             )
-            val bins = wasteTypes.joinToString(" + ") { "${it.label} (${it.colorName})" }
+            val bins = wasteTypes.joinToString(" + ") { it.notificationLabel }
             return "Demain ($formattedDate) : sortir $bins"
         }
     }

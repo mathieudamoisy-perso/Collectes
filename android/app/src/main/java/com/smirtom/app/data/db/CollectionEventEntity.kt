@@ -18,7 +18,8 @@ data class SyncMetadataEntity(
     @PrimaryKey val id: Int = 1,
     val calendarYear: Int,
     val lastSyncEpochMillis: Long,
-    val pdfUrl: String?
+    val pdfUrl: String?,
+    val communeSlug: String
 )
 
 @Dao

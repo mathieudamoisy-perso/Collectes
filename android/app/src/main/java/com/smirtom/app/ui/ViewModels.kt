@@ -7,6 +7,7 @@ import com.smirtom.app.data.CalendarRepository
 import com.smirtom.app.data.CollectionDay
 import com.smirtom.app.data.PreferencesManager
 import com.smirtom.app.data.SyncState
+import com.smirtom.app.data.VexinCommune
 import com.smirtom.app.data.WasteType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -64,6 +65,7 @@ class HomeViewModel(
     }
 
     private suspend fun loadUpcoming(filter: WasteType?) {
+        val commune = repository.getSelectedCommune()
         val tomorrow = LocalDate.now(zoneId).plusDays(1)
         val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
@@ -74,7 +76,8 @@ class HomeViewModel(
             },
             tomorrowWasteTypes = tomorrowTypes,
             upcoming = filteredUpcoming,
-            activeFilter = filter
+            activeFilter = filter,
+            commune = commune.displayName
         )
     }
 }
@@ -98,15 +101,24 @@ class SettingsViewModel(
         initialValue = PreferencesManager.DEFAULT_REMINDER_HOUR
     )
 
+    val selectedCommune: StateFlow<VexinCommune> = preferencesManager.selectedCommune.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = com.smirtom.app.data.VexinCommunes.default
+    )
+
+    val communes: List<VexinCommune> = com.smirtom.app.data.VexinCommunes.all
+
     fun setReminderHour(hour: Int) {
         viewModelScope.launch {
             preferencesManager.setReminderHour(hour)
-            repository.rescheduleReminders(hour)
+            repository.rescheduleReminders(preferencesManager.getReminderHour())
         }
     }
 
-    fun refreshCalendar() {
+    fun setCommune(commune: VexinCommune) {
         viewModelScope.launch {
+            repository.setCommune(commune)
             repository.ensureCalendarSynced(force = true)
         }
     }

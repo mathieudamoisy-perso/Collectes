@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [CollectionEventEntity::class, SyncMetadataEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,7 +24,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "smirtom.db"
-                ).build().also { instance = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build().also { instance = it }
             }
         }
     }

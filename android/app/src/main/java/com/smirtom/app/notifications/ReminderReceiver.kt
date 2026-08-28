@@ -29,7 +29,7 @@ class ReminderReceiver : BroadcastReceiver() {
                     NotificationHelper.showReminder(
                         context = context,
                         notificationId = collectionDate.toEpochDay().toInt(),
-                        title = "Rappel collecte Poubelles",
+                        wasteTypes = wasteTypes,
                         message = message
                     )
                 } else {
@@ -41,7 +41,7 @@ class ReminderReceiver : BroadcastReceiver() {
                         NotificationHelper.showReminder(
                             context = context,
                             notificationId = tomorrow.toEpochDay().toInt(),
-                            title = "Rappel collecte Poubelles",
+                            wasteTypes = tomorrowTypes,
                             message = message
                         )
                     }

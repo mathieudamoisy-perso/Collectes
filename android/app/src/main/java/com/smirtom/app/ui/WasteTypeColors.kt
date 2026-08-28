@@ -3,9 +3,12 @@ package com.smirtom.app.ui
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.smirtom.app.data.WasteType
 
 object WasteTypeColors {
+    fun accentArgb(type: WasteType): Int = accent(type).toArgb()
+
     fun accent(type: WasteType): Color = when (type) {
         WasteType.ORDURES -> Color(0xFF546E7A)
         WasteType.EMBALLAGES -> Color(0xFFF9A825)

@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import com.smirtom.app.MainActivity
 import com.smirtom.app.R
 import com.smirtom.app.data.WasteType
-import java.time.LocalDate
 
 object NotificationHelper {
     const val CHANNEL_ID = "smirtom_reminders"
@@ -36,15 +35,21 @@ object NotificationHelper {
     fun showReminder(
         context: Context,
         notificationId: Int,
-        title: String,
+        wasteTypes: List<WasteType>,
         message: String
     ) {
+        if (wasteTypes.isEmpty()) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED
         ) {
             return
         }
+
+        val primaryType = WasteTypeNotificationIcons.primaryType(wasteTypes)
+        val title = WasteTypeNotificationIcons.notificationTitle(wasteTypes)
+        val largeIcon = WasteTypeNotificationIcons.buildLargeIcon(context, primaryType)
 
         val launchIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -55,7 +60,8 @@ object NotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(WasteTypeNotificationIcons.smallIconRes(primaryType))
+            .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))

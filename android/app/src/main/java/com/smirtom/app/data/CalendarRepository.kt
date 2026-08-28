@@ -26,7 +26,8 @@ class CalendarRepository(
     private val context: Context,
     private val fetcher: SmirtomFetcher = SmirtomFetcher(),
     private val parser: PdfCalendarParser = PdfCalendarParser(),
-    private val encombrantsFetcher: EncombrantsFetcher = EncombrantsFetcher()
+    private val encombrantsFetcher: EncombrantsFetcher = EncombrantsFetcher(),
+    private val communeRulesFetcher: CommuneRulesFetcher = CommuneRulesFetcher()
 ) {
     private val database = AppDatabase.get(context)
     private val collectionDao = database.collectionDao()
@@ -43,9 +44,13 @@ class CalendarRepository(
             _syncState.value = SyncState.Loading
             PDFBoxResourceLoader.init(context.applicationContext)
 
+            val commune = preferencesManager.getSelectedCommune()
             val currentYear = LocalDate.now(zoneId).year
             val metadata = syncMetadataDao.get()
-            if (!force && metadata?.calendarYear == currentYear) {
+            if (!force &&
+                metadata?.calendarYear == currentYear &&
+                metadata.communeSlug == commune.slug
+            ) {
                 val cached = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
                 if (cached.isNotEmpty()) {
                     reminderScheduler.scheduleUpcomingReminders(
@@ -60,11 +65,28 @@ class CalendarRepository(
                 }
             }
 
-            val pdfUrl = fetcher.findPdfUrl(currentYear)
-            val pdfFile = fetcher.downloadPdf(pdfUrl, fetcher.pdfCacheFile(context.filesDir, currentYear))
-            val pdfEvents = parser.parse(pdfFile, currentYear)
+            val rules = runCatching {
+                communeRulesFetcher.fetchRules(commune, currentYear)
+            }.getOrElse {
+                throw CalendarFetchException(
+                    "Impossible de lire les règles de collecte pour ${commune.displayName}"
+                )
+            }
+
+            val pdfUrl = fetcher.findPdfUrl(currentYear, commune)
+            val pdfFile = fetcher.downloadPdf(
+                pdfUrl,
+                fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
+            )
+
+            val pdfEvents = runCatching {
+                parser.parse(pdfFile, currentYear, commune)
+            }.getOrElse {
+                CalendarDateGenerator.generate(currentYear, rules, includeNextYearJanuary = true)
+            }
+
             val encombrantsEvents = encombrantsFetcher.toCollectionDays(
-                encombrantsFetcher.fetchDates(currentYear)
+                encombrantsFetcher.fetchDates(currentYear, commune)
             )
             val events = CollectionDayMerger.merge(pdfEvents + encombrantsEvents)
 
@@ -74,7 +96,8 @@ class CalendarRepository(
                 SyncMetadataEntity(
                     calendarYear = currentYear,
                     lastSyncEpochMillis = System.currentTimeMillis(),
-                    pdfUrl = pdfUrl
+                    pdfUrl = pdfUrl,
+                    communeSlug = commune.slug
                 )
             )
 
@@ -88,6 +111,12 @@ class CalendarRepository(
         }.onFailure { error ->
             _syncState.value = SyncState.Error(error.message ?: "Erreur inconnue")
         }
+    }
+
+    suspend fun getSelectedCommune(): VexinCommune = preferencesManager.getSelectedCommune()
+
+    suspend fun setCommune(commune: VexinCommune) {
+        preferencesManager.setCommune(commune)
     }
 
     suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {

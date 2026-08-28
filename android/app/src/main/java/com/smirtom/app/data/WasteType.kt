@@ -6,6 +6,13 @@ enum class WasteType(val label: String, val colorName: String) {
     VERRE("Verre", "vert"),
     ENCOMBRANTS("Encombrants", "orange");
 
+    /** Libellé pour les notifications (sans couleur de bac pour les encombrants). */
+    val notificationLabel: String
+        get() = when (this) {
+            ENCOMBRANTS -> label
+            else -> "$label ($colorName)"
+        }
+
     companion object {
         fun fromStorage(value: String): WasteType? = entries.find { it.name == value }
     }

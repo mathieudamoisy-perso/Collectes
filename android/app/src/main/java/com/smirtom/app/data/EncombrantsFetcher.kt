@@ -5,18 +5,15 @@ import java.time.LocalDate
 
 class EncombrantsFetcher {
     companion object {
-        const val COMMUNE_PAGE_URL = "https://smirtomduvexin.net/informations_utiles/magny-en-vexin/"
         private val DATE_PATTERN = Regex("""(\d{2})/(\d{2})/(\d{4})""")
     }
 
-    fun fetchDates(year: Int): List<LocalDate> {
-        val fromWeb = runCatching { fetchFromCommunePage(year) }.getOrNull()
-        if (!fromWeb.isNullOrEmpty()) return fromWeb
-        return fallbackDates(year)
+    fun fetchDates(year: Int, commune: VexinCommune): List<LocalDate> {
+        return runCatching { fetchFromCommunePage(year, commune) }.getOrDefault(emptyList())
     }
 
-    private fun fetchFromCommunePage(year: Int): List<LocalDate> {
-        val document = Jsoup.connect(COMMUNE_PAGE_URL)
+    private fun fetchFromCommunePage(year: Int, commune: VexinCommune): List<LocalDate> {
+        val document = Jsoup.connect(commune.pageUrl)
             .userAgent("SmirtomApp/1.0")
             .timeout(30_000)
             .get()
@@ -41,16 +38,6 @@ class EncombrantsFetcher {
             .distinct()
             .sorted()
             .toList()
-    }
-
-    private fun fallbackDates(year: Int): List<LocalDate> {
-        return when (year) {
-            2026 -> listOf(
-                LocalDate.of(2026, 5, 21),
-                LocalDate.of(2026, 11, 18)
-            )
-            else -> emptyList()
-        }
     }
 
     fun toCollectionDays(dates: List<LocalDate>): List<CollectionDay> {

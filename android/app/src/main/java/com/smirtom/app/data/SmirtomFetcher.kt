@@ -15,27 +15,26 @@ class SmirtomFetcher(
 ) {
     companion object {
         const val DOWNLOADS_URL = "https://smirtomduvexin.net/telechargements/"
-        const val COMMUNE_SEARCH = "Magny en Vexin"
-        const val SECTOR_HINT = "Magny en Vexin"
     }
 
-    suspend fun findPdfUrl(year: Int): String {
-        val fromPage = runCatching { findPdfUrlFromDownloadsPage(year) }.getOrNull()
+    fun findPdfUrl(year: Int, commune: VexinCommune): String {
+        val fromPage = runCatching { findPdfUrlFromDownloadsPage(year, commune) }.getOrNull()
         if (fromPage != null) return fromPage
 
-        val fallback = fallbackPdfUrl(year)
-        if (fallback != null && pdfExists(fallback)) return fallback
-
-        throw CalendarFetchException("Calendrier $year introuvable pour $COMMUNE_SEARCH")
+        throw CalendarFetchException(
+            "Calendrier $year introuvable pour ${commune.displayName}"
+        )
     }
 
-    private fun findPdfUrlFromDownloadsPage(year: Int): String {
+    private fun findPdfUrlFromDownloadsPage(year: Int, commune: VexinCommune): String {
         val document = Jsoup.connect(DOWNLOADS_URL)
             .userAgent("SmirtomApp/1.0")
             .timeout(30_000)
             .get()
 
         val yearToken = "Calendrier $year"
+        val searchTerms = commune.pdfSearchTerms()
+
         val candidates = document.select("a[href]").mapNotNull { link ->
             val href = link.absUrl("href").takeIf { it.isNotBlank() } ?: return@mapNotNull null
             if (!href.contains(".pdf", ignoreCase = true)) return@mapNotNull null
@@ -46,32 +45,18 @@ class SmirtomFetcher(
                 append(" ").append(href)
             }
 
-            if (title.contains(yearToken, ignoreCase = true) &&
-                (title.contains(SECTOR_HINT, ignoreCase = true) ||
-                    href.contains("Magny", ignoreCase = true))
-            ) {
-                href
-            } else {
-                null
+            val matchesCommune = searchTerms.any { term ->
+                title.contains(term, ignoreCase = true) ||
+                    href.contains(term.replace(" ", "-"), ignoreCase = true)
             }
+
+            if (title.contains(yearToken, ignoreCase = true) && matchesCommune) href else null
         }.distinct()
 
         return candidates.firstOrNull()
-            ?: throw CalendarFetchException("Calendrier $year introuvable sur la page téléchargements")
-    }
-
-    private fun fallbackPdfUrl(year: Int): String? {
-        return when (year) {
-            2026 -> "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf"
-            else -> null
-        }
-    }
-
-    private fun pdfExists(url: String): Boolean {
-        val request = Request.Builder().url(url).head().build()
-        okHttpClient.newCall(request).execute().use { response ->
-            return response.isSuccessful
-        }
+            ?: throw CalendarFetchException(
+                "Calendrier $year introuvable pour ${commune.displayName}"
+            )
     }
 
     fun downloadPdf(url: String, targetFile: File): File {
@@ -87,8 +72,8 @@ class SmirtomFetcher(
         return targetFile
     }
 
-    fun pdfCacheFile(cacheDir: File, year: Int): File {
-        return File(cacheDir, "calendar-$year.pdf")
+    fun pdfCacheFile(cacheDir: File, year: Int, communeSlug: String): File {
+        return File(cacheDir, "calendar-$year-$communeSlug.pdf")
     }
 
     fun currentYear(): Int = LocalDate.now().year
