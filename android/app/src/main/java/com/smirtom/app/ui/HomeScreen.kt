@@ -72,29 +72,23 @@ fun HomeScreen(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
             state = pullToRefreshState,
-            indicator = {
-                CollectesRefreshIndicator(
-                    state = pullToRefreshState,
-                    isRefreshing = isRefreshing,
-                    modifier = Modifier.align(Alignment.TopCenter)
-                )
-            },
+            indicator = {},
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (isRefreshing) {
-                    item(key = "refresh_banner") {
-                        RefreshLoadingBanner()
-                    }
-                }
-
-                if (uiState.syncState is SyncState.Error) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CollectesRefreshRevealPanel(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (uiState.syncState is SyncState.Error) {
                     item {
                         val sync = uiState.syncState as SyncState.Error
                         Card(
@@ -152,6 +146,7 @@ fun HomeScreen(
                         UpcomingItem(day)
                     }
                 }
+            }
             }
         }
     }
