@@ -13,6 +13,7 @@ class VexinCommunesTest {
     @Test
     fun defaultIsMagnyEnVexin() {
         assertEquals("magny-en-vexin", VexinCommunes.default.slug)
+        assertEquals("Magny-en-Vexin", VexinCommunes.default.displayName)
     }
 
     @Test

@@ -16,8 +16,6 @@ data class VexinCommune(
 }
 
 object VexinCommunes {
-    val default: VexinCommune = bySlug("magny-en-vexin")!!
-
     private val allCommunes = listOf(
         "Ableiges",
         "Aincourt",
@@ -107,6 +105,8 @@ object VexinCommunes {
     }.sortedBy { it.displayName }
 
     val all: List<VexinCommune> = allCommunes
+
+    val default: VexinCommune = allCommunes.first { it.slug == "magny-en-vexin" }
 
     fun bySlug(slug: String): VexinCommune? {
         return allCommunes.find { it.slug.equals(slug, ignoreCase = true) }
