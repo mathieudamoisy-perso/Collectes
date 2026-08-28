@@ -18,7 +18,8 @@ class PreferencesManager(private val context: Context) {
     private val communeSlugKey = stringPreferencesKey("commune_slug")
 
     val reminderHour: Flow<Int> = context.dataStore.data.map { prefs ->
-        prefs[reminderHourKey] ?: DEFAULT_REMINDER_HOUR
+        (prefs[reminderHourKey] ?: DEFAULT_REMINDER_HOUR)
+            .coerceIn(MIN_REMINDER_HOUR, MAX_REMINDER_HOUR)
     }
 
     val selectedCommune: Flow<VexinCommune> = context.dataStore.data.map { prefs ->
@@ -44,7 +45,7 @@ class PreferencesManager(private val context: Context) {
 
     companion object {
         const val DEFAULT_REMINDER_HOUR = 9
-        const val MIN_REMINDER_HOUR = 8
-        const val MAX_REMINDER_HOUR = 23
+        const val MIN_REMINDER_HOUR = 6
+        const val MAX_REMINDER_HOUR = 12
     }
 }

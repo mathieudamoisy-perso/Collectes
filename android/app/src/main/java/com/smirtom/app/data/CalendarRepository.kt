@@ -65,14 +65,6 @@ class CalendarRepository(
                 }
             }
 
-            val rules = runCatching {
-                communeRulesFetcher.fetchRules(commune, currentYear)
-            }.getOrElse {
-                throw CalendarFetchException(
-                    "Impossible de lire les règles de collecte pour ${commune.displayName}"
-                )
-            }
-
             val pdfUrl = runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
             val pdfEvents = if (pdfUrl != null) {
                 val pdfFile = fetcher.downloadPdf(
@@ -81,17 +73,26 @@ class CalendarRepository(
                 )
                 runCatching {
                     parser.parse(pdfFile, currentYear, commune)
-                }.getOrElse {
-                    CalendarDateGenerator.generate(currentYear, rules, includeNextYearJanuary = true)
-                }
+                }.getOrNull()
             } else {
-                CalendarDateGenerator.generate(currentYear, rules, includeNextYearJanuary = true)
+                null
             }
+
+            val rules = runCatching {
+                communeRulesFetcher.fetchRules(commune, currentYear)
+            }.getOrNull() ?: CollectionRules.fallback(currentYear)
+
+            val eventsFromRules = CalendarDateGenerator.generate(
+                currentYear,
+                rules,
+                includeNextYearJanuary = true
+            )
+            val regularEvents = pdfEvents ?: eventsFromRules
 
             val encombrantsEvents = encombrantsFetcher.toCollectionDays(
                 encombrantsFetcher.fetchDates(currentYear, commune)
             )
-            val events = CollectionDayMerger.merge(pdfEvents + encombrantsEvents)
+            val events = CollectionDayMerger.merge(regularEvents + encombrantsEvents)
 
             collectionDao.clearAll()
             collectionDao.insertAll(events.map { it.toEntity() })

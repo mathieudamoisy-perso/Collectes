@@ -2,13 +2,32 @@ package com.smirtom.app.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class VexinCommunesTest {
     @Test
-    fun includesAllVexinCommunes() {
-        assertTrue(VexinCommunes.all.size >= 80)
+    fun includesOnlyPostalCode95420() {
+        assertEquals(14, VexinCommunes.all.size)
+        assertEquals(
+            listOf(
+                "Ambleville",
+                "Arthies",
+                "Banthelu",
+                "Charmont",
+                "Cléry-en-Vexin",
+                "Genainville",
+                "Hodent",
+                "La Chapelle-en-Vexin",
+                "Magny-en-Vexin",
+                "Maudétour-en-Vexin",
+                "Nucourt",
+                "Omerville",
+                "Saint-Gervais",
+                "Wy-dit-Joli-Village"
+            ),
+            VexinCommunes.all.map { it.displayName }
+        )
     }
 
     @Test
@@ -19,7 +38,8 @@ class VexinCommunesTest {
 
     @Test
     fun slugLookupWorks() {
-        assertNotNull(VexinCommunes.bySlug("valmondois"))
-        assertEquals("Valmondois", VexinCommunes.bySlug("valmondois")?.displayName)
+        assertNotNull(VexinCommunes.bySlug("nucourt"))
+        assertEquals("Nucourt", VexinCommunes.bySlug("nucourt")?.displayName)
+        assertNull(VexinCommunes.bySlug("valmondois"))
     }
 }

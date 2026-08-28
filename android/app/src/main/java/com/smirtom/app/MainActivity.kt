@@ -1,12 +1,18 @@
 package com.smirtom.app
 
 import android.Manifest
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,30 +46,47 @@ class MainActivity : ComponentActivity() {
         val preferencesManager = PreferencesManager(applicationContext)
 
         setContent {
-            SmirtomTheme {
-                val navController = rememberNavController()
-                val homeViewModel: HomeViewModel = viewModel(
-                    factory = HomeViewModelFactory(repository)
+            val darkTheme = isSystemInDarkTheme()
+            DisposableEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        lightScrim = Color.TRANSPARENT,
+                        darkScrim = Color.TRANSPARENT
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        lightScrim = Color.TRANSPARENT,
+                        darkScrim = Color.TRANSPARENT
+                    ) { darkTheme }
                 )
-                val settingsViewModel: SettingsViewModel = viewModel(
-                    factory = SettingsViewModelFactory(repository, preferencesManager)
-                )
-                val homeState by homeViewModel.uiState.collectAsState()
+                onDispose { }
+            }
 
-                NavHost(navController = navController, startDestination = "home") {
-                    composable("home") {
-                        HomeScreen(
-                            uiState = homeState,
-                            onRefresh = { homeViewModel.refresh(force = true) },
-                            onOpenSettings = { navController.navigate("settings") },
-                            onFilterChange = { homeViewModel.setFilter(it) }
-                        )
-                    }
-                    composable("settings") {
-                        SettingsScreen(
-                            viewModel = settingsViewModel,
-                            onBack = { navController.popBackStack() }
-                        )
+            SmirtomTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    val navController = rememberNavController()
+                    val homeViewModel: HomeViewModel = viewModel(
+                        factory = HomeViewModelFactory(repository)
+                    )
+                    val settingsViewModel: SettingsViewModel = viewModel(
+                        factory = SettingsViewModelFactory(repository, preferencesManager)
+                    )
+                    val homeState by homeViewModel.uiState.collectAsState()
+
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            HomeScreen(
+                                uiState = homeState,
+                                onRefresh = { homeViewModel.refresh(force = true) },
+                                onOpenSettings = { navController.navigate("settings") },
+                                onFilterChange = { homeViewModel.setFilter(it) }
+                            )
+                        }
+                        composable("settings") {
+                            SettingsScreen(
+                                viewModel = settingsViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
                     }
                 }
             }

@@ -105,7 +105,7 @@ fun SettingsScreen(
                     }
                 }
                 Text(
-                    text = "Communes du SMIRTOM du Vexin uniquement",
+                    text = "Communes du code postal 95420",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

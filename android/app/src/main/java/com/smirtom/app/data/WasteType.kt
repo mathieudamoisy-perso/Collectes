@@ -29,4 +29,22 @@ data class CollectionRules(
     val emballagesAnchor: java.time.LocalDate,
     val verreDay: java.time.DayOfWeek,
     val verreAnchor: java.time.LocalDate
-)
+) {
+    companion object {
+        /** Rythme SMIRTOM le plus courant (Magny-en-Vexin) si le site est injoignable. */
+        fun fallback(year: Int): CollectionRules {
+            val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(
+                year,
+                1,
+                java.time.DayOfWeek.TUESDAY
+            )
+            return CollectionRules(
+                orduresDay = java.time.DayOfWeek.MONDAY,
+                emballagesDay = java.time.DayOfWeek.TUESDAY,
+                emballagesAnchor = emballagesAnchor,
+                verreDay = java.time.DayOfWeek.TUESDAY,
+                verreAnchor = emballagesAnchor.plusDays(7)
+            )
+        }
+    }
+}

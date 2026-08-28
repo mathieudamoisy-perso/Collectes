@@ -226,7 +226,7 @@ private fun TomorrowCard(
     } else {
         WasteTypeColors.cardBackgroundOrDefault(wasteTypes)
     }
-    val accentColor = wasteTypes.firstOrNull()?.let { WasteTypeColors.accent(it) }
+    val accentColor = wasteTypes.firstOrNull()?.let { WasteTypeColors.palette(it).accent }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -274,7 +274,7 @@ private fun TomorrowCard(
 @Composable
 private fun UpcomingItem(day: CollectionDay) {
     val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-    val accentColor = day.wasteTypes.firstOrNull()?.let { WasteTypeColors.accent(it) }
+    val accentColor = day.wasteTypes.firstOrNull()?.let { WasteTypeColors.palette(it).accent }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -320,7 +320,7 @@ private fun WasteTypeLine(type: WasteType) {
         WasteTypeIcon(type = type, size = 20.dp)
         Text(
             text = "${type.label} (${type.colorName})",
-            color = WasteTypeColors.accent(type),
+            color = WasteTypeColors.palette(type).accent,
             fontWeight = FontWeight.Medium,
             style = MaterialTheme.typography.bodyMedium
         )

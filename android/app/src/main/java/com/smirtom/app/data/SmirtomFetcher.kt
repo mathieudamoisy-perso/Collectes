@@ -1,25 +1,15 @@
 package com.smirtom.app.data
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import java.io.File
 import java.time.LocalDate
-import java.util.concurrent.TimeUnit
 
-class SmirtomFetcher(
-    private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .build()
-) {
+class SmirtomFetcher {
     companion object {
         const val DOWNLOADS_URL = "https://smirtomduvexin.net/telechargements/"
         const val DOCUMENTATION_URL = "https://smirtomduvexin.net/telechargements/documentation/"
-        const val USER_AGENT =
-            "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
     }
 
     fun findPdfUrl(year: Int, commune: VexinCommune): String {
@@ -44,11 +34,7 @@ class SmirtomFetcher(
     }
 
     private fun findPdfOnPage(pageUrl: String, year: Int, commune: VexinCommune): String? {
-        val document = Jsoup.connect(pageUrl)
-            .userAgent(USER_AGENT)
-            .referrer("https://smirtomduvexin.net/")
-            .timeout(30_000)
-            .get()
+        val document = SmirtomHttp.document(pageUrl)
 
         document.select("a[href]").forEach { link ->
             val href = link.absUrl("href").ifBlank { return@forEach }
@@ -90,10 +76,10 @@ class SmirtomFetcher(
             .addQueryParameter("per_page", "20")
             .build()
 
-        val body = okHttpClient.newCall(
+        val body = SmirtomHttp.client.newCall(
             Request.Builder()
                 .url(url)
-                .header("User-Agent", USER_AGENT)
+                .header("User-Agent", SmirtomHttp.USER_AGENT)
                 .get()
                 .build()
         ).execute().use { response ->
@@ -112,10 +98,10 @@ class SmirtomFetcher(
     fun downloadPdf(url: String, targetFile: File): File {
         val request = Request.Builder()
             .url(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", SmirtomHttp.USER_AGENT)
             .get()
             .build()
-        okHttpClient.newCall(request).execute().use { response ->
+        SmirtomHttp.client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw CalendarFetchException("Échec du téléchargement (${response.code})")
             }

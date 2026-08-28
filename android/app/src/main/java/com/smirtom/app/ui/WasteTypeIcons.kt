@@ -32,7 +32,7 @@ fun WasteTypeIcon(
     type: WasteType,
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
-    tint: Color = WasteTypeColors.accent(type)
+    tint: Color = WasteTypeColors.palette(type).accent
 ) {
     Icon(
         imageVector = WasteTypeIcons.imageVector(type),

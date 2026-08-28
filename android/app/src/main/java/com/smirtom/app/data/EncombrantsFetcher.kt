@@ -1,6 +1,5 @@
 package com.smirtom.app.data
 
-import org.jsoup.Jsoup
 import java.time.LocalDate
 
 class EncombrantsFetcher {
@@ -13,13 +12,7 @@ class EncombrantsFetcher {
     }
 
     private fun fetchFromCommunePage(year: Int, commune: VexinCommune): List<LocalDate> {
-        val document = Jsoup.connect(commune.pageUrl)
-            .userAgent(SmirtomFetcher.USER_AGENT)
-            .referrer("https://smirtomduvexin.net/")
-            .timeout(30_000)
-            .get()
-
-        val text = document.text()
+        val text = SmirtomHttp.document(commune.pageUrl).text()
         val encombrantsIndex = text.indexOf("encombrants", ignoreCase = true)
         if (encombrantsIndex < 0) return emptyList()
 
