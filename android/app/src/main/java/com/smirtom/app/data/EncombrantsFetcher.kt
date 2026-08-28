@@ -14,7 +14,8 @@ class EncombrantsFetcher {
 
     private fun fetchFromCommunePage(year: Int, commune: VexinCommune): List<LocalDate> {
         val document = Jsoup.connect(commune.pageUrl)
-            .userAgent("SmirtomApp/1.0")
+            .userAgent(SmirtomFetcher.USER_AGENT)
+            .referrer("https://smirtomduvexin.net/")
             .timeout(30_000)
             .get()
 

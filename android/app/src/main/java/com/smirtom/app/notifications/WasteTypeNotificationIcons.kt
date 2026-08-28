@@ -25,7 +25,7 @@ object WasteTypeNotificationIcons {
 
     fun notificationTitle(wasteTypes: List<WasteType>): String = when {
         wasteTypes.size == 1 -> "Rappel : ${wasteTypes.first().label}"
-        wasteTypes.isEmpty() -> "Rappel collecte Poubelles"
+        wasteTypes.isEmpty() -> "Rappel collecte"
         else -> "Rappel : ${wasteTypes.size} collectes demain"
     }
 

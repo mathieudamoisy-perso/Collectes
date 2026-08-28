@@ -73,15 +73,18 @@ class CalendarRepository(
                 )
             }
 
-            val pdfUrl = fetcher.findPdfUrl(currentYear, commune)
-            val pdfFile = fetcher.downloadPdf(
-                pdfUrl,
-                fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
-            )
-
-            val pdfEvents = runCatching {
-                parser.parse(pdfFile, currentYear, commune)
-            }.getOrElse {
+            val pdfUrl = runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
+            val pdfEvents = if (pdfUrl != null) {
+                val pdfFile = fetcher.downloadPdf(
+                    pdfUrl,
+                    fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
+                )
+                runCatching {
+                    parser.parse(pdfFile, currentYear, commune)
+                }.getOrElse {
+                    CalendarDateGenerator.generate(currentYear, rules, includeNextYearJanuary = true)
+                }
+            } else {
                 CalendarDateGenerator.generate(currentYear, rules, includeNextYearJanuary = true)
             }
 

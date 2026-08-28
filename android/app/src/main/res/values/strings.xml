@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Poubelles</string>
+    <string name="app_name">Collectes</string>
     <string name="notification_channel_name">Rappels collecte</string>
-    <string name="notification_channel_description">Rappels la veille du passage des camions poubelles</string>
+    <string name="notification_channel_description">Rappels la veille du passage des camions de collecte</string>
 </resources>
