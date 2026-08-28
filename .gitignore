@@ -19,5 +19,6 @@ android/.cxx/
 Thumbs.db
 
 # IDE
+.idea/
 .vscode/
 *.swp
