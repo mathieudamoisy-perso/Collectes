@@ -1,3 +1,7 @@
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,9 +9,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val buildStamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Paris"))
-val stampedVersionName =
-    buildStamp.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd.HHmmss"))
+val buildStamp = ZonedDateTime.now(ZoneId.of("Europe/Paris"))
+val stampedVersionName = buildStamp.format(DateTimeFormatter.ofPattern("yyyyMMdd.HHmmss"))
 val stampedVersionCode = buildStamp.toEpochSecond().toInt()
 
 android {
