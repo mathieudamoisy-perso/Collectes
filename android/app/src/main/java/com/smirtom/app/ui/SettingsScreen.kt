@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -152,14 +151,17 @@ fun SettingsScreen(
             }
 
             if (!ignoringBatteryOptimizations) {
-                OutlinedButton(
-                    onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Désactiver l'optimisation de la batterie")
+                    }
                     Text(
-                        text = "Ouvre les paramètres de l'application pour désactiver l'optimisation de la batterie et garantir les notifications push",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Start
+                        text = "Ouvre les paramètres de l'application pour désactiver l'optimisation de la batterie et garantir la bonne réception des notifications push la veille des jours de collecte",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
