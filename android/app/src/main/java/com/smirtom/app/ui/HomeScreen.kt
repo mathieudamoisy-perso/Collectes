@@ -88,6 +88,12 @@ fun HomeScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                if (isRefreshing) {
+                    item(key = "refresh_banner") {
+                        RefreshLoadingBanner()
+                    }
+                }
+
                 if (uiState.syncState is SyncState.Error) {
                     item {
                         val sync = uiState.syncState as SyncState.Error
