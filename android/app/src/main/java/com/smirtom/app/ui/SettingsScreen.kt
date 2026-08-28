@@ -86,7 +86,7 @@ fun SettingsScreen(
             }
 
             Text(
-                text = "Conseil : désactivez l'optimisation batterie pour Smirtom dans les paramètres Android afin que les rappels ne soient pas annulés.",
+                text = "Conseil : désactivez l'optimisation batterie pour Poubelles dans les paramètres Android afin que les rappels ne soient pas annulés.",
                 style = MaterialTheme.typography.bodySmall
             )
         }

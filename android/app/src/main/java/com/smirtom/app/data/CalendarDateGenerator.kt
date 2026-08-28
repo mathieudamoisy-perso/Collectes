@@ -23,15 +23,21 @@ object CalendarDateGenerator {
             if (date.dayOfWeek == rules.orduresDay) {
                 events.getOrPut(date) { mutableSetOf() }.add(WasteType.ORDURES)
             }
-            if (date.dayOfWeek == rules.emballagesDay &&
+            val hasEmballages = date.dayOfWeek == rules.emballagesDay &&
                 isBiweekly(date, rules.emballagesAnchor)
-            ) {
-                events.getOrPut(date) { mutableSetOf() }.add(WasteType.EMBALLAGES)
-            }
-            if (date.dayOfWeek == rules.verreDay &&
+            val hasVerre = date.dayOfWeek == rules.verreDay &&
                 isEveryFourWeeks(date, rules.verreAnchor)
-            ) {
-                events.getOrPut(date) { mutableSetOf() }.add(WasteType.VERRE)
+
+            if (rules.emballagesDay == rules.verreDay) {
+                events.getOrPut(date) { mutableSetOf() }
+                    .addAll(resolveAlternatingTuesday(hasEmballages, hasVerre))
+            } else {
+                if (hasEmballages) {
+                    events.getOrPut(date) { mutableSetOf() }.add(WasteType.EMBALLAGES)
+                }
+                if (hasVerre) {
+                    events.getOrPut(date) { mutableSetOf() }.add(WasteType.VERRE)
+                }
             }
             date = date.plusDays(1)
         }
@@ -39,6 +45,20 @@ object CalendarDateGenerator {
         return events.map { (eventDate, types) ->
             CollectionDay(eventDate, types.sortedBy { it.ordinal })
         }.sortedBy { it.date }
+    }
+
+    /** Emballages et verre ne sont jamais collectés le même jour (alternance). */
+    internal fun resolveAlternatingTuesday(
+        emballages: Boolean,
+        verre: Boolean
+    ): Set<WasteType> {
+        val types = mutableSetOf<WasteType>()
+        when {
+            emballages && verre -> types += WasteType.EMBALLAGES
+            emballages -> types += WasteType.EMBALLAGES
+            verre -> types += WasteType.VERRE
+        }
+        return types
     }
 
     private fun isBiweekly(date: LocalDate, anchor: LocalDate): Boolean {

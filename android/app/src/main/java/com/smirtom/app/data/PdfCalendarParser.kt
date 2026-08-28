@@ -42,8 +42,12 @@ class PdfCalendarParser(
         val emballagesAnchor = findAnchorDate(normalized, year, emballagesDay)
             ?: CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
 
-        val verreAnchor = findVerreAnchor(normalized, year, verreDay, emballagesAnchor)
-            ?: emballagesAnchor
+        val verreAnchor = resolveVerreAnchor(
+            text = normalized,
+            year = year,
+            verreDay = verreDay,
+            emballagesAnchor = emballagesAnchor
+        )
 
         return CollectionRules(
             orduresDay = orduresDay,
@@ -87,16 +91,27 @@ class PdfCalendarParser(
         return matches.minByOrNull { it.dayOfYear }
     }
 
-    private fun findVerreAnchor(
+    private fun resolveVerreAnchor(
         text: String,
         year: Int,
         verreDay: DayOfWeek,
         emballagesAnchor: LocalDate
-    ): LocalDate? {
-        if (!text.contains("4 semaines")) {
-            return emballagesAnchor
+    ): LocalDate {
+        val fromPdf = findAnchorDate(text, year, verreDay)
+
+        // Magny-en-Vexin : emballages et verre le mardi, en alternance (jamais le même jour).
+        // Le verre est sur les mardis « intermédiaires », soit 7 jours après l'ancre emballages.
+        val alternateAnchor = emballagesAnchor.plusDays(7)
+
+        return when {
+            fromPdf != null && fromPdf != emballagesAnchor -> fromPdf
+            emballagesDayMatches(emballagesAnchor, verreDay) -> alternateAnchor
+            else -> fromPdf ?: alternateAnchor
         }
-        return findAnchorDate(text, year, verreDay) ?: emballagesAnchor
+    }
+
+    private fun emballagesDayMatches(anchor: LocalDate, verreDay: DayOfWeek): Boolean {
+        return anchor.dayOfWeek == verreDay
     }
 
     private fun frenchDayToDayOfWeek(day: String): DayOfWeek? {

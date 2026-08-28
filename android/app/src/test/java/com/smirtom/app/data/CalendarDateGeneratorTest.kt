@@ -1,6 +1,7 @@
 package com.smirtom.app.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
@@ -12,7 +13,7 @@ class CalendarDateGeneratorTest {
     emballagesDay = DayOfWeek.TUESDAY,
     emballagesAnchor = LocalDate.of(2026, 1, 6),
     verreDay = DayOfWeek.TUESDAY,
-    verreAnchor = LocalDate.of(2026, 1, 6)
+    verreAnchor = LocalDate.of(2026, 1, 13)
   )
 
   @Test
@@ -28,8 +29,27 @@ class CalendarDateGeneratorTest {
     val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
     val emballages = events.filter { it.wasteTypes.contains(WasteType.EMBALLAGES) }
     assertTrue(emballages.any { it.date == LocalDate.of(2026, 1, 6) })
-    assertEquals(false, emballages.any { it.date == LocalDate.of(2026, 1, 13) })
+    assertFalse(emballages.any { it.date == LocalDate.of(2026, 1, 13) })
     assertTrue(emballages.any { it.date == LocalDate.of(2026, 1, 20) })
+  }
+
+  @Test
+  fun generatesFourWeeklyVerreOnAlternatingTuesdays() {
+    val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+    val verre = events.filter { it.wasteTypes.contains(WasteType.VERRE) }
+    assertTrue(verre.any { it.date == LocalDate.of(2026, 1, 13) })
+    assertFalse(verre.any { it.date == LocalDate.of(2026, 1, 6) })
+    assertTrue(verre.any { it.date == LocalDate.of(2026, 2, 10) })
+  }
+
+  @Test
+  fun neverCombinesEmballagesAndVerreOnSameDay() {
+    val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+    val sameDay = events.filter {
+      it.wasteTypes.contains(WasteType.EMBALLAGES) &&
+        it.wasteTypes.contains(WasteType.VERRE)
+    }
+    assertTrue(sameDay.isEmpty())
   }
 
   @Test

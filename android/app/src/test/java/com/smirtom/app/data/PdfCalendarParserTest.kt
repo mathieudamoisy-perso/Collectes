@@ -22,5 +22,6 @@ class PdfCalendarParserTest {
     assertEquals(DayOfWeek.TUESDAY, rules.emballagesDay)
     assertEquals(DayOfWeek.TUESDAY, rules.verreDay)
     assertEquals(LocalDate.of(2026, 1, 6), rules.emballagesAnchor)
+    assertEquals(LocalDate.of(2026, 1, 13), rules.verreAnchor)
   }
 }

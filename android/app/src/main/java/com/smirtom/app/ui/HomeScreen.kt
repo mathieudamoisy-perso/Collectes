@@ -1,17 +1,23 @@
 package com.smirtom.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -31,8 +37,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.smirtom.app.R
 import com.smirtom.app.data.CollectionDay
 import com.smirtom.app.data.SyncState
 import com.smirtom.app.data.WasteType
@@ -50,7 +59,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Smirtom") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
@@ -153,12 +162,19 @@ private fun WasteTypeFilterRow(
             label = { Text("Tous") }
         )
         WasteType.entries.forEach { type ->
+            val selected = activeFilter == type
             FilterChip(
-                selected = activeFilter == type,
-                onClick = { onFilterChange(if (activeFilter == type) null else type) },
-                label = { Text(type.label) },
+                selected = selected,
+                onClick = { onFilterChange(if (selected) null else type) },
+                label = {
+                    Text(
+                        text = type.label,
+                        color = if (selected) WasteTypeColors.accent(type) else MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = WasteTypeColors.cardBackground(type),
+                    selectedContainerColor = WasteTypeColors.cardBackground(type),
                     labelColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -177,21 +193,36 @@ private fun TomorrowCard(
     } else {
         WasteTypeColors.cardBackgroundOrDefault(wasteTypes)
     }
+    val accentColor = wasteTypes.firstOrNull()?.let { WasteTypeColors.accent(it) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            val title = if (activeFilter == null) "Demain" else "Demain — ${activeFilter.label}"
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(tomorrowLabel, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            if (wasteTypes.isEmpty()) {
-                Text("Rien à sortir")
-            } else {
-                wasteTypes.forEach { type ->
-                    Text("• ${type.label} (${type.colorName})")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+        ) {
+            if (accentColor != null) {
+                Box(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .fillMaxHeight()
+                        .background(accentColor)
+                )
+            }
+            Column(modifier = Modifier.padding(16.dp)) {
+                val title = if (activeFilter == null) "Demain" else "Demain — ${activeFilter.label}"
+                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(tomorrowLabel, style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                if (wasteTypes.isEmpty()) {
+                    Text("Rien à sortir")
+                } else {
+                    wasteTypes.forEach { type ->
+                        WasteTypeLine(type)
+                    }
                 }
             }
         }
@@ -201,20 +232,61 @@ private fun TomorrowCard(
 @Composable
 private fun UpcomingItem(day: CollectionDay) {
     val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
+    val accentColor = day.wasteTypes.firstOrNull()?.let { WasteTypeColors.accent(it) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = WasteTypeColors.cardBackgroundOrDefault(day.wasteTypes)
         )
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = day.date.format(formatter).replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
-                },
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(day.wasteTypes.joinToString(" + ") { "${it.label} (${it.colorName})" })
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+        ) {
+            if (accentColor != null) {
+                Box(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .fillMaxHeight()
+                        .background(accentColor)
+                )
+            }
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = day.date.format(formatter).replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
+                    },
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                day.wasteTypes.forEach { type ->
+                    WasteTypeLine(type)
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun WasteTypeLine(type: WasteType) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(10.dp)
+                .height(10.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(WasteTypeColors.accent(type))
+        )
+        Text(
+            text = "${type.label} (${type.colorName})",
+            color = WasteTypeColors.accent(type),
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
