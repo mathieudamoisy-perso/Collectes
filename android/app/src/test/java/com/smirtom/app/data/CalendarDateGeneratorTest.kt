@@ -75,4 +75,25 @@ class CalendarDateGeneratorTest {
     val reminderDate = collectionDate.minusDays(1)
     assertEquals(LocalDate.of(2026, 3, 2), reminderDate)
   }
+
+  @Test
+  fun magnyGroupBIncludes8SeptemberVerre() {
+    val magny = CollectionRules(
+      orduresDay = DayOfWeek.MONDAY,
+      emballagesDay = DayOfWeek.TUESDAY,
+      emballagesAnchor = LocalDate.of(2026, 1, 6),
+      verreDay = DayOfWeek.TUESDAY,
+      verreAnchor = LocalDate.of(2026, 1, 27)
+    )
+    val events = CalendarDateGenerator.generate(2026, magny, includeNextYearJanuary = false)
+    val verre = events.filter { it.wasteTypes.contains(WasteType.VERRE) }
+    assertTrue(verre.any { it.date == LocalDate.of(2026, 1, 27) })
+    assertTrue(verre.any { it.date == LocalDate.of(2026, 9, 8) })
+    assertFalse(verre.any { it.date == LocalDate.of(2026, 1, 13) })
+    assertFalse(
+      events.any {
+        it.date == LocalDate.of(2026, 9, 8) && it.wasteTypes.contains(WasteType.EMBALLAGES)
+      }
+    )
+  }
 }

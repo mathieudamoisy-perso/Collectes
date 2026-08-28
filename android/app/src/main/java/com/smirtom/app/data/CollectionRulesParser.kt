@@ -20,6 +20,13 @@ object CollectionRulesParser {
         """(\d{1,2})\s*(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec)\s*-?\s*(\d{2})"""
     )
 
+    fun parseIfPresent(text: String, year: Int, communeName: String? = null): CollectionRules? {
+        val normalized = normalizeSource(text)
+        val keywordHits = listOf("ordures", "emballages", "verre").count { normalized.contains(it) }
+        if (keywordHits < 2) return null
+        return parse(text, year, communeName)
+    }
+
     fun parse(text: String, year: Int, communeName: String? = null): CollectionRules {
         val normalized = normalizeSource(text)
         val communeWindow = communeName?.let { extractCommuneWindow(normalized, it) } ?: normalized
@@ -34,14 +41,18 @@ object CollectionRulesParser {
             listOf("emballages / papiers", "emballages papiers", "emballages")
         ) ?: DayOfWeek.TUESDAY
 
-        val verreDay = findDayNearKeyword(communeWindow, listOf("verre")) ?: DayOfWeek.TUESDAY
+        val verreDay = Regex(
+            """puis le (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+à partir du"""
+        ).find(normalized)?.let { frenchDayToDayOfWeek(it.groupValues[1]) }
+            ?: findDayNearKeyword(communeWindow, listOf("verre"))
+            ?: DayOfWeek.TUESDAY
 
         val emballagesAnchor = findAnchorDate(communeWindow, year, emballagesDay)
             ?: CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
 
         val verreAnchor = resolveVerreAnchor(
-            text = communeWindow,
-            year = year,
+            fullText = normalized,
+            communeName = communeName,
             verreDay = verreDay,
             emballagesDay = emballagesDay,
             emballagesAnchor = emballagesAnchor
@@ -85,17 +96,25 @@ object CollectionRulesParser {
     }
 
     /**
-     * Préfère le jour cité après le type de déchet
-     * (« ordures ménagères … le lundi »), sinon le jour juste avant
-     * (« le lundi pour les ordures ménagères »).
+     * Pages commune : « le lundi pour les ordures ménagères ».
+     * Légendes PDF : « ordures ménagères toutes les semaines le lundi ».
      */
     private fun findDayAround(text: String, keywordIndex: Int, keywordLength: Int): DayOfWeek? {
-        val afterEnd = (keywordIndex + keywordLength + 80).coerceAtMost(text.length)
-        val after = text.substring(keywordIndex, afterEnd)
-        DAY_PATTERN.find(after)?.let { return frenchDayToDayOfWeek(it.value) }
-
-        val beforeStart = (keywordIndex - 50).coerceAtLeast(0)
+        val beforeStart = (keywordIndex - 80).coerceAtLeast(0)
         val before = text.substring(beforeStart, keywordIndex)
+        val afterStart = (keywordIndex + keywordLength).coerceAtMost(text.length)
+        val afterEnd = (afterStart + 80).coerceAtMost(text.length)
+        val after = text.substring(afterStart, afterEnd)
+
+        val dayBeforePour = Regex(
+            """\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b.{0,50}pour les?\s*$""",
+            RegexOption.IGNORE_CASE
+        ).find(before)
+        if (dayBeforePour != null) {
+            return frenchDayToDayOfWeek(dayBeforePour.groupValues[1])
+        }
+
+        DAY_PATTERN.find(after)?.let { return frenchDayToDayOfWeek(it.value) }
         return DAY_PATTERN.findAll(before).lastOrNull()?.let { frenchDayToDayOfWeek(it.value) }
     }
 
@@ -111,22 +130,46 @@ object CollectionRulesParser {
             .minByOrNull { it.dayOfYear }
     }
 
+    /**
+     * Sur les calendriers SMIRTOM à deux communes, le verre est en groupes A et B
+     * (toutes les 4 semaines, décalés de 14 jours). Magny-en-Vexin est le groupe B :
+     * 3 semaines après le premier mardi emballages (ex. 27 janv. 2026, puis 8 sept.).
+     *
+     * La légende « A B » après les deux communes ne doit pas être lue comme une
+     * lettre collée à Magny : A = première commune (Charmont), B = seconde (Magny).
+     */
+    internal fun verreOffsetDays(text: String, communeName: String): Long {
+        val name = normalizeSource(communeName)
+        if (name.isBlank()) return 7
+        if (name.contains("magny")) return 21
+
+        val listed = Regex("""pour la commune de\s+(.+?)\s*\(\s*mardi\s*\)""")
+            .findAll(text)
+            .map { normalizeSource(it.groupValues[1]) }
+            .distinct()
+            .toList()
+        val index = listed.indexOfFirst { it.contains(name) || name.contains(it) }
+        if (index >= 1) return 21
+        return 7
+    }
+
     private fun resolveVerreAnchor(
-        text: String,
-        year: Int,
+        fullText: String,
+        communeName: String?,
         verreDay: DayOfWeek,
         emballagesDay: DayOfWeek,
         emballagesAnchor: LocalDate
     ): LocalDate {
-        val fromText = findAnchorDate(text, year, verreDay)
-        if (fromText != null && fromText != emballagesAnchor) return fromText
-
-        return if (emballagesDay == verreDay) {
-            emballagesAnchor.plusDays(7)
-        } else {
-            findAnchorDate(text, year, verreDay)
-                ?: CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, verreDay)
+        if (emballagesDay == verreDay) {
+            return emballagesAnchor.plusDays(
+                verreOffsetDays(fullText, communeName.orEmpty())
+            )
         }
+        return CalendarDateGenerator.firstDayOfWeekOnOrAfter(
+            emballagesAnchor.year,
+            1,
+            verreDay
+        )
     }
 
     private fun frenchDayToDayOfWeek(day: String): DayOfWeek? {

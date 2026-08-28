@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.smirtom.app.data.PreferencesManager
-import com.smirtom.app.data.SmirtomFetcher
 import com.smirtom.app.util.BatteryOptimizationHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +44,8 @@ fun SettingsScreen(
 ) {
     val reminderHour by viewModel.reminderHour.collectAsState()
     val selectedCommune by viewModel.selectedCommune.collectAsState()
+    val openingCalendar by viewModel.openingCalendar.collectAsState()
+    val calendarError by viewModel.calendarError.collectAsState()
     val context = LocalContext.current
     var communeMenuExpanded by remember { mutableStateOf(false) }
 
@@ -105,7 +106,7 @@ fun SettingsScreen(
                     }
                 }
                 Text(
-                    text = "Communes du code postal 95420",
+                    text = "Magny-en-Vexin ou Théméricourt",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -151,12 +152,33 @@ fun SettingsScreen(
 
             Button(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(SmirtomFetcher.DOWNLOADS_URL))
-                    context.startActivity(intent)
+                    viewModel.openOfficialCalendar { url ->
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                            addCategory(Intent.CATEGORY_BROWSABLE)
+                        }
+                        runCatching { context.startActivity(intent) }
+                            .onFailure { viewModel.reportCalendarOpenError() }
+                    }
                 },
+                enabled = !openingCalendar,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Voir le site SMIRTOM")
+                Text(
+                    if (openingCalendar) "Ouverture du calendrier…"
+                    else "Voir le calendrier officiel"
+                )
+            }
+            Text(
+                text = "Ouvre le calendrier SMIRTOM de ${selectedCommune.displayName} dans le navigateur, sans l'enregistrer dans l'application.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            calendarError?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

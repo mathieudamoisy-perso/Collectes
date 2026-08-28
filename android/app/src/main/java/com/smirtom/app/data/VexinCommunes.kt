@@ -2,7 +2,8 @@ package com.smirtom.app.data
 
 data class VexinCommune(
     val slug: String,
-    val displayName: String
+    val displayName: String,
+    val officialCalendarUrl: String = ""
 ) {
     val pageUrl: String
         get() = "https://smirtomduvexin.net/informations_utiles/$slug/"
@@ -17,23 +18,19 @@ data class VexinCommune(
 
 object VexinCommunes {
     private val allCommunes = listOf(
-        "Ambleville",
-        "Arthies",
-        "Banthelu",
-        "Charmont",
-        "Cléry-en-Vexin",
-        "Genainville",
-        "Hodent",
-        "La Chapelle-en-Vexin",
-        "Magny-en-Vexin",
-        "Maudétour-en-Vexin",
-        "Nucourt",
-        "Omerville",
-        "Saint-Gervais",
-        "Wy-dit-Joli-Village"
-    ).map { name ->
-        VexinCommune(slug = nameToSlug(name), displayName = name)
-    }.sortedBy { it.displayName }
+        VexinCommune(
+            slug = nameToSlug("Magny-en-Vexin"),
+            displayName = "Magny-en-Vexin",
+            officialCalendarUrl =
+                "https://smirtomduvexin.net/telechargement/calendrier-2024-magny-en-vexin-charmont/"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Théméricourt"),
+            displayName = "Théméricourt",
+            officialCalendarUrl =
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
+        )
+    )
 
     val all: List<VexinCommune> = allCommunes
 

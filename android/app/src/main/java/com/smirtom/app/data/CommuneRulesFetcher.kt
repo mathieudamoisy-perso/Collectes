@@ -1,10 +1,13 @@
 package com.smirtom.app.data
 
 class CommuneRulesFetcher {
+    fun fetchText(commune: VexinCommune): String {
+        return SmirtomHttp.document(commune.pageUrl).text()
+    }
+
     fun fetchRules(commune: VexinCommune, year: Int): CollectionRules {
-        val document = SmirtomHttp.document(commune.pageUrl)
         return CollectionRulesParser.parse(
-            text = document.text(),
+            text = fetchText(commune),
             year = year,
             communeName = commune.displayName
         )

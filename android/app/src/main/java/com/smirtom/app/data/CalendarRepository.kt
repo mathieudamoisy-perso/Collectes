@@ -47,7 +47,10 @@ class CalendarRepository(
             val commune = preferencesManager.getSelectedCommune()
             val currentYear = LocalDate.now(zoneId).year
             val metadata = syncMetadataDao.get()
+            val logicOutdated =
+                preferencesManager.getCalendarLogicVersion() < PreferencesManager.CALENDAR_LOGIC_VERSION
             if (!force &&
+                !logicOutdated &&
                 metadata?.calendarYear == currentYear &&
                 metadata.communeSlug == commune.slug
             ) {
@@ -66,28 +69,30 @@ class CalendarRepository(
             }
 
             val pdfUrl = runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
-            val pdfEvents = if (pdfUrl != null) {
+            val pdfText = if (pdfUrl != null) {
                 val pdfFile = fetcher.downloadPdf(
                     pdfUrl,
                     fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
                 )
-                runCatching {
-                    parser.parse(pdfFile, currentYear, commune)
-                }.getOrNull()
+                runCatching { parser.extractText(pdfFile) }.getOrNull()
             } else {
                 null
             }
+            val pageText = runCatching {
+                communeRulesFetcher.fetchText(commune)
+            }.getOrNull()
 
-            val rules = runCatching {
-                communeRulesFetcher.fetchRules(commune, currentYear)
-            }.getOrNull() ?: CollectionRules.fallback(currentYear)
-
-            val eventsFromRules = CalendarDateGenerator.generate(
+            val rules = CalendarReconciler.reconcile(
+                pdfText = pdfText,
+                pageText = pageText,
+                commune = commune,
+                year = currentYear
+            )
+            val regularEvents = CalendarDateGenerator.generate(
                 currentYear,
                 rules,
                 includeNextYearJanuary = true
             )
-            val regularEvents = pdfEvents ?: eventsFromRules
 
             val encombrantsEvents = encombrantsFetcher.toCollectionDays(
                 encombrantsFetcher.fetchDates(currentYear, commune)
@@ -109,6 +114,7 @@ class CalendarRepository(
                 events,
                 preferencesManager.getReminderHour()
             )
+            preferencesManager.setCalendarLogicVersion(PreferencesManager.CALENDAR_LOGIC_VERSION)
 
             _syncState.value = SyncState.Success(Instant.now(), currentYear)
             currentYear

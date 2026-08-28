@@ -11,8 +11,7 @@ class EncombrantsFetcher {
         return runCatching { fetchFromCommunePage(year, commune) }.getOrDefault(emptyList())
     }
 
-    private fun fetchFromCommunePage(year: Int, commune: VexinCommune): List<LocalDate> {
-        val text = SmirtomHttp.document(commune.pageUrl).text()
+    fun parseDatesFromText(text: String, year: Int): List<LocalDate> {
         val encombrantsIndex = text.indexOf("encombrants", ignoreCase = true)
         if (encombrantsIndex < 0) return emptyList()
 
@@ -32,6 +31,11 @@ class EncombrantsFetcher {
             .distinct()
             .sorted()
             .toList()
+    }
+
+    private fun fetchFromCommunePage(year: Int, commune: VexinCommune): List<LocalDate> {
+        val text = SmirtomHttp.document(commune.pageUrl).text()
+        return parseDatesFromText(text, year)
     }
 
     fun toCollectionDays(dates: List<LocalDate>): List<CollectionDay> {

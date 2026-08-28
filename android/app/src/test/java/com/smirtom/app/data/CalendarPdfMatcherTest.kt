@@ -15,6 +15,14 @@ class CalendarPdfMatcherTest {
     }
 
     @Test
+    fun matchesThemericourtPdfUrl() {
+        val themericourt = VexinCommunes.bySlug("themericourt")!!
+        val haystack =
+            "Calendrier 2026 Avernes Théméricourt Wy https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
+        assertTrue(CalendarPdfMatcher.matches(haystack, 2026, themericourt))
+    }
+
+    @Test
     fun matchesMagnyListingTitle() {
         val haystack = "Calendrier 2026 Magny en Vexin / Charmont Calendriers du ramassage"
         assertTrue(CalendarPdfMatcher.matches(haystack, 2026, magny))

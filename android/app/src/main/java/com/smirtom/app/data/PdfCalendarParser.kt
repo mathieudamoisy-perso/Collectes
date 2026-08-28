@@ -5,12 +5,21 @@ import com.tom_roush.pdfbox.text.PDFTextStripper
 import java.io.File
 
 class PdfCalendarParser {
-    fun parse(pdfFile: File, year: Int, commune: VexinCommune): List<CollectionDay> {
+    fun extractText(pdfFile: File): String {
         PDDocument.load(pdfFile).use { document ->
             val stripper = PDFTextStripper()
-            val text = stripper.getText(document)
-            val rules = CollectionRulesParser.parse(text, year, commune.displayName)
-            return CalendarDateGenerator.generate(year, rules, includeNextYearJanuary = true)
+            return stripper.getText(document)
         }
+    }
+
+    fun parse(pdfFile: File, year: Int, commune: VexinCommune): List<CollectionDay> {
+        val text = extractText(pdfFile)
+        val rules = CalendarReconciler.reconcile(
+            pdfText = text,
+            pageText = null,
+            commune = commune,
+            year = year
+        )
+        return CalendarDateGenerator.generate(year, rules, includeNextYearJanuary = true)
     }
 }

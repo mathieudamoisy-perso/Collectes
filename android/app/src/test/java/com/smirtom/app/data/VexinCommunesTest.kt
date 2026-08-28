@@ -1,31 +1,18 @@
 package com.smirtom.app.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VexinCommunesTest {
     @Test
-    fun includesOnlyPostalCode95420() {
-        assertEquals(14, VexinCommunes.all.size)
+    fun includesOnlyMagnyAndThemericourt() {
+        assertEquals(2, VexinCommunes.all.size)
         assertEquals(
-            listOf(
-                "Ambleville",
-                "Arthies",
-                "Banthelu",
-                "Charmont",
-                "Cléry-en-Vexin",
-                "Genainville",
-                "Hodent",
-                "La Chapelle-en-Vexin",
-                "Magny-en-Vexin",
-                "Maudétour-en-Vexin",
-                "Nucourt",
-                "Omerville",
-                "Saint-Gervais",
-                "Wy-dit-Joli-Village"
-            ),
+            listOf("Magny-en-Vexin", "Théméricourt"),
             VexinCommunes.all.map { it.displayName }
         )
     }
@@ -38,8 +25,16 @@ class VexinCommunesTest {
 
     @Test
     fun slugLookupWorks() {
-        assertNotNull(VexinCommunes.bySlug("nucourt"))
-        assertEquals("Nucourt", VexinCommunes.bySlug("nucourt")?.displayName)
+        assertNotNull(VexinCommunes.bySlug("themericourt"))
+        assertEquals("Théméricourt", VexinCommunes.bySlug("themericourt")?.displayName)
+        assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
+    }
+
+    @Test
+    fun magnyOfficialCalendarIsWebsitePageNotPdfFile() {
+        val url = VexinCommunes.default.officialCalendarUrl
+        assertTrue(url.contains("/telechargement/"))
+        assertFalse(url.contains(".pdf"))
     }
 }

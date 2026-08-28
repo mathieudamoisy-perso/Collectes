@@ -16,6 +16,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class PreferencesManager(private val context: Context) {
     private val reminderHourKey = intPreferencesKey("reminder_hour")
     private val communeSlugKey = stringPreferencesKey("commune_slug")
+    private val calendarLogicVersionKey = intPreferencesKey("calendar_logic_version")
 
     val reminderHour: Flow<Int> = context.dataStore.data.map { prefs ->
         (prefs[reminderHourKey] ?: DEFAULT_REMINDER_HOUR)
@@ -43,9 +44,19 @@ class PreferencesManager(private val context: Context) {
 
     suspend fun getSelectedCommune(): VexinCommune = selectedCommune.first()
 
+    suspend fun getCalendarLogicVersion(): Int =
+        context.dataStore.data.first()[calendarLogicVersionKey] ?: 0
+
+    suspend fun setCalendarLogicVersion(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[calendarLogicVersionKey] = version
+        }
+    }
+
     companion object {
         const val DEFAULT_REMINDER_HOUR = 9
         const val MIN_REMINDER_HOUR = 6
         const val MAX_REMINDER_HOUR = 12
+        const val CALENDAR_LOGIC_VERSION = 3
     }
 }
