@@ -5,20 +5,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.smirtom.app.data.CalendarRepository
 import com.smirtom.app.data.CollectionDay
+import com.smirtom.app.data.OfficialCalendarLinks
 import com.smirtom.app.data.PreferencesManager
-import com.smirtom.app.data.SmirtomFetcher
 import com.smirtom.app.data.SyncState
 import com.smirtom.app.data.VexinCommune
 import com.smirtom.app.data.VexinCommunes
 import com.smirtom.app.data.WasteType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -97,8 +95,7 @@ class HomeViewModelFactory(
 
 class SettingsViewModel(
     private val repository: CalendarRepository,
-    private val preferencesManager: PreferencesManager,
-    private val smirtomFetcher: SmirtomFetcher = SmirtomFetcher()
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
     val reminderHour: StateFlow<Int> = preferencesManager.reminderHour.stateIn(
         scope = viewModelScope,
@@ -113,9 +110,6 @@ class SettingsViewModel(
     )
 
     val communes: List<VexinCommune> = VexinCommunes.all
-
-    private val _openingCalendar = MutableStateFlow(false)
-    val openingCalendar: StateFlow<Boolean> = _openingCalendar.asStateFlow()
 
     private val _calendarError = MutableStateFlow<String?>(null)
     val calendarError: StateFlow<String?> = _calendarError.asStateFlow()
@@ -134,23 +128,8 @@ class SettingsViewModel(
         }
     }
 
-    fun openOfficialCalendar(openUrl: (String) -> Unit) {
-        viewModelScope.launch {
-            _openingCalendar.value = true
-            _calendarError.value = null
-            try {
-                val commune = selectedCommune.value
-                val year = LocalDate.now(ZoneId.of("Europe/Paris")).year
-                val url = withContext(Dispatchers.IO) {
-                    smirtomFetcher.findCalendarUrlForBrowser(year, commune)
-                }
-                openUrl(url)
-            } catch (_: Exception) {
-                _calendarError.value = "Calendrier introuvable pour le moment"
-            } finally {
-                _openingCalendar.value = false
-            }
-        }
+    fun officialCalendarViewUrl(): String {
+        return OfficialCalendarLinks.onlineViewerUrl(selectedCommune.value.officialCalendarUrl)
     }
 
     fun reportCalendarOpenError() {

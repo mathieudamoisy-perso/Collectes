@@ -44,7 +44,6 @@ fun SettingsScreen(
 ) {
     val reminderHour by viewModel.reminderHour.collectAsState()
     val selectedCommune by viewModel.selectedCommune.collectAsState()
-    val openingCalendar by viewModel.openingCalendar.collectAsState()
     val calendarError by viewModel.calendarError.collectAsState()
     val context = LocalContext.current
     var communeMenuExpanded by remember { mutableStateOf(false) }
@@ -152,24 +151,21 @@ fun SettingsScreen(
 
             Button(
                 onClick = {
-                    viewModel.openOfficialCalendar { url ->
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                            addCategory(Intent.CATEGORY_BROWSABLE)
-                        }
-                        runCatching { context.startActivity(intent) }
-                            .onFailure { viewModel.reportCalendarOpenError() }
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(viewModel.officialCalendarViewUrl())
+                    ).apply {
+                        addCategory(Intent.CATEGORY_BROWSABLE)
                     }
+                    runCatching { context.startActivity(intent) }
+                        .onFailure { viewModel.reportCalendarOpenError() }
                 },
-                enabled = !openingCalendar,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    if (openingCalendar) "Ouverture du calendrier…"
-                    else "Voir le calendrier officiel"
-                )
+                Text("Voir le calendrier officiel")
             }
             Text(
-                text = "Ouvre le calendrier SMIRTOM de ${selectedCommune.displayName} dans le navigateur, sans l'enregistrer dans l'application.",
+                text = "Affiche le PDF SMIRTOM de ${selectedCommune.displayName} dans le navigateur, sans l'enregistrer.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

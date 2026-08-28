@@ -1,7 +1,6 @@
 package com.smirtom.app.data
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -32,9 +31,9 @@ class VexinCommunesTest {
     }
 
     @Test
-    fun magnyOfficialCalendarIsWebsitePageNotPdfFile() {
+    fun magnyOfficialCalendarIsDirectPdf() {
         val url = VexinCommunes.default.officialCalendarUrl
-        assertTrue(url.contains("/telechargement/"))
-        assertFalse(url.contains(".pdf"))
+        assertTrue(url.endsWith(".pdf"))
+        assertTrue(url.contains("Magny-en-vexin", ignoreCase = true))
     }
 }

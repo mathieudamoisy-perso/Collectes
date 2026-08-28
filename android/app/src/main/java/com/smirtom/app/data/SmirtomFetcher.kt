@@ -33,46 +33,6 @@ class SmirtomFetcher {
         )
     }
 
-    /**
-     * URL à ouvrir dans le navigateur (page HTML SMIRTOM de préférence).
-     * Ne télécharge aucun fichier dans l'application.
-     */
-    fun findCalendarUrlForBrowser(year: Int, commune: VexinCommune): String {
-        val listingPages = listOf(
-            DOCUMENTATION_URL,
-            DOWNLOADS_URL,
-            "${DOCUMENTATION_URL}page/2/",
-            "${DOWNLOADS_URL}page/2/",
-            "${DOWNLOADS_URL}page/3/"
-        )
-        listingPages.forEach { pageUrl ->
-            runCatching { findHtmlListingOnPage(pageUrl, year, commune) }.getOrNull()
-                ?.let { return it }
-        }
-        runCatching { findHtmlListingOnPage(commune.pageUrl, year, commune) }.getOrNull()
-            ?.let { return it }
-
-        val known = commune.officialCalendarUrl
-        if (known.isNotBlank() && !known.contains(".pdf", ignoreCase = true)) {
-            return known
-        }
-        return known.ifBlank { commune.pageUrl }
-    }
-
-    private fun findHtmlListingOnPage(pageUrl: String, year: Int, commune: VexinCommune): String? {
-        val document = SmirtomHttp.document(pageUrl)
-        document.select("a[href]").forEach { link ->
-            val href = link.absUrl("href").ifBlank { return@forEach }
-            if (!href.contains("/telechargement/", ignoreCase = true)) return@forEach
-            if (href.contains(".pdf", ignoreCase = true)) return@forEach
-            val haystack = haystackFor(link, href)
-            if (CalendarPdfMatcher.matches(haystack, year, commune)) {
-                return href
-            }
-        }
-        return null
-    }
-
     private fun findPdfOnPage(pageUrl: String, year: Int, commune: VexinCommune): String? {
         val document = SmirtomHttp.document(pageUrl)
 

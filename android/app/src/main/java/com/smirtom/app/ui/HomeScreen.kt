@@ -122,9 +122,9 @@ fun HomeScreen(
 
                 item {
                     val listTitle = if (uiState.activeFilter == null) {
-                        "Toutes les échéances (${uiState.upcoming.size})"
+                        "Toutes les collectes (${uiState.upcoming.size})"
                     } else {
-                        "Échéances ${uiState.activeFilter.label.lowercase()} (${uiState.upcoming.size})"
+                        "Collectes ${uiState.activeFilter.label.lowercase()} (${uiState.upcoming.size})"
                     }
                     Text(listTitle, style = MaterialTheme.typography.titleMedium)
                 }

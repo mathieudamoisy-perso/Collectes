@@ -22,7 +22,7 @@ object VexinCommunes {
             slug = nameToSlug("Magny-en-Vexin"),
             displayName = "Magny-en-Vexin",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/telechargement/calendrier-2024-magny-en-vexin-charmont/"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf"
         ),
         VexinCommune(
             slug = nameToSlug("Théméricourt"),
