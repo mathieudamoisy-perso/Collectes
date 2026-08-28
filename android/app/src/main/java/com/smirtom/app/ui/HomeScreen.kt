@@ -178,40 +178,37 @@ private fun WasteTypeFilterRow(
             leadingIcon = {
                 AllCollectionsIcon(
                     size = 18.dp,
-                    tint = if (activeFilter == null) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         )
         WasteType.entries.forEach { type ->
             val selected = activeFilter == type
+            val palette = WasteTypeColors.palette(type)
             FilterChip(
                 selected = selected,
                 onClick = { onFilterChange(if (selected) null else type) },
-                label = {
-                    Text(
-                        text = type.label,
-                        color = if (selected) WasteTypeColors.accent(type) else MaterialTheme.colorScheme.onSurface
-                    )
-                },
+                label = { Text(type.label) },
                 leadingIcon = {
                     WasteTypeIcon(
                         type = type,
                         size = 18.dp,
-                        tint = if (selected) {
-                            WasteTypeColors.accent(type)
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
+                        tint = palette.accent
                     )
                 },
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = WasteTypeColors.cardBackground(type),
-                    selectedContainerColor = WasteTypeColors.cardBackground(type),
-                    labelColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = palette.containerMuted,
+                    selectedContainerColor = palette.container,
+                    labelColor = palette.accent,
+                    selectedLabelColor = palette.accent,
+                    iconColor = palette.accent,
+                    selectedLeadingIconColor = palette.accent
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selected,
+                    borderColor = palette.accent.copy(alpha = 0.35f),
+                    selectedBorderColor = palette.accent
                 )
             )
         }

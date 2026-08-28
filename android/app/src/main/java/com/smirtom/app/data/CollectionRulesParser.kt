@@ -17,24 +17,24 @@ object CollectionRulesParser {
     )
 
     private val DATE_PATTERN = Regex(
-        """(\d{1,2})\s*(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec)-?(\d{2})"""
+        """(\d{1,2})\s*(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec)\s*-?\s*(\d{2})"""
     )
 
     fun parse(text: String, year: Int, communeName: String? = null): CollectionRules {
-        val normalized = text.lowercase(Locale.FRENCH).replace('\u00a0', ' ')
+        val normalized = normalizeSource(text)
         val communeWindow = communeName?.let { extractCommuneWindow(normalized, it) } ?: normalized
 
         val orduresDay = findDayNearKeyword(
             communeWindow,
-            listOf("ordures ménagères", "ordures menageres", "ordures ménageres")
+            listOf("ordures menageres", "ordures ménagères", "ordures")
         ) ?: DayOfWeek.MONDAY
 
         val emballagesDay = findDayNearKeyword(
             communeWindow,
-            listOf("emballages / papiers", "emballages", "papiers")
+            listOf("emballages / papiers", "emballages papiers", "emballages")
         ) ?: DayOfWeek.TUESDAY
 
-        val verreDay = findVerreDay(communeWindow) ?: DayOfWeek.TUESDAY
+        val verreDay = findDayNearKeyword(communeWindow, listOf("verre")) ?: DayOfWeek.TUESDAY
 
         val emballagesAnchor = findAnchorDate(communeWindow, year, emballagesDay)
             ?: CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
@@ -56,14 +56,21 @@ object CollectionRulesParser {
         )
     }
 
+    internal fun normalizeSource(text: String): String {
+        return text.lowercase(Locale.FRENCH)
+            .replace('\u00a0', ' ')
+            .replace('-', ' ')
+            .replace('/', ' ')
+            .replace('\'', ' ')
+            .replace(Regex("\\s+"), " ")
+    }
+
     private fun extractCommuneWindow(text: String, communeName: String): String {
-        val normalizedCommune = communeName.lowercase(Locale.FRENCH)
-            .replace("-", " ")
-            .replace("'", " ")
+        val normalizedCommune = normalizeSource(communeName)
         val index = text.indexOf(normalizedCommune)
         if (index < 0) return text
-        val start = (index - 80).coerceAtLeast(0)
-        val end = (index + 280).coerceAtMost(text.length)
+        val start = (index - 120).coerceAtLeast(0)
+        val end = (index + 500).coerceAtMost(text.length)
         return text.substring(start, end)
     }
 
@@ -71,20 +78,25 @@ object CollectionRulesParser {
         for (keyword in keywords) {
             val index = text.indexOf(keyword)
             if (index >= 0) {
-                val before = text.substring((index - 80).coerceAtLeast(0), index)
-                val after = text.substring(index, (index + 120).coerceAtMost(text.length))
-                DAY_PATTERN.findAll(before).lastOrNull()?.let { return frenchDayToDayOfWeek(it.value) }
-                DAY_PATTERN.findAll(after).firstOrNull()?.let { return frenchDayToDayOfWeek(it.value) }
+                findDayAround(text, index, keyword.length)?.let { return it }
             }
         }
         return null
     }
 
-    private fun findVerreDay(text: String): DayOfWeek? {
-        val verreIndex = text.indexOf("verre")
-        if (verreIndex < 0) return null
-        val window = text.substring((verreIndex - 160).coerceAtLeast(0), verreIndex)
-        return DAY_PATTERN.findAll(window).lastOrNull()?.let { frenchDayToDayOfWeek(it.value) }
+    /**
+     * Préfère le jour cité après le type de déchet
+     * (« ordures ménagères … le lundi »), sinon le jour juste avant
+     * (« le lundi pour les ordures ménagères »).
+     */
+    private fun findDayAround(text: String, keywordIndex: Int, keywordLength: Int): DayOfWeek? {
+        val afterEnd = (keywordIndex + keywordLength + 80).coerceAtMost(text.length)
+        val after = text.substring(keywordIndex, afterEnd)
+        DAY_PATTERN.find(after)?.let { return frenchDayToDayOfWeek(it.value) }
+
+        val beforeStart = (keywordIndex - 50).coerceAtLeast(0)
+        val before = text.substring(beforeStart, keywordIndex)
+        return DAY_PATTERN.findAll(before).lastOrNull()?.let { frenchDayToDayOfWeek(it.value) }
     }
 
     private fun findAnchorDate(text: String, year: Int, dayOfWeek: DayOfWeek): LocalDate? {

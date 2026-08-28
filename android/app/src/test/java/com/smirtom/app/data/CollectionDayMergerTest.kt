@@ -19,4 +19,15 @@ class CollectionDayMergerTest {
             merged.first().wasteTypes
         )
     }
+
+    @Test
+    fun keepsOnlyOneRegularBinOnSameDate() {
+        val merged = CollectionDayMerger.merge(
+            listOf(
+                CollectionDay(LocalDate.of(2026, 1, 6), listOf(WasteType.ORDURES)),
+                CollectionDay(LocalDate.of(2026, 1, 6), listOf(WasteType.EMBALLAGES))
+            )
+        )
+        assertEquals(listOf(WasteType.EMBALLAGES), merged.single().wasteTypes)
+    }
 }

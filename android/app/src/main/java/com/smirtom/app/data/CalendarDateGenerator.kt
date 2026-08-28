@@ -20,23 +20,16 @@ object CalendarDateGenerator {
         val events = linkedMapOf<LocalDate, MutableSet<WasteType>>()
         var date = start
         while (!date.isAfter(end)) {
-            if (date.dayOfWeek == rules.orduresDay) {
-                events.getOrPut(date) { mutableSetOf() }.add(WasteType.ORDURES)
-            }
             val hasEmballages = date.dayOfWeek == rules.emballagesDay &&
                 isBiweekly(date, rules.emballagesAnchor)
             val hasVerre = date.dayOfWeek == rules.verreDay &&
                 isEveryFourWeeks(date, rules.verreAnchor)
+            val recycling = resolveRecyclingType(rules, hasEmballages, hasVerre)
 
-            if (rules.emballagesDay == rules.verreDay) {
-                events.getOrPut(date) { mutableSetOf() }
-                    .addAll(resolveAlternatingTuesday(hasEmballages, hasVerre))
-            } else {
-                if (hasEmballages) {
-                    events.getOrPut(date) { mutableSetOf() }.add(WasteType.EMBALLAGES)
-                }
-                if (hasVerre) {
-                    events.getOrPut(date) { mutableSetOf() }.add(WasteType.VERRE)
+            when {
+                recycling != null -> events.getOrPut(date) { mutableSetOf() }.add(recycling)
+                date.dayOfWeek == rules.orduresDay -> {
+                    events.getOrPut(date) { mutableSetOf() }.add(WasteType.ORDURES)
                 }
             }
             date = date.plusDays(1)
@@ -45,6 +38,26 @@ object CalendarDateGenerator {
         return events.map { (eventDate, types) ->
             CollectionDay(eventDate, types.sortedBy { it.ordinal })
         }.sortedBy { it.date }
+    }
+
+    /** Un seul flux régulier par jour : verre / emballages en alternance, jamais avec les ordures. */
+    private fun resolveRecyclingType(
+        rules: CollectionRules,
+        hasEmballages: Boolean,
+        hasVerre: Boolean
+    ): WasteType? {
+        val candidates = if (rules.emballagesDay == rules.verreDay) {
+            resolveAlternatingTuesday(hasEmballages, hasVerre)
+        } else {
+            buildSet {
+                if (hasEmballages) add(WasteType.EMBALLAGES)
+                if (hasVerre) add(WasteType.VERRE)
+            }
+        }
+        return when {
+            WasteType.VERRE in candidates && WasteType.EMBALLAGES in candidates -> WasteType.EMBALLAGES
+            else -> candidates.singleOrNull()
+        }
     }
 
     /** Emballages et verre ne sont jamais collectés le même jour (alternance). */

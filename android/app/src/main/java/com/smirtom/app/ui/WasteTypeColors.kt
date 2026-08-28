@@ -6,27 +6,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.smirtom.app.data.WasteType
 
+data class WasteTypePalette(
+    val accent: Color,
+    val container: Color,
+    val containerMuted: Color
+)
+
 object WasteTypeColors {
+    fun palette(type: WasteType): WasteTypePalette = when (type) {
+        WasteType.ORDURES -> WasteTypePalette(
+            accent = Color(0xFF6E818C),
+            container = Color(0xFFE6EDF0),
+            containerMuted = Color(0xFFF3F6F7)
+        )
+        WasteType.EMBALLAGES -> WasteTypePalette(
+            accent = Color(0xFFB89B3D),
+            container = Color(0xFFFBF3D0),
+            containerMuted = Color(0xFFFDF8E8)
+        )
+        WasteType.VERRE -> WasteTypePalette(
+            accent = Color(0xFF5E8F66),
+            container = Color(0xFFDCEFDE),
+            containerMuted = Color(0xFFEEF6EF)
+        )
+        WasteType.ENCOMBRANTS -> WasteTypePalette(
+            accent = Color(0xFFC88462),
+            container = Color(0xFFFCE4D4),
+            containerMuted = Color(0xFFFDF1E8)
+        )
+    }
+
+    fun accent(type: WasteType): Color = palette(type).accent
+
     fun accentArgb(type: WasteType): Int = accent(type).toArgb()
 
-    fun accent(type: WasteType): Color = when (type) {
-        WasteType.ORDURES -> Color(0xFF546E7A)
-        WasteType.EMBALLAGES -> Color(0xFFF9A825)
-        WasteType.VERRE -> Color(0xFF2E7D32)
-        WasteType.ENCOMBRANTS -> Color(0xFFE65100)
-    }
-
-    fun cardBackground(type: WasteType): Color = when (type) {
-        WasteType.ORDURES -> Color(0xFFCFD8DC)
-        WasteType.EMBALLAGES -> Color(0xFFFFF176)
-        WasteType.VERRE -> Color(0xFF81C784)
-        WasteType.ENCOMBRANTS -> Color(0xFFFFB74D)
-    }
+    fun cardBackground(type: WasteType): Color = palette(type).container
 
     fun cardBackground(types: List<WasteType>): Color {
         if (types.isEmpty()) return Color.Unspecified
-        if (types.size == 1) return cardBackground(types.first())
-        return cardBackground(types.first()).copy(alpha = 0.9f)
+        return cardBackground(types.first())
     }
 
     @Composable

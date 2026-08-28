@@ -43,13 +43,30 @@ class CalendarDateGeneratorTest {
   }
 
   @Test
-  fun neverCombinesEmballagesAndVerreOnSameDay() {
+  fun neverCombinesRegularBinsOnSameDay() {
     val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
-    val sameDay = events.filter {
-      it.wasteTypes.contains(WasteType.EMBALLAGES) &&
-        it.wasteTypes.contains(WasteType.VERRE)
+    val overlapping = events.filter { day ->
+      day.wasteTypes.filter { it != WasteType.ENCOMBRANTS }.size > 1
     }
-    assertTrue(sameDay.isEmpty())
+    assertTrue(overlapping.isEmpty())
+  }
+
+  @Test
+  fun neverCombinesOrduresAndEmballagesEvenIfSameWeekday() {
+    val colliding = CollectionRules(
+      orduresDay = DayOfWeek.TUESDAY,
+      emballagesDay = DayOfWeek.TUESDAY,
+      emballagesAnchor = LocalDate.of(2026, 1, 6),
+      verreDay = DayOfWeek.TUESDAY,
+      verreAnchor = LocalDate.of(2026, 1, 13)
+    )
+    val events = CalendarDateGenerator.generate(2026, colliding, includeNextYearJanuary = false)
+    assertTrue(
+      events.none {
+        it.wasteTypes.contains(WasteType.ORDURES) &&
+          (it.wasteTypes.contains(WasteType.EMBALLAGES) || it.wasteTypes.contains(WasteType.VERRE))
+      }
+    )
   }
 
   @Test

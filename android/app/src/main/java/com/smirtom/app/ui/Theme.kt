@@ -7,19 +7,24 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val GreenPrimary = Color(0xFF2E7D32)
-private val GreenDark = Color(0xFF1B5E20)
+private val Sage = Color(0xFF5E8F66)
+private val SageSoft = Color(0xFFA8C5AC)
+private val Mint = Color(0xFFDCEFDE)
 
 private val LightColors = lightColorScheme(
-    primary = GreenPrimary,
+    primary = Sage,
     onPrimary = Color.White,
-    secondary = GreenDark
+    secondary = SageSoft,
+    primaryContainer = Mint,
+    onPrimaryContainer = Color(0xFF2F4A34)
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF81C784),
-    onPrimary = Color.Black,
-    secondary = Color(0xFFA5D6A7)
+    primary = SageSoft,
+    onPrimary = Color(0xFF2F4A34),
+    secondary = Color(0xFFC5D9C8),
+    primaryContainer = Color(0xFF3D5C43),
+    onPrimaryContainer = Mint
 )
 
 @Composable

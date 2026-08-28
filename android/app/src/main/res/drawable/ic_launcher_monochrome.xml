@@ -5,28 +5,16 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!--
-      Camion poubelle plat (vue de profil, vers la droite).
-      Zone sûre adaptive icon : 72×72 au centre (marges 18 dp).
-    -->
-
-    <!-- Cabine + pare-brise en trapèze -->
     <path
-        android:fillColor="@color/ic_launcher_foreground"
+        android:fillColor="#000000"
         android:pathData="M26,70 L26,54 L36,42 L50,42 L50,70 Z" />
-
-    <!-- Benne arrière, plus haute que la cabine -->
     <path
-        android:fillColor="@color/ic_launcher_foreground"
+        android:fillColor="#000000"
         android:pathData="M48,70 L48,34 C48,30.7 50.7,28 54,28 L81,28 C84.3,28 87,30.7 87,34 L87,70 Z" />
-
-    <!-- Roue avant -->
     <path
-        android:fillColor="@color/ic_launcher_foreground"
+        android:fillColor="#000000"
         android:pathData="M38,74 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
-
-    <!-- Roue arrière -->
     <path
-        android:fillColor="@color/ic_launcher_foreground"
+        android:fillColor="#000000"
         android:pathData="M72,74 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
 </vector>
