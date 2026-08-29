@@ -11,15 +11,4 @@ class PdfCalendarParser {
             return stripper.getText(document)
         }
     }
-
-    fun parse(pdfFile: File, year: Int, commune: VexinCommune): List<CollectionDay> {
-        val text = extractText(pdfFile)
-        val rules = CalendarReconciler.reconcile(
-            pdfText = text,
-            pageText = null,
-            commune = commune,
-            year = year
-        )
-        return CalendarDateGenerator.generate(year, rules, includeNextYearJanuary = true)
-    }
 }
