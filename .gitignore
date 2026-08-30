@@ -1,24 +1,36 @@
-# Android
-android/.gradle/
-android/build/
-android/app/build/
-android/local.properties
-android/.idea/
-android/*.iml
-android/app/*.iml
-android/captures/
-android/.externalNativeBuild/
-android/.cxx/
+# Gradle / Android build
+.gradle/
+**/build/
+local.properties
 *.apk
 *.aab
-*.keystore
-!android/debug.keystore
+*.ap_
+*.dex
+*.class
+*.hprof
+*.log
 
-# OS
-.DS_Store
-Thumbs.db
+# Native / NDK
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Kotlin incremental cache
+.kotlin/
 
 # IDE
 .idea/
 .vscode/
+*.iml
 *.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets / signing (keep out of git)
+*.keystore
+*.jks
+*.pem
