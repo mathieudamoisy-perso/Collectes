@@ -45,15 +45,17 @@ class ReminderScheduler(private val context: Context) {
         )
 
         val triggerAtMillis = reminderDateTime.atZone(zoneId).toInstant().toEpochMilli()
+        val canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            alarmManager.canScheduleExactAlarms()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (canExact) {
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
                 pendingIntent
             )
         } else {
-            alarmManager.setExact(
+            alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
                 pendingIntent

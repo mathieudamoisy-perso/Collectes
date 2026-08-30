@@ -1,6 +1,5 @@
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -9,29 +8,46 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val buildStamp = ZonedDateTime.now(ZoneId.of("Europe/Paris"))
-val stampedVersionName = buildStamp.format(DateTimeFormatter.ofPattern("yyyyMMdd.HHmmss"))
-val stampedVersionCode = buildStamp.toEpochSecond().toInt()
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "com.smirtom.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.collectes.app"
         minSdk = 26
-        targetSdk = 35
-        versionCode = stampedVersionCode
-        versionName = stampedVersionName
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

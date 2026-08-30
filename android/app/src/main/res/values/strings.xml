@@ -3,4 +3,5 @@
     <string name="app_name">Collectes</string>
     <string name="notification_channel_name">Rappels collecte</string>
     <string name="notification_channel_description">Rappels la veille du passage des camions de collecte</string>
+    <string name="privacy_policy_url">https://mathieudamoisy-perso.github.io/Smirtom/privacy-policy.html</string>
 </resources>

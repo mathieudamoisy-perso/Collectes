@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.smirtom.app.R
 import com.smirtom.app.data.PreferencesManager
 import com.smirtom.app.util.BatteryOptimizationHelper
 
@@ -263,6 +265,51 @@ fun SettingsScreen(
                             text = message,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            item {
+                SettingsSectionCard {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(context.getString(R.string.privacy_policy_url))
+                                ).apply {
+                                    addCategory(Intent.CATEGORY_BROWSABLE)
+                                }
+                                runCatching { context.startActivity(intent) }
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Policy,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Politique de confidentialité",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Données locales, aucun compte",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Ouvrir dans le navigateur",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

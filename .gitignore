@@ -31,6 +31,9 @@ Thumbs.db
 desktop.ini
 
 # Secrets / signing (keep out of git)
+keystore.properties
+android/keystore/
 *.keystore
 *.jks
+*.p12
 *.pem

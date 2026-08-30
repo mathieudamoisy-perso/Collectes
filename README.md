@@ -1,46 +1,48 @@
-# Smirtom
+# Smirtom / Collectes
 
-Application Android pour recevoir des rappels la veille des collectes de déchets du **SMIRTOM du Vexin** (commune de **Magny-en-Vexin**).
+Application Android **Collectes** pour recevoir des rappels la veille des collectes de déchets du **SMIRTOM du Vexin**.
 
 ## Fonctionnalités
 
 - Téléchargement automatique du calendrier PDF SMIRTOM de l'année en cours
-- Parsing des dates de collecte (ordures, emballages, verre)
-- Notifications locales la veille au soir (heure configurable, défaut 19h)
+- Parsing des dates de collecte (ordures, emballages, verre, encombrants)
+- Notifications locales la veille (heure configurable, défaut 19h)
 - Changement d'année automatique (re-sync du calendrier)
 - Fonctionne hors ligne après la première synchronisation
 
-## Prérequis pour compiler
+## Prérequis
 
 - [Android Studio](https://developer.android.com/studio) (recommandé) avec **JDK 17**
-- Android 8.0+ (API 26) sur le téléphone
+- Android 8.0+ (API 26)
 
-Ouvrir le dossier `android/` dans Android Studio, puis **Build → Build Bundle(s) / APK(s) → Build APK(s)**.
+Ouvrir le dossier `android/` dans Android Studio.
 
-## Compiler l'APK
+## Publication Play Store
+
+Voir le guide : [android/store/PLAY_STORE.md](android/store/PLAY_STORE.md)
+
+### Keystore (une fois)
+
+Copier `android/keystore.properties.example` vers `android/keystore.properties` et renseigner le mot de passe du keystore local (`android/keystore/upload.jks`). Ne jamais committer ces fichiers.
+
+### Bundle release (AAB)
+
+```bash
+cd android
+./gradlew :app:bundleRelease
+```
+
+Le fichier à envoyer à Play Console :
+`android/app/build/outputs/bundle/release/app-release.aab`
+
+## Compiler en debug (hors Play Store)
 
 ```bash
 cd android
 ./gradlew assembleDebug
 ```
 
-L'APK debug est généré ici :
-`android/app/build/outputs/apk/debug/app-debug.apk`
-
-Pour une version release :
-
-```bash
-./gradlew assembleRelease
-```
-
-## Installer sur le téléphone (sans Play Store)
-
-1. Transférer l'APK sur le téléphone (USB, Drive, email…)
-2. **Paramètres** → **Sécurité** → activer **Installer des applications inconnues** pour votre gestionnaire de fichiers
-3. Ouvrir l'APK et confirmer **Installer**
-4. Si Play Protect affiche un avertissement → **Installer quand même**
-
-Alternative via USB :
+APK : `android/app/build/outputs/apk/debug/app-debug.apk`
 
 ```bash
 adb install android/app/build/outputs/apk/debug/app-debug.apk
@@ -48,16 +50,17 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Premier lancement
 
-1. Autoriser les **notifications** (indispensable)
+1. Autoriser les **notifications**
 2. L'app télécharge le calendrier SMIRTOM (connexion Internet requise)
 3. Vérifier l'écran d'accueil : les prochaines collectes s'affichent
-4. *(Recommandé)* Désactiver l'**optimisation batterie** pour Collectes dans les paramètres Android
+4. *(Recommandé)* Désactiver l'**optimisation batterie** pour Collectes dans les réglages Android
 
 ## Réglages
 
-- Heure du rappel : 17h à 22h (défaut 19h)
-- Bouton **Actualiser le calendrier** pour forcer une re-synchronisation
-- Lien vers le site SMIRTOM
+- Commune
+- Heure du rappel (17h à 22h, défaut 19h)
+- Lien vers le calendrier officiel SMIRTOM
+- Politique de confidentialité
 
 ## Collectes Magny-en-Vexin (2026)
 
@@ -77,6 +80,9 @@ android/
     data/           # Fetcher, parser PDF, base Room
     notifications/  # Alarmes et rappels locaux
     ui/             # Interface Compose
+  store/            # Assets et checklist Play Store
+docs/
+  privacy-policy.html
 ```
 
 ## Tests
