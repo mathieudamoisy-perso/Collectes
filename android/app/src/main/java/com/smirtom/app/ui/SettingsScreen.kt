@@ -2,16 +2,30 @@ package com.smirtom.app.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -19,7 +33,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -32,8 +45,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -84,129 +101,221 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Commune", style = MaterialTheme.typography.titleMedium)
-                ExposedDropdownMenuBox(
-                    expanded = communeMenuExpanded,
-                    onExpandedChange = { communeMenuExpanded = it },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = selectedCommune.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
-                        trailingIcon = {
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            item {
+                SettingsSectionCard {
+                    SettingsSectionHeader(
+                        icon = Icons.Default.Place,
+                        title = "Commune"
                     )
-                    ExposedDropdownMenu(
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ExposedDropdownMenuBox(
                         expanded = communeMenuExpanded,
-                        onDismissRequest = { communeMenuExpanded = false }
+                        onExpandedChange = { communeMenuExpanded = it },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        viewModel.communes.forEach { commune ->
-                            DropdownMenuItem(
-                                text = { Text(commune.displayName) },
-                                onClick = {
-                                    communeMenuExpanded = false
-                                    if (commune.slug != selectedCommune.slug) {
-                                        viewModel.setCommune(commune)
-                                    }
-                                },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                            )
+                        OutlinedTextField(
+                            value = selectedCommune.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            trailingIcon = {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = communeMenuExpanded,
+                            onDismissRequest = { communeMenuExpanded = false }
+                        ) {
+                            viewModel.communes.forEach { commune ->
+                                DropdownMenuItem(
+                                    text = { Text(commune.displayName) },
+                                    onClick = {
+                                        communeMenuExpanded = false
+                                        if (commune.slug != selectedCommune.slug) {
+                                            viewModel.setCommune(commune)
+                                        }
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Column {
-                Text(
-                    text = "Rappel la veille à ${reminderHour}h00",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Notification le jour précédant la collecte",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Slider(
-                    value = reminderHour.toFloat(),
-                    onValueChange = { viewModel.setReminderHour(it.toInt()) },
-                    valueRange = PreferencesManager.MIN_REMINDER_HOUR.toFloat()
-                        ..PreferencesManager.MAX_REMINDER_HOUR.toFloat(),
-                    steps = PreferencesManager.MAX_REMINDER_HOUR - PreferencesManager.MIN_REMINDER_HOUR - 1,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = "${PreferencesManager.MIN_REMINDER_HOUR}h — ${PreferencesManager.MAX_REMINDER_HOUR}h",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (!ignoringBatteryOptimizations) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Désactiver l'optimisation de la batterie")
-                    }
+            item {
+                SettingsSectionCard {
+                    SettingsSectionHeader(
+                        icon = Icons.Default.Notifications,
+                        title = "Rappel"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Ouvre les paramètres de l'application pour désactiver l'optimisation de la batterie et garantir la bonne réception des notifications push la veille des jours de collecte",
+                        text = "${reminderHour}h00",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Notification la veille de la collecte",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = reminderHour.toFloat(),
+                        onValueChange = { viewModel.setReminderHour(it.toInt()) },
+                        valueRange = PreferencesManager.MIN_REMINDER_HOUR.toFloat()
+                            ..PreferencesManager.MAX_REMINDER_HOUR.toFloat(),
+                        steps = PreferencesManager.MAX_REMINDER_HOUR - PreferencesManager.MIN_REMINDER_HOUR - 1,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "${PreferencesManager.MIN_REMINDER_HOUR}h — ${PreferencesManager.MAX_REMINDER_HOUR}h",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Button(
-                onClick = {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(viewModel.officialCalendarViewUrl())
-                    ).apply {
-                        addCategory(Intent.CATEGORY_BROWSABLE)
+            if (!ignoringBatteryOptimizations) {
+                item {
+                    SettingsSectionCard(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        SettingsSectionHeader(
+                            icon = Icons.Default.BatteryAlert,
+                            title = "Optimisation batterie",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Désactivez l'optimisation pour recevoir les rappels à l'heure prévue.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Ouvrir les paramètres batterie")
+                        }
                     }
-                    runCatching { context.startActivity(intent) }
-                        .onFailure { viewModel.reportCalendarOpenError() }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Voir le calendrier officiel")
-            }
-            Text(
-                text = "Affiche le PDF SMIRTOM de ${selectedCommune.displayName} dans le navigateur, sans l'enregistrer.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            calendarError?.let { message ->
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
+                }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Version $versionName",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+            item {
+                SettingsSectionCard {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(viewModel.officialCalendarViewUrl())
+                                ).apply {
+                                    addCategory(Intent.CATEGORY_BROWSABLE)
+                                }
+                                runCatching { context.startActivity(intent) }
+                                    .onFailure { viewModel.reportCalendarOpenError() }
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Calendrier officiel",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "PDF SMIRTOM de ${selectedCommune.displayName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Ouvrir dans le navigateur",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    calendarError?.let { message ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Version $versionName",
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SettingsSectionCard(
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SettingsSectionHeader(
+    icon: ImageVector,
+    title: String,
+    tint: Color = MaterialTheme.colorScheme.primary
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = tint
+        )
     }
 }

@@ -15,6 +15,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -72,6 +75,17 @@ class MainActivity : ComponentActivity() {
                         factory = SettingsViewModelFactory(repository, preferencesManager)
                     )
                     val homeState by homeViewModel.uiState.collectAsState()
+                    val lifecycleOwner = LocalLifecycleOwner.current
+
+                    DisposableEffect(lifecycleOwner, homeViewModel) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_RESUME) {
+                                homeViewModel.reloadDates()
+                            }
+                        }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    }
 
                     NavHost(navController = navController, startDestination = "home") {
                         composable("home") {

@@ -39,6 +39,9 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    /** Calendar day used for the last successful `loadUpcoming`; skips resume reloads on the same day. */
+    private var lastLoadedDate: LocalDate? = null
+
     init {
         viewModelScope.launch {
             repository.syncState.collect { sync ->
@@ -58,6 +61,15 @@ class HomeViewModel(
         }
     }
 
+    /** Recomputes tomorrow / upcoming when the calendar day may have changed (e.g. after overnight resume). */
+    fun reloadDates() {
+        val today = LocalDate.now(zoneId)
+        if (today == lastLoadedDate) return
+        viewModelScope.launch {
+            loadUpcoming(_uiState.value.activeFilter)
+        }
+    }
+
     fun setFilter(filter: WasteType?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(activeFilter = filter)
@@ -66,11 +78,13 @@ class HomeViewModel(
     }
 
     private suspend fun loadUpcoming(filter: WasteType?) {
+        val today = LocalDate.now(zoneId)
         val commune = repository.getSelectedCommune()
-        val tomorrow = LocalDate.now(zoneId).plusDays(1)
+        val tomorrow = today.plusDays(1)
         val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
 
+        lastLoadedDate = today
         _uiState.value = _uiState.value.copy(
             tomorrowLabel = tomorrow.format(dateFormatter).replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
