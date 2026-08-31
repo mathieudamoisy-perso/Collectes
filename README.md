@@ -6,7 +6,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 
 - Téléchargement automatique du calendrier PDF SMIRTOM de l'année en cours
 - Parsing des dates de collecte (ordures, emballages, verre, encombrants)
-- Notifications locales la veille (heure configurable, défaut 19h)
+- Notifications locales la veille (heure configurable, défaut 9h)
 - Changement d'année automatique (re-sync du calendrier)
 - Fonctionne hors ligne après la première synchronisation
 
@@ -58,7 +58,8 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 ## Réglages
 
 - Commune
-- Heure du rappel (17h à 22h, défaut 19h)
+- Heure du rappel (6h à 12h, défaut 9h)
+- Test de notification (rappel fictif avec collecte aléatoire)
 - Lien vers le calendrier officiel SMIRTOM
 - Politique de confidentialité
 

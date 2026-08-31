@@ -19,7 +19,7 @@ class ReminderScheduler(private val context: Context) {
     private val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
     fun scheduleUpcomingReminders(events: List<CollectionDay>, reminderHour: Int) {
-        cancelAllReminders()
+        events.forEach { cancelReminder(it) }
         val now = LocalDateTime.now(zoneId)
 
         events.forEach { event ->
@@ -27,6 +27,21 @@ class ReminderScheduler(private val context: Context) {
             if (reminderDateTime.isAfter(now)) {
                 scheduleReminder(event, reminderDateTime)
             }
+        }
+    }
+
+    private fun cancelReminder(event: CollectionDay) {
+        val intent = Intent(context, ReminderReceiver::class.java)
+        val requestCode = event.date.toEpochDay().toInt()
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        pendingIntent?.let {
+            alarmManager.cancel(it)
+            it.cancel()
         }
     }
 
@@ -61,11 +76,6 @@ class ReminderScheduler(private val context: Context) {
                 pendingIntent
             )
         }
-    }
-
-    private fun cancelAllReminders() {
-        // Android ne permet pas d'annuler toutes les alarmes sans les PendingIntent d'origine.
-        // Les alarmes passées sont ignorées par le receiver via la date.
     }
 
     companion object {

@@ -32,6 +32,12 @@ object NotificationHelper {
         }
     }
 
+    fun canPostNotifications(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
     fun showReminder(
         context: Context,
         notificationId: Int,
@@ -39,17 +45,10 @@ object NotificationHelper {
         message: String
     ) {
         if (wasteTypes.isEmpty()) return
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
+        if (!canPostNotifications(context)) return
 
         val primaryType = WasteTypeNotificationIcons.primaryType(wasteTypes)
         val title = WasteTypeNotificationIcons.notificationTitle(wasteTypes)
-        val largeIcon = WasteTypeNotificationIcons.buildLargeIcon(context, primaryType)
 
         val launchIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -61,7 +60,6 @@ object NotificationHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(WasteTypeNotificationIcons.smallIconRes(primaryType))
-            .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))

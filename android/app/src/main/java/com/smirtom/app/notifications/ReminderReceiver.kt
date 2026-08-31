@@ -25,6 +25,11 @@ class ReminderReceiver : BroadcastReceiver() {
                 val collectionDate = intent.getStringExtra(EXTRA_COLLECTION_DATE)?.let(LocalDate::parse)
 
                 if (wasteTypes.isNotEmpty() && collectionDate != null) {
+                    val repository = CalendarRepository(context)
+                    val scheduledTypes = repository.getCollectionsOn(collectionDate)
+                    if (scheduledTypes.toSet() != wasteTypes.toSet()) {
+                        return@launch
+                    }
                     val message = ReminderScheduler.formatReminderMessage(collectionDate, wasteTypes)
                     NotificationHelper.showReminder(
                         context = context,

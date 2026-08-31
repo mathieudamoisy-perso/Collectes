@@ -1,7 +1,11 @@
 package com.smirtom.app.ui
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +29,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -59,6 +64,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.smirtom.app.R
 import com.smirtom.app.data.PreferencesManager
+import com.smirtom.app.notifications.NotificationHelper
+import com.smirtom.app.notifications.NotificationTestHelper
 import com.smirtom.app.util.BatteryOptimizationHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +85,36 @@ fun SettingsScreen(
     var communeMenuExpanded by remember { mutableStateOf(false) }
     var ignoringBatteryOptimizations by remember {
         mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
+    }
+    var notificationTestError by remember { mutableStateOf<String?>(null) }
+    var pendingNotificationTest by remember { mutableStateOf(false) }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (pendingNotificationTest) {
+            pendingNotificationTest = false
+            notificationTestError = if (granted) {
+                if (NotificationTestHelper.showRandomTestReminder(context)) null
+                else "Impossible d'afficher la notification"
+            } else {
+                "Autorisez les notifications pour tester le rappel"
+            }
+        }
+    }
+
+    fun sendTestNotification() {
+        notificationTestError = null
+        if (NotificationHelper.canPostNotifications(context)) {
+            if (!NotificationTestHelper.showRandomTestReminder(context)) {
+                notificationTestError = "Impossible d'afficher la notification"
+            }
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pendingNotificationTest = true
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     DisposableEffect(lifecycleOwner, context) {
@@ -186,6 +223,27 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = { sendTestNotification() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Tester une notification")
+                    }
+                    Text(
+                        text = "Génère un rappel fictif avec une collecte aléatoire",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    notificationTestError?.let { message ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
 
