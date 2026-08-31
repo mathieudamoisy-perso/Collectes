@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.smirtom.app.data.CalendarRepository
 import com.smirtom.app.data.CollectionDay
 import com.smirtom.app.data.PreferencesManager
+import com.smirtom.app.data.ReminderTime
 import com.smirtom.app.data.SyncState
 import com.smirtom.app.data.VexinCommune
 import com.smirtom.app.data.VexinCommunes
@@ -110,10 +111,10 @@ class SettingsViewModel(
     private val repository: CalendarRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
-    val reminderHour: StateFlow<Int> = preferencesManager.reminderHour.stateIn(
+    val reminderTimeMinutes: StateFlow<Int> = preferencesManager.reminderTimeMinutes.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = PreferencesManager.DEFAULT_REMINDER_HOUR
+        initialValue = ReminderTime.DEFAULT_MINUTES
     )
 
     val selectedCommune: StateFlow<VexinCommune> = preferencesManager.selectedCommune.stateIn(
@@ -127,10 +128,10 @@ class SettingsViewModel(
     private val _calendarError = MutableStateFlow<String?>(null)
     val calendarError: StateFlow<String?> = _calendarError.asStateFlow()
 
-    fun setReminderHour(hour: Int) {
+    fun setReminderTime(minutesOfDay: Int) {
         viewModelScope.launch {
-            preferencesManager.setReminderHour(hour)
-            repository.rescheduleReminders(preferencesManager.getReminderHour())
+            preferencesManager.setReminderTime(minutesOfDay)
+            repository.rescheduleReminders(preferencesManager.getReminderTimeMinutes())
         }
     }
 

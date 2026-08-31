@@ -24,8 +24,8 @@ class BootReceiver : BroadcastReceiver() {
                 DailyCheckWorker.schedule(context)
                 val repository = CalendarRepository(context)
                 repository.ensureCalendarSynced(force = false)
-                val hour = PreferencesManager(context).reminderHour.first()
-                repository.rescheduleReminders(hour)
+                val reminderTimeMinutes = PreferencesManager(context).reminderTimeMinutes.first()
+                repository.rescheduleReminders(reminderTimeMinutes)
             } finally {
                 pendingResult.finish()
             }

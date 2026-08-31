@@ -18,12 +18,14 @@ class ReminderScheduler(private val context: Context) {
     private val zoneId = ZoneId.of("Europe/Paris")
     private val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
-    fun scheduleUpcomingReminders(events: List<CollectionDay>, reminderHour: Int) {
+    fun scheduleUpcomingReminders(events: List<CollectionDay>, reminderTimeMinutes: Int) {
         events.forEach { cancelReminder(it) }
         val now = LocalDateTime.now(zoneId)
+        val hour = reminderTimeMinutes / 60
+        val minute = reminderTimeMinutes % 60
 
         events.forEach { event ->
-            val reminderDateTime = event.date.minusDays(1).atTime(reminderHour, 0)
+            val reminderDateTime = event.date.minusDays(1).atTime(hour, minute)
             if (reminderDateTime.isAfter(now)) {
                 scheduleReminder(event, reminderDateTime)
             }

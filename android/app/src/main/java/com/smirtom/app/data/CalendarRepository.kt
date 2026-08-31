@@ -58,7 +58,7 @@ class CalendarRepository(
                 if (cached.isNotEmpty()) {
                     reminderScheduler.scheduleUpcomingReminders(
                         cached.mapNotNull { it.toCollectionDay() },
-                        preferencesManager.getReminderHour()
+                        preferencesManager.getReminderTimeMinutes()
                     )
                     _syncState.value = SyncState.Success(
                         Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
@@ -112,7 +112,7 @@ class CalendarRepository(
 
             reminderScheduler.scheduleUpcomingReminders(
                 events,
-                preferencesManager.getReminderHour()
+                preferencesManager.getReminderTimeMinutes()
             )
             preferencesManager.setCalendarLogicVersion(PreferencesManager.CALENDAR_LOGIC_VERSION)
 
@@ -153,10 +153,10 @@ class CalendarRepository(
         return getCollectionsOn(tomorrow, filter)
     }
 
-    suspend fun rescheduleReminders(reminderHour: Int) = withContext(Dispatchers.IO) {
+    suspend fun rescheduleReminders(reminderTimeMinutes: Int) = withContext(Dispatchers.IO) {
         val events = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
             .mapNotNull { it.toCollectionDay() }
-        reminderScheduler.scheduleUpcomingReminders(events, reminderHour)
+        reminderScheduler.scheduleUpcomingReminders(events, reminderTimeMinutes)
     }
 
     private fun CollectionDay.toEntity(): CollectionEventEntity {

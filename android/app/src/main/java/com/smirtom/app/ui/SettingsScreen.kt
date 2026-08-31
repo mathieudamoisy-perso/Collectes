@@ -41,7 +41,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -63,7 +62,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.smirtom.app.R
-import com.smirtom.app.data.PreferencesManager
+import com.smirtom.app.data.ReminderTime
 import com.smirtom.app.notifications.NotificationHelper
 import com.smirtom.app.notifications.NotificationTestHelper
 import com.smirtom.app.util.BatteryOptimizationHelper
@@ -74,7 +73,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit
 ) {
-    val reminderHour by viewModel.reminderHour.collectAsState()
+    val reminderTimeMinutes by viewModel.reminderTimeMinutes.collectAsState()
     val selectedCommune by viewModel.selectedCommune.collectAsState()
     val calendarError by viewModel.calendarError.collectAsState()
     val context = LocalContext.current
@@ -83,6 +82,8 @@ fun SettingsScreen(
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     var communeMenuExpanded by remember { mutableStateOf(false) }
+    var reminderTimeMenuExpanded by remember { mutableStateOf(false) }
+    val reminderTimeOptions = remember { ReminderTime.options() }
     var ignoringBatteryOptimizations by remember {
         mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
     }
@@ -200,29 +201,47 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "${reminderHour}h00",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
                         text = "Notification la veille de la collecte",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Slider(
-                        value = reminderHour.toFloat(),
-                        onValueChange = { viewModel.setReminderHour(it.toInt()) },
-                        valueRange = PreferencesManager.MIN_REMINDER_HOUR.toFloat()
-                            ..PreferencesManager.MAX_REMINDER_HOUR.toFloat(),
-                        steps = PreferencesManager.MAX_REMINDER_HOUR - PreferencesManager.MIN_REMINDER_HOUR - 1,
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = reminderTimeMenuExpanded,
+                        onExpandedChange = { reminderTimeMenuExpanded = it },
                         modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = "${PreferencesManager.MIN_REMINDER_HOUR}h — ${PreferencesManager.MAX_REMINDER_HOUR}h",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    ) {
+                        OutlinedTextField(
+                            value = ReminderTime.format(reminderTimeMinutes),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Heure du rappel") },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            trailingIcon = {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = reminderTimeMenuExpanded,
+                            onDismissRequest = { reminderTimeMenuExpanded = false }
+                        ) {
+                            reminderTimeOptions.forEach { minutes ->
+                                DropdownMenuItem(
+                                    text = { Text(ReminderTime.format(minutes)) },
+                                    onClick = {
+                                        reminderTimeMenuExpanded = false
+                                        if (minutes != reminderTimeMinutes) {
+                                            viewModel.setReminderTime(minutes)
+                                        }
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedButton(
                         onClick = { sendTestNotification() },
@@ -231,7 +250,7 @@ fun SettingsScreen(
                         Text("Tester une notification")
                     }
                     Text(
-                        text = "Génère un rappel fictif avec une collecte aléatoire",
+                        text = "Génère un rappel fictif pour un type de collecte aléatoire",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)

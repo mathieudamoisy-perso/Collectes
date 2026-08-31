@@ -14,13 +14,13 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class PreferencesManager(private val context: Context) {
-    private val reminderHourKey = intPreferencesKey("reminder_hour")
+    private val reminderMinutesKey = intPreferencesKey("reminder_minutes_of_day")
+    private val legacyReminderHourKey = intPreferencesKey("reminder_hour")
     private val communeSlugKey = stringPreferencesKey("commune_slug")
     private val calendarLogicVersionKey = intPreferencesKey("calendar_logic_version")
 
-    val reminderHour: Flow<Int> = context.dataStore.data.map { prefs ->
-        (prefs[reminderHourKey] ?: DEFAULT_REMINDER_HOUR)
-            .coerceIn(MIN_REMINDER_HOUR, MAX_REMINDER_HOUR)
+    val reminderTimeMinutes: Flow<Int> = context.dataStore.data.map { prefs ->
+        resolveReminderTimeMinutes(prefs)
     }
 
     val selectedCommune: Flow<VexinCommune> = context.dataStore.data.map { prefs ->
@@ -28,9 +28,10 @@ class PreferencesManager(private val context: Context) {
         VexinCommunes.bySlug(slug) ?: VexinCommunes.default
     }
 
-    suspend fun setReminderHour(hour: Int) {
+    suspend fun setReminderTime(minutesOfDay: Int) {
         context.dataStore.edit { prefs ->
-            prefs[reminderHourKey] = hour.coerceIn(MIN_REMINDER_HOUR, MAX_REMINDER_HOUR)
+            prefs[reminderMinutesKey] = ReminderTime.coerce(minutesOfDay)
+            prefs.remove(legacyReminderHourKey)
         }
     }
 
@@ -40,7 +41,7 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
-    suspend fun getReminderHour(): Int = reminderHour.first()
+    suspend fun getReminderTimeMinutes(): Int = reminderTimeMinutes.first()
 
     suspend fun getSelectedCommune(): VexinCommune = selectedCommune.first()
 
@@ -53,10 +54,15 @@ class PreferencesManager(private val context: Context) {
         }
     }
 
+    private fun resolveReminderTimeMinutes(prefs: Preferences): Int {
+        prefs[reminderMinutesKey]?.let { return ReminderTime.coerce(it) }
+        prefs[legacyReminderHourKey]?.let { hour ->
+            return ReminderTime.coerce(hour * 60)
+        }
+        return ReminderTime.DEFAULT_MINUTES
+    }
+
     companion object {
-        const val DEFAULT_REMINDER_HOUR = 9
-        const val MIN_REMINDER_HOUR = 6
-        const val MAX_REMINDER_HOUR = 12
         const val CALENDAR_LOGIC_VERSION = 3
     }
 }

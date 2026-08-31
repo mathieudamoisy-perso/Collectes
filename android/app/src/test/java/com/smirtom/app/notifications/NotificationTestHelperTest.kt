@@ -9,15 +9,14 @@ import kotlin.random.Random
 
 class NotificationTestHelperTest {
     @Test
-    fun randomCollectionEventPicksAtLeastOneType() {
+    fun randomCollectionEventPicksExactlyOneType() {
         val random = Random(42)
         val today = LocalDate.of(2026, 8, 31)
 
         repeat(20) {
             val (_, wasteTypes) = NotificationTestHelper.randomCollectionEvent(today, random)
-            assertTrue(wasteTypes.isNotEmpty())
-            assertTrue(wasteTypes.size <= WasteType.entries.size)
-            assertEquals(wasteTypes, wasteTypes.sortedBy { it.ordinal })
+            assertEquals(1, wasteTypes.size)
+            assertTrue(wasteTypes.first() in WasteType.entries)
         }
     }
 

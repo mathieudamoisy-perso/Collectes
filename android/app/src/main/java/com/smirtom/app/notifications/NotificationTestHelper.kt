@@ -9,11 +9,9 @@ object NotificationTestHelper {
     const val TEST_NOTIFICATION_ID = Int.MAX_VALUE
 
     fun randomCollectionEvent(today: LocalDate = LocalDate.now(), random: Random = Random.Default): Pair<LocalDate, List<WasteType>> {
-        val typeCount = random.nextInt(WasteType.entries.size) + 1
-        val wasteTypes = WasteType.entries.shuffled(random).take(typeCount).sortedBy { it.ordinal }
-        // Demain, comme pour un vrai rappel : le texte et le titre restent cohérents.
+        val wasteType = WasteType.entries.random(random)
         val collectionDate = today.plusDays(1)
-        return collectionDate to wasteTypes
+        return collectionDate to listOf(wasteType)
     }
 
     fun showRandomTestReminder(context: Context): Boolean {

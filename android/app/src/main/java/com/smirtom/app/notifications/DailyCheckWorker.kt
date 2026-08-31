@@ -23,8 +23,8 @@ class DailyCheckWorker(
 
         repository.ensureCalendarSynced(force = false)
 
-        val hour = preferences.reminderHour.first()
-        repository.rescheduleReminders(hour)
+        val reminderTimeMinutes = preferences.reminderTimeMinutes.first()
+        repository.rescheduleReminders(reminderTimeMinutes)
         return Result.success()
     }
 
