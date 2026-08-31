@@ -2,8 +2,8 @@ package com.smirtom.app.data
 
 object ReminderTime {
     const val STEP_MINUTES = 30
-    const val MIN_MINUTES = 6 * 60
-    const val MAX_MINUTES = 12 * 60
+    const val MIN_MINUTES = 5 * 60
+    const val MAX_MINUTES = 23 * 60
     const val DEFAULT_MINUTES = 12 * 60
 
     fun options(): List<Int> = (MIN_MINUTES..MAX_MINUTES step STEP_MINUTES).toList()

@@ -6,12 +6,12 @@ import org.junit.Test
 
 class ReminderTimeTest {
     @Test
-    fun optionsAreEveryThirtyMinutesBetweenSixAndTwelve() {
+    fun optionsAreEveryThirtyMinutesBetweenFiveAndTwentyThree() {
         val options = ReminderTime.options()
 
-        assertEquals(13, options.size)
-        assertEquals(6 * 60, options.first())
-        assertEquals(12 * 60, options.last())
+        assertEquals(37, options.size)
+        assertEquals(5 * 60, options.first())
+        assertEquals(23 * 60, options.last())
         assertTrue(options.zipWithNext().all { (left, right) -> right - left == 30 })
     }
 
