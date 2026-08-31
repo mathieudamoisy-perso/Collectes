@@ -47,7 +47,6 @@ object NotificationHelper {
         if (wasteTypes.isEmpty()) return
         if (!canPostNotifications(context)) return
 
-        val primaryType = WasteTypeNotificationIcons.primaryType(wasteTypes)
         val title = WasteTypeNotificationIcons.notificationTitle(wasteTypes)
 
         val launchIntent = Intent(context, MainActivity::class.java)
@@ -59,7 +58,7 @@ object NotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(WasteTypeNotificationIcons.smallIconRes(primaryType))
+            .setSmallIcon(WasteTypeNotificationIcons.smallIconRes())
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
