@@ -5,27 +5,46 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Silhouette camion — zone sûre ~66×66, marge autour pour le masque launcher -->
     <group
-        android:pivotX="54"
-        android:pivotY="56"
-        android:scaleX="0.82"
-        android:scaleY="0.82">
-        <!-- Cabine -->
+        android:translateX="8"
+        android:translateY="30"
+        android:scaleX="0.29"
+        android:scaleY="0.29">
         <path
             android:fillColor="#000000"
-            android:pathData="M28,48 h18 a6,6 0,0 1,6 6 v16 h-24 a6,6 0,0 1,-6 -6 v-10 a6,6 0,0 1,6 -6 z" />
-        <!-- Benne -->
-        <path
-            android:fillColor="#000000"
-            android:pathData="M50,32 h28 a8,8 0,0 1,8 8 v30 H50 z" />
-        <!-- Roue avant -->
-        <path
-            android:fillColor="#000000"
-            android:pathData="M40,74 m-8,0 a8,8 0,1 1,16 0 a8,8 0,1 1,-16 0" />
-        <!-- Roue arrière -->
-        <path
-            android:fillColor="#000000"
-            android:pathData="M72,74 m-8,0 a8,8 0,1 1,16 0 a8,8 0,1 1,-16 0" />
+            android:fillType="evenOdd"
+            android:pathData="
+                M 22,108
+                L 22,86
+                C 22,72 30,64 46,64
+                L 98,64
+                L 106,42
+                L 288,42
+                L 312,56
+                L 312,72
+                L 312,108
+                L 22,108
+                Z
+                M 32,72
+                L 76,72
+                C 82,72 86,76 84,82
+                L 78,96
+                L 34,96
+                C 28,96 26,92 28,86
+                L 32,72
+                Z
+                M 54,118
+                m -20,0
+                a 20,20 0 1,1 40,0
+                a 20,20 0 1,1 -40,0
+                M 258,118
+                m -20,0
+                a 20,20 0 1,1 40,0
+                a 20,20 0 1,1 -40,0
+                M 46,108
+                L 266,108
+                L 266,116
+                L 46,116
+                Z" />
     </group>
 </vector>
