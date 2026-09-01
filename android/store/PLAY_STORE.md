@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.1.0` (`versionCode` 3)
+Version actuelle : `1.2.0` (`versionCode` 4)
 
 ## 1. Compte développeur
 
@@ -79,14 +79,15 @@ Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun 
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.1.0
+### Notes de version — test fermé 1.2.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
 
 ```
-Nouvelles communes : Cormeilles-en-Vexin, Sannois, Ermont-Eaubonne.
-Liste des collectes : uniquement les prochaines dates (plus de dates passées).
-Lien calendrier PDF adapté selon la commune (SMIRTOM ou source municipale).
+Calendrier plus fiable : meilleure lecture des dates selon chaque commune (jours officiels, emballages et verre).
+Liste des collectes : uniquement les dates à venir (plus de dates passées).
+Changement de commune : le cache est réinitialisé pour récupérer le bon calendrier.
+Règles de secours si le site officiel est injoignable.
 ```
 
 ## 5. Politique de confidentialité
@@ -119,9 +120,9 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.1.0
+## 8. Parcours Console — beta 1.2.0
 
-1. `git pull` puis vérifier `versionCode = 3` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 4` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
