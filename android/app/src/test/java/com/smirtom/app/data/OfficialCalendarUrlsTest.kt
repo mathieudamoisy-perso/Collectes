@@ -61,19 +61,22 @@ class OfficialCalendarUrlsTest {
     }
 
     @Test
-    fun sannoisInfoPageIsReachable() {
-        val sannois = VexinCommunes.bySlug("sannois")!!
-        val request = Request.Builder()
-            .url(sannois.pageUrl)
-            .header("User-Agent", SmirtomHttp.USER_AGENT)
-            .get()
-            .build()
+    fun externalCommuneInfoPagesAreReachable() {
+        VexinCommunes.all
+            .filter { it.infoPageUrl != null }
+            .forEach { commune ->
+                val request = Request.Builder()
+                    .url(commune.pageUrl)
+                    .header("User-Agent", SmirtomHttp.USER_AGENT)
+                    .get()
+                    .build()
 
-        client.newCall(request).execute().use { response ->
-            assertTrue(
-                "Page Sannois injoignable (${response.code}): ${sannois.pageUrl}",
-                response.isSuccessful
-            )
-        }
+                client.newCall(request).execute().use { response ->
+                    assertTrue(
+                        "Page ${commune.displayName} injoignable (${response.code}): ${commune.pageUrl}",
+                        response.isSuccessful
+                    )
+                }
+            }
     }
 }

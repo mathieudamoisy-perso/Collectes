@@ -39,4 +39,12 @@ class UpcomingEventsFilterTest {
         assertTrue(rules.emballagesDay.name == "TUESDAY")
         assertTrue(rules.verreDay.name == "MONDAY")
     }
+
+    @Test
+    fun ermontEaubonneScheduleUsesTuesdayThursdayFriday() {
+        val rules = OfficialCommuneSchedules.rules(2026, "ermont-eaubonne")
+        assertTrue(rules.orduresDay.name == "TUESDAY")
+        assertTrue(rules.emballagesDay.name == "THURSDAY")
+        assertTrue(rules.verreDay.name == "FRIDAY")
+    }
 }

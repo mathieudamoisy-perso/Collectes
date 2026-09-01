@@ -1,6 +1,7 @@
 package com.smirtom.app.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -8,10 +9,16 @@ import org.junit.Test
 
 class VexinCommunesTest {
     @Test
-    fun includesMagnyThemericourtCormeillesAndSannois() {
-        assertEquals(4, VexinCommunes.all.size)
+    fun includesAllSupportedCommunes() {
+        assertEquals(5, VexinCommunes.all.size)
         assertEquals(
-            listOf("Magny-en-Vexin", "Théméricourt", "Cormeilles-en-Vexin", "Sannois"),
+            listOf(
+                "Magny-en-Vexin",
+                "Théméricourt",
+                "Cormeilles-en-Vexin",
+                "Sannois",
+                "Ermont-Eaubonne"
+            ),
             VexinCommunes.all.map { it.displayName }
         )
     }
@@ -28,6 +35,7 @@ class VexinCommunesTest {
         assertEquals("Théméricourt", VexinCommunes.bySlug("themericourt")?.displayName)
         assertNotNull(VexinCommunes.bySlug("cormeilles-en-vexin"))
         assertNotNull(VexinCommunes.bySlug("sannois"))
+        assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
     }
@@ -66,6 +74,17 @@ class VexinCommunesTest {
     }
 
     @Test
+    fun ermontEaubonneUsesExternalCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("ermont-eaubonne")!!
+        assertEquals("Ermont-Eaubonne", commune.displayName)
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("ermont.fr"))
+        assertTrue(commune.infoPageUrl!!.contains("ermont.fr"))
+        assertFalse(commune.usesSmirtomNetwork)
+        assertFalse(commune.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
+    }
+
+    @Test
     fun allCommunesHaveUniqueSlugsAndPdfUrls() {
         val slugs = VexinCommunes.all.map { it.slug }
         assertEquals(slugs.size, slugs.distinct().size)
@@ -75,5 +94,17 @@ class VexinCommunesTest {
                 commune.officialCalendarUrl.isNotBlank()
             )
         }
+    }
+
+    @Test
+    fun officialCalendarSubtitleMentionsSmirtomOnlyForVexinCommunes() {
+        val magny = VexinCommunes.default
+        assertTrue(magny.usesSmirtomNetwork)
+        assertTrue(magny.officialCalendarSubtitle().contains("SMIRTOM"))
+
+        val sannois = VexinCommunes.bySlug("sannois")!!
+        assertFalse(sannois.usesSmirtomNetwork)
+        assertFalse(sannois.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
+        assertTrue(sannois.officialCalendarSubtitle().contains("Sannois"))
     }
 }

@@ -324,7 +324,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "PDF SMIRTOM de ${selectedCommune.displayName}",
+                                text = selectedCommune.officialCalendarSubtitle(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

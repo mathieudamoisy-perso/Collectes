@@ -36,7 +36,8 @@ object OfficialCommuneSchedules {
         "wy-dit-joli-village" to Weekdays(DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.TUESDAY),
         "themericourt" to Weekdays(DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
         "cormeilles-en-vexin" to Weekdays(DayOfWeek.THURSDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
-        "sannois" to Weekdays(DayOfWeek.THURSDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY)
+        "sannois" to Weekdays(DayOfWeek.THURSDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY),
+        "ermont-eaubonne" to Weekdays(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
     )
 
     fun weekdaysFor(slug: String): Weekdays? = weekdays[slug]

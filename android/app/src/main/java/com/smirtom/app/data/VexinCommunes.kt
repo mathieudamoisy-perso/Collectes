@@ -10,6 +10,17 @@ data class VexinCommune(
     val pageUrl: String
         get() = infoPageUrl ?: "https://smirtomduvexin.net/informations_utiles/$slug/"
 
+    /** Commune couverte par le SMIRTOM du Vexin (sinon source externe, ex. mairie). */
+    val usesSmirtomNetwork: Boolean
+        get() = infoPageUrl == null
+
+    /** Sous-titre du lien « Calendrier officiel » dans les réglages. */
+    fun officialCalendarSubtitle(): String = if (usesSmirtomNetwork) {
+        "PDF SMIRTOM du Vexin — $displayName"
+    } else {
+        "PDF officiel de $displayName"
+    }
+
     /** Termes pour retrouver le PDF calendrier sur le site SMIRTOM. */
     fun pdfSearchTerms(): List<String> = listOf(
         displayName,
@@ -44,6 +55,13 @@ object VexinCommunes {
             officialCalendarUrl =
                 "https://www.ville-sannois.fr/sites/sannois/files/document/2026-01/calendrier-2026-sannois.pdf",
             infoPageUrl = "https://www.ville-sannois.fr/media/10163"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Ermont-Eaubonne"),
+            displayName = "Ermont-Eaubonne",
+            officialCalendarUrl =
+                "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
+            infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm"
         )
     )
 
