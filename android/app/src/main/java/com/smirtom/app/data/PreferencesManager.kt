@@ -63,6 +63,6 @@ class PreferencesManager(private val context: Context) {
     }
 
     companion object {
-        const val CALENDAR_LOGIC_VERSION = 7
+        const val CALENDAR_LOGIC_VERSION = 8
     }
 }

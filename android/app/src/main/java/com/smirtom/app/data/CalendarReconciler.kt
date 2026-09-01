@@ -27,15 +27,24 @@ object CalendarReconciler {
         }
         val catalog = OfficialCommuneSchedules.rules(year, commune.slug)
 
-        val orduresDay = pageRules?.orduresDay
-            ?: pdfRules?.orduresDay
-            ?: catalog.orduresDay
-        val emballagesDay = pageRules?.emballagesDay
-            ?: pdfRules?.emballagesDay
-            ?: catalog.emballagesDay
-        var verreDay = pageRules?.verreDay
-            ?: pdfRules?.verreDay
-            ?: catalog.verreDay
+        val orduresDay = resolveWeekday(
+            page = pageRules?.orduresDay,
+            pdf = pdfRules?.orduresDay,
+            catalog = catalog.orduresDay,
+            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.orduresDay }
+        )
+        val emballagesDay = resolveWeekday(
+            page = pageRules?.emballagesDay,
+            pdf = pdfRules?.emballagesDay,
+            catalog = catalog.emballagesDay,
+            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.emballagesDay }
+        )
+        var verreDay = resolveWeekday(
+            page = pageRules?.verreDay,
+            pdf = pdfRules?.verreDay,
+            catalog = catalog.verreDay,
+            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.verreDay }
+        )
 
         if (!pdfText.isNullOrBlank() && pdfRules != null && pdfRules.verreDay != verreDay) {
             val pageSpecifiesVerreChange = pageText?.let {
@@ -77,6 +86,25 @@ object CalendarReconciler {
             verreDay = verreDay,
             verreAnchor = verreAnchor
         )
+    }
+
+    /**
+     * La page commune est prioritaire. Sans page, un PDF mal lu (légende sans jour → lundi par défaut)
+     * ne doit pas écraser le rythme officiel connu de la commune.
+     */
+    private fun resolveWeekday(
+        page: DayOfWeek?,
+        pdf: DayOfWeek?,
+        catalog: DayOfWeek,
+        weekday: () -> DayOfWeek?
+    ): DayOfWeek {
+        page?.let { return it }
+        if (pdf != null) {
+            val official = weekday()
+            if (official != null && pdf != official) return official
+            return pdf
+        }
+        return catalog
     }
 
     private fun emballagesAnchor(

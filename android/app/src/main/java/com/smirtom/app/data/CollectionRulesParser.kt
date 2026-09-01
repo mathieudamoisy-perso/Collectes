@@ -39,7 +39,8 @@ object CollectionRulesParser {
         val orduresDay = findDayNearKeyword(
             communeWindow,
             listOf("ordures menageres", "ordures ménagères", "ordures")
-        ) ?: DayOfWeek.MONDAY
+        ) ?: findOrduresScheduleDay(communeWindow)
+            ?: DayOfWeek.MONDAY
 
         val emballagesDay = findDayNearKeyword(
             communeWindow,
@@ -92,12 +93,24 @@ object CollectionRulesParser {
 
     private fun findDayNearKeyword(text: String, keywords: List<String>): DayOfWeek? {
         for (keyword in keywords) {
-            val index = text.indexOf(keyword)
-            if (index >= 0) {
+            var searchFrom = 0
+            while (searchFrom < text.length) {
+                val index = text.indexOf(keyword, searchFrom)
+                if (index < 0) break
                 findDayAround(text, index, keyword.length)?.let { return it }
+                searchFrom = index + keyword.length
             }
         }
         return null
+    }
+
+    /** Légende PDF : « ordures ménagères toutes les semaines le jeudi ». */
+    private fun findOrduresScheduleDay(text: String): DayOfWeek? {
+        val match = Regex(
+            """ordures\s+menageres?\s+toutes\s+les\s+semaines\s+le\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b""",
+            RegexOption.IGNORE_CASE
+        ).find(text) ?: return null
+        return frenchDayToDayOfWeek(match.groupValues[1])
     }
 
     /**

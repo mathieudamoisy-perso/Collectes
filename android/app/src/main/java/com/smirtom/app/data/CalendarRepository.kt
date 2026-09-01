@@ -46,27 +46,6 @@ class CalendarRepository(
 
             val commune = preferencesManager.getSelectedCommune()
             val currentYear = LocalDate.now(zoneId).year
-            val metadata = syncMetadataDao.get()
-            val logicOutdated =
-                preferencesManager.getCalendarLogicVersion() < PreferencesManager.CALENDAR_LOGIC_VERSION
-            if (!force &&
-                !logicOutdated &&
-                metadata?.calendarYear == currentYear &&
-                metadata.communeSlug == commune.slug
-            ) {
-                val cached = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
-                if (cached.isNotEmpty()) {
-                    reminderScheduler.scheduleUpcomingReminders(
-                        cached.mapNotNull { it.toCollectionDay() },
-                        preferencesManager.getReminderTimeMinutes()
-                    )
-                    _syncState.value = SyncState.Success(
-                        Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
-                        metadata.calendarYear
-                    )
-                    return@runCatching metadata.calendarYear
-                }
-            }
 
             val pdfUrl = commune.officialCalendarUrl.takeIf { it.isNotBlank() }
                 ?: runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
