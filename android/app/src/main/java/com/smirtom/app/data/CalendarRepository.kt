@@ -41,20 +41,48 @@ class CalendarRepository(
 
     suspend fun ensureCalendarSynced(force: Boolean = false): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
-            _syncState.value = SyncState.Loading
             PDFBoxResourceLoader.init(context.applicationContext)
 
             val commune = preferencesManager.getSelectedCommune()
             val currentYear = LocalDate.now(zoneId).year
+            if (force) {
+                clearLocalCalendarCache()
+                _syncState.value = SyncState.Loading
+            }
+            val metadata = syncMetadataDao.get()
+            val logicOutdated =
+                preferencesManager.getCalendarLogicVersion() < PreferencesManager.CALENDAR_LOGIC_VERSION
+            if (!force &&
+                !logicOutdated &&
+                metadata?.calendarYear == currentYear &&
+                metadata.communeSlug == commune.slug
+            ) {
+                val cached = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
+                if (cached.isNotEmpty()) {
+                    reminderScheduler.scheduleUpcomingReminders(
+                        cached.mapNotNull { it.toCollectionDay() },
+                        preferencesManager.getReminderTimeMinutes()
+                    )
+                    _syncState.value = SyncState.Success(
+                        Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
+                        metadata.calendarYear
+                    )
+                    return@runCatching metadata.calendarYear
+                }
+            }
+
+            _syncState.value = SyncState.Loading
 
             val pdfUrl = commune.officialCalendarUrl.takeIf { it.isNotBlank() }
                 ?: runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
             val pdfText = if (pdfUrl != null) {
-                val pdfFile = fetcher.downloadPdf(
-                    pdfUrl,
-                    fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
-                )
-                runCatching { parser.extractText(pdfFile) }.getOrNull()
+                runCatching {
+                    val pdfFile = fetcher.downloadPdf(
+                        pdfUrl,
+                        fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
+                    )
+                    parser.extractText(pdfFile)
+                }.getOrNull()
             } else {
                 null
             }
@@ -112,10 +140,14 @@ class CalendarRepository(
 
     suspend fun setCommune(commune: VexinCommune) {
         preferencesManager.setCommune(commune)
-        withContext(Dispatchers.IO) {
-            collectionDao.clearAll()
-            syncMetadataDao.clear()
-        }
+        clearLocalCalendarCache()
+    }
+
+    suspend fun clearLocalCalendarCache() = withContext(Dispatchers.IO) {
+        collectionDao.clearAll()
+        syncMetadataDao.clear()
+        fetcher.deleteCachedPdfs(context.filesDir)
+        fetcher.deleteCachedPdfs(context.cacheDir)
     }
 
     suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {

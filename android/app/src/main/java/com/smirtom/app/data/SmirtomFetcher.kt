@@ -1,5 +1,6 @@
 package com.smirtom.app.data
 
+import okhttp3.CacheControl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import org.jsoup.nodes.Element
@@ -96,9 +97,13 @@ class SmirtomFetcher {
     }
 
     fun downloadPdf(url: String, targetFile: File): File {
+        if (targetFile.exists()) targetFile.delete()
         val request = Request.Builder()
             .url(url)
+            .cacheControl(CacheControl.FORCE_NETWORK)
             .header("User-Agent", SmirtomHttp.USER_AGENT)
+            .header("Cache-Control", "no-cache")
+            .header("Pragma", "no-cache")
             .get()
             .build()
         SmirtomHttp.client.newCall(request).execute().use { response ->
@@ -114,6 +119,12 @@ class SmirtomFetcher {
 
     fun pdfCacheFile(cacheDir: File, year: Int, communeSlug: String): File {
         return File(cacheDir, "calendar-$year-$communeSlug.pdf")
+    }
+
+    fun deleteCachedPdfs(directory: File) {
+        directory.listFiles { file ->
+            file.isFile && file.name.startsWith("calendar-") && file.name.endsWith(".pdf")
+        }?.forEach { it.delete() }
     }
 
     fun currentYear(): Int = LocalDate.now().year

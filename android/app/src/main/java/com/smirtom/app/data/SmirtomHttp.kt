@@ -24,7 +24,8 @@ object SmirtomHttp {
             .header("User-Agent", USER_AGENT)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
             .header("Accept-Language", "fr-FR,fr;q=0.9")
-            .header("Referer", SITE)
+            .header("Cache-Control", "no-cache")
+            .header("Pragma", "no-cache")
             .get()
             .build()
         client.newCall(request).execute().use { response ->

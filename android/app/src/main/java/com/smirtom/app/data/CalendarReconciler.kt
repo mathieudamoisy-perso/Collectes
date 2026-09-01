@@ -4,9 +4,8 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 /**
- * Fusionne la page commune SMIRTOM (jours + résumé) et le PDF annuel (grille A/B).
- * La page est prioritaire pour les jours de semaine (spécifique à la commune).
- * La grille PDF départage les groupes verre A/B et corrige un résumé de page périmé.
+ * Jours de semaine : catalogue officiel de la commune (prioritaire).
+ * PDF / page : uniquement les ancrages de cycle (emballages / verre).
  */
 object CalendarReconciler {
     fun reconcile(
@@ -26,25 +25,22 @@ object CalendarReconciler {
             CollectionRulesParser.parseIfPresent(it, year, commune.displayName)
         }
         val catalog = OfficialCommuneSchedules.rules(year, commune.slug)
+        val officialDays = OfficialCommuneSchedules.weekdaysFor(commune.slug)
 
-        val orduresDay = resolveWeekday(
-            page = pageRules?.orduresDay,
-            pdf = pdfRules?.orduresDay,
-            catalog = catalog.orduresDay,
-            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.orduresDay }
-        )
-        val emballagesDay = resolveWeekday(
-            page = pageRules?.emballagesDay,
-            pdf = pdfRules?.emballagesDay,
-            catalog = catalog.emballagesDay,
-            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.emballagesDay }
-        )
-        var verreDay = resolveWeekday(
-            page = pageRules?.verreDay,
-            pdf = pdfRules?.verreDay,
-            catalog = catalog.verreDay,
-            weekday = { OfficialCommuneSchedules.weekdaysFor(commune.slug)?.verreDay }
-        )
+        // Jours officiels de la commune d'abord : un PDF/page mal lu (lundi par défaut = Magny)
+        // ne doit jamais remplacer le jeudi de Cormeilles.
+        val orduresDay = officialDays?.orduresDay
+            ?: pageRules?.orduresDay
+            ?: pdfRules?.orduresDay
+            ?: catalog.orduresDay
+        val emballagesDay = officialDays?.emballagesDay
+            ?: pageRules?.emballagesDay
+            ?: pdfRules?.emballagesDay
+            ?: catalog.emballagesDay
+        var verreDay = officialDays?.verreDay
+            ?: pageRules?.verreDay
+            ?: pdfRules?.verreDay
+            ?: catalog.verreDay
 
         if (!pdfText.isNullOrBlank() && pdfRules != null && pdfRules.verreDay != verreDay) {
             val pageSpecifiesVerreChange = pageText?.let {
@@ -86,25 +82,6 @@ object CalendarReconciler {
             verreDay = verreDay,
             verreAnchor = verreAnchor
         )
-    }
-
-    /**
-     * La page commune est prioritaire. Sans page, un PDF mal lu (légende sans jour → lundi par défaut)
-     * ne doit pas écraser le rythme officiel connu de la commune.
-     */
-    private fun resolveWeekday(
-        page: DayOfWeek?,
-        pdf: DayOfWeek?,
-        catalog: DayOfWeek,
-        weekday: () -> DayOfWeek?
-    ): DayOfWeek {
-        page?.let { return it }
-        if (pdf != null) {
-            val official = weekday()
-            if (official != null && pdf != official) return official
-            return pdf
-        }
-        return catalog
     }
 
     private fun emballagesAnchor(

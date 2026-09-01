@@ -43,9 +43,23 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             repository.syncState.collect { sync ->
-                _uiState.value = _uiState.value.copy(syncState = sync)
-                if (sync is SyncState.Success) {
-                    loadUpcoming(_uiState.value.activeFilter)
+                when (sync) {
+                    is SyncState.Loading -> {
+                        val commune = repository.getSelectedCommune()
+                        _uiState.value = _uiState.value.copy(
+                            syncState = sync,
+                            commune = commune.displayName,
+                            tomorrowWasteTypes = emptyList(),
+                            upcoming = emptyList()
+                        )
+                    }
+                    is SyncState.Success -> {
+                        _uiState.value = _uiState.value.copy(syncState = sync)
+                        loadUpcoming(_uiState.value.activeFilter)
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(syncState = sync)
+                    }
                 }
             }
         }

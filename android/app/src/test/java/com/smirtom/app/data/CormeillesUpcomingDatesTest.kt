@@ -33,6 +33,43 @@ class CormeillesUpcomingDatesTest {
     }
 
     @Test
+    fun magnyTextOnCormeillesPageCannotProduceMondayOrdures() {
+        val pollutedPage = """
+          Magny-en-Vexin
+          Le lundi pour les ordures ménagères
+          Le mardi toutes les 2 semaines pour les emballages/papiers
+          Cormeilles-en-Vexin
+          Le lundi pour les ordures ménagères
+          Le mardi toutes les 2 semaines pour les emballages/papiers
+        """.trimIndent()
+        val rules = CalendarReconciler.reconcile(null, pollutedPage, cormeilles, 2026)
+        val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+        val today = LocalDate.of(2026, 9, 1)
+        val first = events.filter { it.date.isAfter(today) }.minBy { it.date }
+
+        assertEquals(DayOfWeek.THURSDAY, rules.orduresDay)
+        assertEquals(LocalDate.of(2026, 9, 3), first.date)
+        assertEquals(listOf(WasteType.ORDURES), first.wasteTypes)
+        assertTrue(
+            events.none {
+                it.date == LocalDate.of(2026, 9, 7) && WasteType.ORDURES in it.wasteTypes
+            }
+        )
+    }
+
+    @Test
+    fun catalogAlonePutsOrduresOn3September() {
+        val rules = CalendarReconciler.reconcile(null, null, cormeilles, 2026)
+        val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+        val today = LocalDate.of(2026, 9, 1)
+        val first = events.filter { it.date.isAfter(today) }.minBy { it.date }
+
+        assertEquals(DayOfWeek.THURSDAY, rules.orduresDay)
+        assertEquals(LocalDate.of(2026, 9, 3), first.date)
+        assertEquals(listOf(WasteType.ORDURES), first.wasteTypes)
+    }
+
+    @Test
     fun marchVerreIsOn3Not7() {
         val pdf = loadFixture("cormeilles.txt")
         val rules = CalendarReconciler.reconcile(pdf, null, cormeilles, 2026)
