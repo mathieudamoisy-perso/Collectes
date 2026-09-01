@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.0.1` (`versionCode` 2)
+Version actuelle : `1.1.0` (`versionCode` 3)
 
 ## 1. Compte développeur
 
@@ -27,6 +27,13 @@ cd android
 ./gradlew :app:bundleRelease
 ```
 
+Sur Windows :
+
+```powershell
+cd android
+.\gradlew.bat :app:bundleRelease
+```
+
 Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 
 ### Numéro de version (bureau + domicile)
@@ -34,7 +41,7 @@ Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
 
 - `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
-- `versionName` : version affichée aux utilisateurs (ex. `1.0.1`)
+- `versionName` : version affichée aux utilisateurs (ex. `1.1.0`)
 
 **Workflow multi-postes :**
 
@@ -52,23 +59,35 @@ Ne jamais uploader deux AAB avec le même `versionCode` : Play Console le refuse
 | Bannière | [feature_graphic_1024x500.png](feature_graphic_1024x500.png) | 1024×500 |
 | Captures téléphone | à prendre sur appareil / émulateur | min. 2, idéalement 4–8 |
 
-Captures utiles : accueil « Demain », liste à venir, réglages (commune + heure), carte batterie si visible.
+Captures utiles : accueil « Demain », liste des prochaines collectes, réglages (sélecteur de commune + lien calendrier), filtre par type de bac.
 
 ### Textes FR (à coller dans la Console)
 
 **Titre :** Collectes
 
 **Description courte :**
-Rappels la veille des collectes de déchets du SMIRTOM du Vexin.
+Rappels la veille des collectes de déchets, selon votre commune.
 
 **Description longue :**
-Collectes vous rappelle la veille de sortir les bacs, pour les communes du SMIRTOM du Vexin.
+Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge (SMIRTOM du Vexin, Syndicat Emeraude, etc.).
 
-L’application télécharge le calendrier officiel, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants selon la commune), et envoie une notification locale à l’heure que vous choisissez.
+L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
+
+Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Sannois, Ermont-Eaubonne.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
+
+### Notes de version — test fermé 1.1.0
+
+À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Nouvelles communes : Cormeilles-en-Vexin, Sannois, Ermont-Eaubonne.
+Liste des collectes : uniquement les prochaines dates (plus de dates passées).
+Lien calendrier PDF adapté selon la commune (SMIRTOM ou source municipale).
+```
 
 ## 5. Politique de confidentialité
 
@@ -79,13 +98,18 @@ URL utilisée dans l’app (`privacy_policy_url`) :
 
 Activer **GitHub Pages** sur le dépôt (`Settings → Pages`, source : dossier `/docs` de la branche principale) pour que cette URL réponde. Coller la même URL dans Play Console → Politique de confidentialité.
 
+**Important :** pousser la mise à jour de `docs/privacy-policy.html` sur `main` avant de publier la beta, pour que l’URL publique soit à jour.
+
 ## 6. Sécurité des données (Data safety)
 
 Déclarer en cohérence avec la politique :
 
 - Pas de compte, pas de collecte partagée avec des tiers
 - Données **sur l’appareil uniquement** : commune, heure de rappel, calendrier
-- Réseau : téléchargement de documents publics sur smirtomduvexin.net
+- Réseau : téléchargement de documents publics sur les sites officiels des collectivités / syndicats, notamment :
+  - `smirtomduvexin.net` (communes du Vexin)
+  - `ville-sannois.fr` (Sannois)
+  - `ermont.fr` (Ermont-Eaubonne)
 - Pas de pub, pas d’analytics
 - Chiffrement en transit (HTTPS)
 
@@ -95,10 +119,16 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console
+## 8. Parcours Console — beta 1.1.0
 
-1. Activer **Play App Signing**.
-2. Uploader l’AAB sur la piste **Tests fermés**.
-3. Remplir contenu de l’app, Data safety, audience (18+ ou tout public, pas d’enfants ciblés), questionnaires permissions.
-4. Ajouter des testeurs → publier la piste → attendre la revue.
-5. Ensuite seulement : **Production**.
+1. `git pull` puis vérifier `versionCode = 3` dans `build.gradle.kts`
+2. Builder l’AAB release (section 3)
+3. Play Console → **Tests fermés** → **Créer une version**
+4. Uploader `app-release.aab`
+5. Coller les **notes de version** (section 4)
+6. Mettre à jour la description courte / longue si ce n’est pas déjà fait
+7. Vérifier **Data safety** et l’URL de politique de confidentialité
+8. **Réviser et publier** la piste fermée
+9. Vérifier sur un appareil testeur : changement de commune, actualisation, ouverture du PDF
+
+Ensuite seulement : **Production** (après validation et délai éventuel imposé par Google).
