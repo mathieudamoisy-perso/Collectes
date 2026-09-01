@@ -25,7 +25,6 @@ import java.util.Locale
 data class HomeUiState(
     val tomorrowLabel: String = "",
     val tomorrowWasteTypes: List<WasteType> = emptyList(),
-    val nextCollectionDay: CollectionDay? = null,
     val upcoming: List<CollectionDay> = emptyList(),
     val activeFilter: WasteType? = null,
     val syncState: SyncState = SyncState.Idle,
@@ -40,9 +39,6 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-
-    /** Calendar day used for the last successful `loadUpcoming`; skips resume reloads on the same day. */
-    private var lastLoadedDate: LocalDate? = null
 
     init {
         viewModelScope.launch {
@@ -63,10 +59,8 @@ class HomeViewModel(
         }
     }
 
-    /** Recomputes tomorrow / upcoming when the calendar day may have changed (e.g. after overnight resume). */
+    /** Recomputes tomorrow / upcoming when the app returns to the foreground. */
     fun reloadDates() {
-        val today = LocalDate.now(zoneId)
-        if (today == lastLoadedDate) return
         viewModelScope.launch {
             loadUpcoming(_uiState.value.activeFilter)
         }
@@ -85,19 +79,12 @@ class HomeViewModel(
         val tomorrow = today.plusDays(1)
         val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
-        val nextCollectionDay = if (tomorrowTypes.isEmpty()) {
-            filteredUpcoming.firstOrNull { it.date.isAfter(tomorrow) }
-        } else {
-            null
-        }
 
-        lastLoadedDate = today
         _uiState.value = _uiState.value.copy(
             tomorrowLabel = tomorrow.format(dateFormatter).replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
             },
             tomorrowWasteTypes = tomorrowTypes,
-            nextCollectionDay = nextCollectionDay,
             upcoming = filteredUpcoming,
             activeFilter = filter,
             commune = commune.displayName

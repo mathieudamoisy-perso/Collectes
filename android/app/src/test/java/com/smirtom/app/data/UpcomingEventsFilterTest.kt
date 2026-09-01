@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 class UpcomingEventsFilterTest {
     @Test
-    fun upcomingListIncludesTodayAndExcludesPastDates() {
+    fun upcomingListExcludesTodayAndPastDates() {
         val today = LocalDate.of(2026, 9, 1)
         val events = listOf(
             CollectionDay(LocalDate.of(2026, 8, 30), listOf(WasteType.ORDURES)),
@@ -19,10 +19,10 @@ class UpcomingEventsFilterTest {
             CollectionDay(LocalDate.of(2026, 9, 8), listOf(WasteType.EMBALLAGES))
         )
 
-        val upcoming = events.filter { !it.date.isBefore(today) }
+        val upcoming = events.filter { it.date.isAfter(today) }
 
-        assertFalse(upcoming.any { it.date.isBefore(today) })
-        assertTrue(upcoming.any { it.date == today })
+        assertFalse(upcoming.any { !it.date.isAfter(today) })
+        assertTrue(upcoming.all { it.date.isAfter(today) })
         assertTrue(upcoming.any { it.date == LocalDate.of(2026, 9, 2) })
     }
 

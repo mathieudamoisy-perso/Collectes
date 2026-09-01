@@ -144,7 +144,7 @@ class CalendarRepository(
         val today = LocalDate.now(zoneId)
         val events = collectionDao.getEventsFrom(today.toEpochDay())
             .mapNotNull { it.toCollectionDay() }
-            .filter { !it.date.isBefore(today) }
+            .filter { it.date.isAfter(today) }
             .sortedBy { it.date }
         applyFilter(events, filter)
     }

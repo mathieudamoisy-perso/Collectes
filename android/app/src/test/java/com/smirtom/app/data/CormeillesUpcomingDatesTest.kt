@@ -28,7 +28,7 @@ class CormeillesUpcomingDatesTest {
 
         assertEquals(LocalDate.of(2026, 1, 12), rules.emballagesAnchor)
         val today = LocalDate.of(2026, 9, 1)
-        val upcoming = events.keys.filter { !it.isBefore(today) }.sorted()
+        val upcoming = events.keys.filter { it.isAfter(today) }.sorted()
         assertEquals(LocalDate.of(2026, 9, 3), upcoming.first())
     }
 
