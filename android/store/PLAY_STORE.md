@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version initiale : `1.0.0` (`versionCode` 1)
+Version actuelle : `1.0.1` (`versionCode` 2)
 
 ## 1. Compte développeur
 
@@ -29,7 +29,20 @@ cd android
 
 Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 
-Incrémenter `versionCode` (et éventuellement `versionName`) dans `android/app/build.gradle.kts` à chaque nouvel upload.
+### Numéro de version (bureau + domicile)
+
+La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
+
+- `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
+- `versionName` : version affichée aux utilisateurs (ex. `1.0.1`)
+
+**Workflow multi-postes :**
+
+1. Avant de builder : `git pull` pour récupérer le dernier `versionCode`
+2. Si un nouvel upload est nécessaire : incrémenter `versionCode` (+1) et ajuster `versionName` si besoin
+3. Committer et pousser ce changement **avant** de builder sur l’autre machine
+
+Ne jamais uploader deux AAB avec le même `versionCode` : Play Console le refuse.
 
 ## 4. Assets fiche store
 
