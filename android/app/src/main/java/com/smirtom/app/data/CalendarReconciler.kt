@@ -38,10 +38,18 @@ object CalendarReconciler {
             ?: catalog.verreDay
 
         if (!pdfText.isNullOrBlank() && pdfRules != null && pdfRules.verreDay != verreDay) {
-            val pageHits = PdfGridMarkers.letterCount(pdfText, verreDay)
-            val pdfHits = PdfGridMarkers.letterCount(pdfText, pdfRules.verreDay)
-            if (pdfHits > pageHits) {
-                verreDay = pdfRules.verreDay
+            val pageSpecifiesVerreChange = pageText?.let {
+                CollectionRulesParser.verreChangeAnchor(
+                    CollectionRulesParser.normalizeSource(it),
+                    verreDay
+                )
+            } != null
+            if (!pageSpecifiesVerreChange) {
+                val pageHits = PdfGridMarkers.letterCount(pdfText, verreDay)
+                val pdfHits = PdfGridMarkers.letterCount(pdfText, pdfRules.verreDay)
+                if (pdfHits > pageHits) {
+                    verreDay = pdfRules.verreDay
+                }
             }
         }
 

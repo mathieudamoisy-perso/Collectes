@@ -111,6 +111,7 @@ fun HomeScreen(
                         TomorrowCard(
                             tomorrowLabel = uiState.tomorrowLabel,
                             wasteTypes = uiState.tomorrowWasteTypes,
+                            nextCollectionDay = uiState.nextCollectionDay,
                             activeFilter = uiState.activeFilter
                         )
                     }
@@ -213,14 +214,20 @@ private fun WasteTypeFilterRow(
 private fun TomorrowCard(
     tomorrowLabel: String,
     wasteTypes: List<WasteType>,
+    nextCollectionDay: CollectionDay?,
     activeFilter: WasteType?
 ) {
-    val cardColor = if (wasteTypes.isEmpty()) {
+    val cardColor = if (wasteTypes.isEmpty() && nextCollectionDay == null) {
         MaterialTheme.colorScheme.surfaceContainerLow
     } else {
-        WasteTypeColors.cardBackgroundOrDefault(wasteTypes)
+        val highlightTypes = wasteTypes.ifEmpty {
+            nextCollectionDay?.wasteTypes.orEmpty()
+        }
+        WasteTypeColors.cardBackgroundOrDefault(highlightTypes)
     }
-    val accentColor = wasteTypes.firstOrNull()?.let { WasteTypeColors.palette(it).accent }
+    val accentColor = (wasteTypes.firstOrNull() ?: nextCollectionDay?.wasteTypes?.firstOrNull())
+        ?.let { WasteTypeColors.palette(it).accent }
+    val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -254,6 +261,24 @@ private fun TomorrowCard(
                             "Rien à sortir",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    nextCollectionDay?.let { day ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Prochaine collecte",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            day.date.format(dateFormatter).replaceFirstChar {
+                                if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
+                            },
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        day.wasteTypes.forEach { type ->
+                            WasteTypeLine(type)
+                        }
                     }
                 } else {
                     wasteTypes.forEach { type ->

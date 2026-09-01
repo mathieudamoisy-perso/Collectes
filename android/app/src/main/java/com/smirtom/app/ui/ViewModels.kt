@@ -25,6 +25,7 @@ import java.util.Locale
 data class HomeUiState(
     val tomorrowLabel: String = "",
     val tomorrowWasteTypes: List<WasteType> = emptyList(),
+    val nextCollectionDay: CollectionDay? = null,
     val upcoming: List<CollectionDay> = emptyList(),
     val activeFilter: WasteType? = null,
     val syncState: SyncState = SyncState.Idle,
@@ -84,6 +85,11 @@ class HomeViewModel(
         val tomorrow = today.plusDays(1)
         val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
+        val nextCollectionDay = if (tomorrowTypes.isEmpty()) {
+            filteredUpcoming.firstOrNull { it.date.isAfter(tomorrow) }
+        } else {
+            null
+        }
 
         lastLoadedDate = today
         _uiState.value = _uiState.value.copy(
@@ -91,6 +97,7 @@ class HomeViewModel(
                 if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
             },
             tomorrowWasteTypes = tomorrowTypes,
+            nextCollectionDay = nextCollectionDay,
             upcoming = filteredUpcoming,
             activeFilter = filter,
             commune = commune.displayName

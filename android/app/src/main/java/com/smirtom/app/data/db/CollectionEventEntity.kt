@@ -42,6 +42,9 @@ interface SyncMetadataDao {
     @Query("SELECT * FROM sync_metadata WHERE id = 1")
     suspend fun get(): SyncMetadataEntity?
 
+    @Query("DELETE FROM sync_metadata")
+    suspend fun clear()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(metadata: SyncMetadataEntity)
 }

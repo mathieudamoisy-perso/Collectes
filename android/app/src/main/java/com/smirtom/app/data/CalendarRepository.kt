@@ -133,14 +133,26 @@ class CalendarRepository(
 
     suspend fun setCommune(commune: VexinCommune) {
         preferencesManager.setCommune(commune)
+        withContext(Dispatchers.IO) {
+            collectionDao.clearAll()
+            syncMetadataDao.clear()
+        }
     }
 
     suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {
+        if (!isCachedCalendarForSelectedCommune()) return@withContext emptyList()
         val today = LocalDate.now(zoneId)
         val events = collectionDao.getEventsFrom(today.toEpochDay())
             .mapNotNull { it.toCollectionDay() }
-            .filter { it.date.isAfter(today) }
+            .filter { !it.date.isBefore(today) }
+            .sortedBy { it.date }
         applyFilter(events, filter)
+    }
+
+    suspend fun getCollectionsOn(date: LocalDate, filter: WasteType? = null): List<WasteType> = withContext(Dispatchers.IO) {
+        if (!isCachedCalendarForSelectedCommune()) return@withContext emptyList()
+        val types = collectionDao.getEventOn(date.toEpochDay())?.toCollectionDay()?.wasteTypes.orEmpty()
+        if (filter == null) types else types.filter { it == filter }
     }
 
     private fun applyFilter(events: List<CollectionDay>, filter: WasteType?): List<CollectionDay> {
@@ -151,9 +163,11 @@ class CalendarRepository(
         }
     }
 
-    suspend fun getCollectionsOn(date: LocalDate, filter: WasteType? = null): List<WasteType> = withContext(Dispatchers.IO) {
-        val types = collectionDao.getEventOn(date.toEpochDay())?.toCollectionDay()?.wasteTypes.orEmpty()
-        if (filter == null) types else types.filter { it == filter }
+    private suspend fun isCachedCalendarForSelectedCommune(): Boolean {
+        val commune = preferencesManager.getSelectedCommune()
+        val metadata = syncMetadataDao.get() ?: return false
+        val currentYear = LocalDate.now(zoneId).year
+        return metadata.communeSlug == commune.slug && metadata.calendarYear == currentYear
     }
 
     suspend fun getTomorrowCollections(filter: WasteType? = null): List<WasteType> {
