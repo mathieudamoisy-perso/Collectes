@@ -28,7 +28,13 @@ data class CollectionRules(
     val emballagesDay: java.time.DayOfWeek,
     val emballagesAnchor: java.time.LocalDate,
     val verreDay: java.time.DayOfWeek,
-    val verreAnchor: java.time.LocalDate
+    val verreAnchor: java.time.LocalDate,
+    val orduresRecurrence: CollectionRecurrence = CollectionRecurrence.WEEKLY,
+    val emballagesRecurrence: CollectionRecurrence = CollectionRecurrence.BIWEEKLY,
+    val verreRecurrence: CollectionRecurrence = CollectionRecurrence.EVERY_FOUR_WEEKS,
+    val verreMonthOrdinal: Int? = null,
+    val encombrantsDay: java.time.DayOfWeek? = null,
+    val encombrantsMonthOrdinal: Int? = null
 ) {
     companion object {
         /** Rythme officiel 2026 de la commune si le site est injoignable. */

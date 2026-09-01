@@ -1,8 +1,10 @@
 package com.smirtom.app.data
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 class UpcomingEventsFilterTest {
@@ -33,18 +35,18 @@ class UpcomingEventsFilterTest {
     }
 
     @Test
-    fun sannoisScheduleUsesThursdayTuesdayMonday() {
+    fun sannoisScheduleUsesMonthlyVerre() {
         val rules = OfficialCommuneSchedules.rules(2026, "sannois")
-        assertTrue(rules.orduresDay.name == "THURSDAY")
-        assertTrue(rules.emballagesDay.name == "TUESDAY")
-        assertTrue(rules.verreDay.name == "MONDAY")
+        assertEquals(CollectionRecurrence.MONTHLY_NTH_WEEKDAY, rules.verreRecurrence)
+        assertEquals(DayOfWeek.MONDAY, rules.verreDay)
+        assertEquals(2, rules.verreMonthOrdinal)
     }
 
     @Test
-    fun ermontEaubonneScheduleUsesTuesdayThursdayFriday() {
+    fun ermontEaubonneScheduleUsesMonthlyVerre() {
         val rules = OfficialCommuneSchedules.rules(2026, "ermont-eaubonne")
-        assertTrue(rules.orduresDay.name == "TUESDAY")
-        assertTrue(rules.emballagesDay.name == "THURSDAY")
-        assertTrue(rules.verreDay.name == "FRIDAY")
+        assertEquals(CollectionRecurrence.MONTHLY_NTH_WEEKDAY, rules.verreRecurrence)
+        assertEquals(DayOfWeek.FRIDAY, rules.verreDay)
+        assertEquals(4, rules.verreMonthOrdinal)
     }
 }

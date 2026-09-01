@@ -15,6 +15,10 @@ object CalendarReconciler {
         commune: VexinCommune,
         year: Int
     ): CollectionRules {
+        if (!commune.usesSmirtomNetwork) {
+            pdfText?.let { MunicipalCalendarParser.parseIfPresent(it, year) }?.let { return it }
+        }
+
         val pageRules = pageText?.let {
             CollectionRulesParser.parseIfPresent(it, year, commune.displayName)
         }

@@ -43,6 +43,27 @@ object OfficialCommuneSchedules {
     fun weekdaysFor(slug: String): Weekdays? = weekdays[slug]
 
     fun rules(year: Int, communeSlug: String): CollectionRules {
+        when (communeSlug) {
+            "sannois" -> return municipalFallback(
+                year = year,
+                orduresDay = DayOfWeek.THURSDAY,
+                emballagesDay = DayOfWeek.TUESDAY,
+                verreDay = DayOfWeek.MONDAY,
+                verreOrdinal = 2,
+                encombrantsDay = DayOfWeek.WEDNESDAY,
+                encombrantsOrdinal = 1
+            )
+            "ermont-eaubonne" -> return municipalFallback(
+                year = year,
+                orduresDay = DayOfWeek.TUESDAY,
+                emballagesDay = DayOfWeek.THURSDAY,
+                verreDay = DayOfWeek.FRIDAY,
+                verreOrdinal = 4,
+                encombrantsDay = DayOfWeek.WEDNESDAY,
+                encombrantsOrdinal = 2
+            )
+        }
+
         val days = weekdays[communeSlug] ?: weekdays.getValue("magny-en-vexin")
         val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(
             year,
@@ -60,6 +81,31 @@ object OfficialCommuneSchedules {
             emballagesAnchor = emballagesAnchor,
             verreDay = days.verreDay,
             verreAnchor = verreAnchor
+        )
+    }
+
+    private fun municipalFallback(
+        year: Int,
+        orduresDay: DayOfWeek,
+        emballagesDay: DayOfWeek,
+        verreDay: DayOfWeek,
+        verreOrdinal: Int,
+        encombrantsDay: DayOfWeek,
+        encombrantsOrdinal: Int
+    ): CollectionRules {
+        val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
+        return CollectionRules(
+            orduresDay = orduresDay,
+            emballagesDay = emballagesDay,
+            emballagesAnchor = emballagesAnchor,
+            verreDay = verreDay,
+            verreAnchor = emballagesAnchor,
+            orduresRecurrence = CollectionRecurrence.WEEKLY,
+            emballagesRecurrence = CollectionRecurrence.BIWEEKLY,
+            verreRecurrence = CollectionRecurrence.MONTHLY_NTH_WEEKDAY,
+            verreMonthOrdinal = verreOrdinal,
+            encombrantsDay = encombrantsDay,
+            encombrantsMonthOrdinal = encombrantsOrdinal
         )
     }
 }

@@ -95,9 +95,14 @@ class CalendarRepository(
                 includeNextYearJanuary = true
             )
 
-            val encombrantsEvents = encombrantsFetcher.toCollectionDays(
-                encombrantsFetcher.fetchDates(currentYear, commune)
-            )
+            val encombrantsEvents = if (rules.encombrantsMonthOrdinal != null) {
+                CalendarDateGenerator.encombrantsDates(currentYear, rules, includeNextYearJanuary = true)
+                    .map { date -> CollectionDay(date, listOf(WasteType.ENCOMBRANTS)) }
+            } else {
+                encombrantsFetcher.toCollectionDays(
+                    encombrantsFetcher.fetchDates(currentYear, commune)
+                )
+            }
             val events = CollectionDayMerger.merge(regularEvents + encombrantsEvents)
 
             collectionDao.clearAll()

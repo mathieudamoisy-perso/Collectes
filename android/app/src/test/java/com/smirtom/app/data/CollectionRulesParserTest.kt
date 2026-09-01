@@ -118,4 +118,18 @@ class CollectionRulesParserTest {
         assertEquals(DayOfWeek.TUESDAY, rules.emballagesDay)
         assertEquals(DayOfWeek.THURSDAY, rules.verreDay)
     }
+
+    @Test
+    fun cormeillesVerreAnchorFollowsMarch2024Change() {
+        val text = """
+          Cormeilles-en-Vexin
+          Le mercredi, puis le mardi à partir du 05/03/2024, toutes les 4 semaines pour le verre
+        """.trimIndent()
+        val rules = CollectionRulesParser.parse(text, 2026, "Cormeilles-en-Vexin")
+        assertEquals(DayOfWeek.TUESDAY, rules.verreDay)
+        assertEquals(
+            LocalDate.of(2026, 1, 6),
+            rules.verreAnchor
+        )
+    }
 }

@@ -20,6 +20,11 @@ object CollectionRulesParser {
         """(\d{1,2})\s*(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec)\s*-?\s*(\d{2})"""
     )
 
+    private val VERRE_CHANGE_DATE = Regex(
+        """puis le (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+à partir du\s+(\d{2})[\s/]+(\d{2})[\s/]+(\d{4})""",
+        RegexOption.IGNORE_CASE
+    )
+
     fun parseIfPresent(text: String, year: Int, communeName: String? = null): CollectionRules? {
         val normalized = normalizeSource(text)
         val keywordHits = listOf("ordures", "emballages", "verre").count { normalized.contains(it) }
@@ -160,6 +165,13 @@ object CollectionRulesParser {
         emballagesDay: DayOfWeek,
         emballagesAnchor: LocalDate
     ): LocalDate {
+        verreChangeAnchor(fullText, verreDay)?.let { changeAnchor ->
+            return CalendarDateGenerator.firstFourWeeklyOnOrAfter(
+                emballagesAnchor.year,
+                verreDay,
+                changeAnchor
+            )
+        }
         if (emballagesDay == verreDay) {
             return emballagesAnchor.plusDays(
                 verreOffsetDays(fullText, communeName.orEmpty())
@@ -170,6 +182,16 @@ object CollectionRulesParser {
             1,
             verreDay
         )
+    }
+
+    private fun verreChangeAnchor(fullText: String, verreDay: DayOfWeek): LocalDate? {
+        val match = VERRE_CHANGE_DATE.find(fullText) ?: return null
+        val changeDay = frenchDayToDayOfWeek(match.groupValues[1]) ?: return null
+        if (changeDay != verreDay) return null
+        val day = match.groupValues[2].toIntOrNull() ?: return null
+        val month = match.groupValues[3].toIntOrNull() ?: return null
+        val year = match.groupValues[4].toIntOrNull() ?: return null
+        return runCatching { LocalDate.of(year, month, day) }.getOrNull()
     }
 
     private fun frenchDayToDayOfWeek(day: String): DayOfWeek? {
