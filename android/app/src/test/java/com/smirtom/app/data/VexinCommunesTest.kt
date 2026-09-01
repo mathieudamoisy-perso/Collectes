@@ -8,10 +8,10 @@ import org.junit.Test
 
 class VexinCommunesTest {
     @Test
-    fun includesOnlyMagnyAndThemericourt() {
-        assertEquals(2, VexinCommunes.all.size)
+    fun includesMagnyThemericourtCormeillesAndSannois() {
+        assertEquals(4, VexinCommunes.all.size)
         assertEquals(
-            listOf("Magny-en-Vexin", "Théméricourt"),
+            listOf("Magny-en-Vexin", "Théméricourt", "Cormeilles-en-Vexin", "Sannois"),
             VexinCommunes.all.map { it.displayName }
         )
     }
@@ -26,6 +26,8 @@ class VexinCommunesTest {
     fun slugLookupWorks() {
         assertNotNull(VexinCommunes.bySlug("themericourt"))
         assertEquals("Théméricourt", VexinCommunes.bySlug("themericourt")?.displayName)
+        assertNotNull(VexinCommunes.bySlug("cormeilles-en-vexin"))
+        assertNotNull(VexinCommunes.bySlug("sannois"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
     }
@@ -43,5 +45,35 @@ class VexinCommunesTest {
         assertTrue(url.endsWith(".pdf"))
         assertTrue(url.contains("Themericourt", ignoreCase = true))
         assertTrue(url.contains("Avernes", ignoreCase = true))
+    }
+
+    @Test
+    fun cormeillesOfficialCalendarIsDirectPdf() {
+        val commune = VexinCommunes.bySlug("cormeilles-en-vexin")!!
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("Cormeilles", ignoreCase = true))
+        assertTrue(commune.pageUrl.contains("cormeilles-en-vexin"))
+        assertNull(commune.infoPageUrl)
+    }
+
+    @Test
+    fun sannoisUsesExternalCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("sannois")!!
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("ville-sannois.fr"))
+        assertTrue(commune.infoPageUrl!!.contains("ville-sannois.fr"))
+        assertTrue(commune.pageUrl.contains("ville-sannois.fr"))
+    }
+
+    @Test
+    fun allCommunesHaveUniqueSlugsAndPdfUrls() {
+        val slugs = VexinCommunes.all.map { it.slug }
+        assertEquals(slugs.size, slugs.distinct().size)
+        VexinCommunes.all.forEach { commune ->
+            assertTrue(
+                "${commune.displayName} doit avoir une URL PDF",
+                commune.officialCalendarUrl.isNotBlank()
+            )
+        }
     }
 }

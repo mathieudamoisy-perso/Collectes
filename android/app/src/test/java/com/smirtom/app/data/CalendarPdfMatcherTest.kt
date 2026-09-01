@@ -39,4 +39,12 @@ class CalendarPdfMatcherTest {
         val haystack = "Rapport annuel 2026 https://smirtomduvexin.net/wp-content/uploads/2026/07/rapport.pdf"
         assertFalse(CalendarPdfMatcher.matches(haystack, 2026, magny))
     }
+
+    @Test
+    fun matchesCormeillesPdfUrl() {
+        val cormeilles = VexinCommunes.bySlug("cormeilles-en-vexin")!!
+        val haystack =
+            "Calendrier 2026 Cormeilles en Vexin Epiais-Rhus https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
+        assertTrue(CalendarPdfMatcher.matches(haystack, 2026, cormeilles))
+    }
 }

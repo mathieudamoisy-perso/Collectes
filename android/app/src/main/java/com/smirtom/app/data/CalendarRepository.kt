@@ -68,7 +68,8 @@ class CalendarRepository(
                 }
             }
 
-            val pdfUrl = runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
+            val pdfUrl = commune.officialCalendarUrl.takeIf { it.isNotBlank() }
+                ?: runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
             val pdfText = if (pdfUrl != null) {
                 val pdfFile = fetcher.downloadPdf(
                     pdfUrl,
@@ -130,8 +131,10 @@ class CalendarRepository(
     }
 
     suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {
-        val events = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
+        val today = LocalDate.now(zoneId)
+        val events = collectionDao.getEventsFrom(today.toEpochDay())
             .mapNotNull { it.toCollectionDay() }
+            .filter { it.date.isAfter(today) }
         applyFilter(events, filter)
     }
 

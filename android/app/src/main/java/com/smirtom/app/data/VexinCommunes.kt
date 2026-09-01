@@ -3,10 +3,12 @@ package com.smirtom.app.data
 data class VexinCommune(
     val slug: String,
     val displayName: String,
-    val officialCalendarUrl: String = ""
+    val officialCalendarUrl: String = "",
+    /** Page d'info collecte ; par défaut la fiche SMIRTOM du Vexin. */
+    val infoPageUrl: String? = null
 ) {
     val pageUrl: String
-        get() = "https://smirtomduvexin.net/informations_utiles/$slug/"
+        get() = infoPageUrl ?: "https://smirtomduvexin.net/informations_utiles/$slug/"
 
     /** Termes pour retrouver le PDF calendrier sur le site SMIRTOM. */
     fun pdfSearchTerms(): List<String> = listOf(
@@ -29,6 +31,19 @@ object VexinCommunes {
             displayName = "Théméricourt",
             officialCalendarUrl =
                 "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Cormeilles-en-Vexin"),
+            displayName = "Cormeilles-en-Vexin",
+            officialCalendarUrl =
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Sannois"),
+            displayName = "Sannois",
+            officialCalendarUrl =
+                "https://www.ville-sannois.fr/sites/sannois/files/document/2026-01/calendrier-2026-sannois.pdf",
+            infoPageUrl = "https://www.ville-sannois.fr/media/10163"
         )
     )
 

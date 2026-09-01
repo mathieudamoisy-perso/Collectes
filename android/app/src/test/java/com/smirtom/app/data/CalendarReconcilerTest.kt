@@ -107,6 +107,29 @@ class CalendarReconcilerTest {
     }
 
     @Test
+    fun cormeillesPageParsesThursdayOmAndEncombrants() {
+        val cormeilles = VexinCommune("cormeilles-en-vexin", "Cormeilles-en-Vexin")
+        val page = """
+          Cormeilles-en-Vexin
+          Le jeudi pour les ordures ménagères
+          Le lundi toutes les 2 semaines pour les emballages/papiers
+          Le mardi toutes les 4 semaines pour le verre
+          La collecte des objets encombrants a lieu 2 fois par an
+          11/03/2026
+          30/09/2026
+        """.trimIndent()
+        val rules = CalendarReconciler.reconcile(null, page, cormeilles, 2026)
+        assertEquals(DayOfWeek.THURSDAY, rules.orduresDay)
+        assertEquals(DayOfWeek.MONDAY, rules.emballagesDay)
+        assertEquals(DayOfWeek.TUESDAY, rules.verreDay)
+        val encombrants = EncombrantsFetcher().parseDatesFromText(page, 2026)
+        assertEquals(
+            listOf(LocalDate.of(2026, 3, 11), LocalDate.of(2026, 9, 30)),
+            encombrants
+        )
+    }
+
+    @Test
     fun pdfGridPrefersMagnyLetterB() {
         assertEquals('b', PdfGridMarkers.preferredLetter(magnyPdf, "Magny-en-Vexin"))
         assertEquals('a', PdfGridMarkers.preferredLetter(magnyPdf, "Charmont"))
