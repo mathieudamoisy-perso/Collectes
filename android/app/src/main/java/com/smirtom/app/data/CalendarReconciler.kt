@@ -46,12 +46,15 @@ object CalendarReconciler {
         }
 
         val emballagesAnchor = emballagesAnchor(
+            pdfText = pdfText,
             year = year,
             emballagesDay = emballagesDay,
-            pdfRules = pdfRules
+            pdfRules = pdfRules,
+            verreDay = verreDay
         )
-        val verreAnchor = PdfGridMarkers.pickVerreAnchor(
+        val verreAnchor = verreAnchor(
             pdfText = pdfText,
+            pageText = pageText,
             communeName = commune.displayName,
             year = year,
             verreDay = verreDay,
@@ -69,13 +72,41 @@ object CalendarReconciler {
     }
 
     private fun emballagesAnchor(
+        pdfText: String?,
         year: Int,
         emballagesDay: DayOfWeek,
-        pdfRules: CollectionRules?
+        pdfRules: CollectionRules?,
+        verreDay: DayOfWeek
     ): LocalDate {
+        if (!pdfText.isNullOrBlank() && emballagesDay != verreDay) {
+            return PdfGridMarkers.pickEmballagesAnchor(pdfText, year, emballagesDay)
+        }
         if (pdfRules != null && pdfRules.emballagesDay == emballagesDay) {
             return pdfRules.emballagesAnchor
         }
         return CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
+    }
+
+    private fun verreAnchor(
+        pdfText: String?,
+        pageText: String?,
+        communeName: String,
+        year: Int,
+        verreDay: DayOfWeek,
+        emballagesDay: DayOfWeek,
+        emballagesAnchor: LocalDate
+    ): LocalDate {
+        val combinedText = listOfNotNull(pageText, pdfText).joinToString("\n")
+        CollectionRulesParser.verreChangeAnchor(combinedText, verreDay)?.let { changeAnchor ->
+            return CalendarDateGenerator.firstFourWeeklyOnOrAfter(year, verreDay, changeAnchor)
+        }
+        return PdfGridMarkers.pickVerreAnchor(
+            pdfText = pdfText,
+            communeName = communeName,
+            year = year,
+            verreDay = verreDay,
+            emballagesDay = emballagesDay,
+            emballagesAnchor = emballagesAnchor
+        )
     }
 }

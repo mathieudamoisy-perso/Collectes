@@ -37,6 +37,69 @@ object PdfGridMarkers {
         return groupA.size + groupB.size
     }
 
+    fun pickEmballagesAnchor(
+        pdfText: String,
+        year: Int,
+        emballagesDay: DayOfWeek
+    ): LocalDate {
+        val fallback = CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
+        val markerDays = plainDayNumbers(pdfText, emballagesDay)
+        if (markerDays.isEmpty()) return fallback
+
+        val candidates = (0..7).map { offset ->
+            fallback.plusDays(offset * 7L)
+        }
+        val best = candidates.maxWithOrNull(
+            compareBy<LocalDate>(
+                { scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, it) },
+                { it.toEpochDay() }
+            )
+        ) ?: return fallback
+        return if (scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, best) >= 3) {
+            best
+        } else {
+            fallback
+        }
+    }
+
+    private fun plainDayNumbers(text: String, dayOfWeek: DayOfWeek): Set<Int> {
+        val abbr = ABBR[dayOfWeek] ?: return emptySet()
+        val normalized = CollectionRulesParser.normalizeSource(text)
+        val pattern = Regex("""\b$abbr\s+(\d{1,2})\b(?!\s+om\b)""")
+        return pattern.findAll(normalized)
+            .mapNotNull { match ->
+                val day = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
+                if (day in 1..31) day else null
+            }
+            .toSet()
+    }
+
+    internal fun scoreBiweeklyTextOverlap(
+        pdfText: String,
+        year: Int,
+        dayOfWeek: DayOfWeek,
+        anchor: LocalDate
+    ): Int {
+        val abbr = ABBR[dayOfWeek] ?: return 0
+        val normalized = CollectionRulesParser.normalizeSource(pdfText)
+        var date = LocalDate.of(year, 1, 1)
+        val end = LocalDate.of(year, 12, 31)
+        var score = 0
+        while (!date.isAfter(end)) {
+            if (date.dayOfWeek == dayOfWeek) {
+                val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(anchor, date)
+                if (daysBetween >= 0 && daysBetween % 14L == 0L) {
+                    val token = "$abbr ${date.dayOfMonth}"
+                    if (Regex("""\b${Regex.escape(token)}\b""").containsMatchIn(normalized)) {
+                        score++
+                    }
+                }
+            }
+            date = date.plusDays(1)
+        }
+        return score
+    }
+
     fun pickVerreAnchor(
         pdfText: String?,
         communeName: String,
@@ -56,7 +119,21 @@ object PdfGridMarkers {
         if (pdfText.isNullOrBlank()) return fallback
 
         val (daysA, daysB) = letterDayNumbers(pdfText, verreDay)
-        if (daysA.isEmpty() && daysB.isEmpty()) return fallback
+        if (daysA.isEmpty() && daysB.isEmpty()) {
+            val plainDays = plainDayNumbers(pdfText, verreDay)
+            if (plainDays.isNotEmpty()) {
+                val plainBest = verreAnchorCandidates(year, verreDay, emballagesDay, emballagesAnchor)
+                    .maxByOrNull { anchor ->
+                        fourWeeklyDates(anchor, year).count { it.dayOfMonth in plainDays }
+                    }
+                if (plainBest != null &&
+                    fourWeeklyDates(plainBest, year).count { it.dayOfMonth in plainDays } >= 3
+                ) {
+                    return plainBest
+                }
+            }
+            return fallback
+        }
 
         val preferredLetter = preferredLetter(pdfText, communeName)
         val scored = verreAnchorCandidates(year, verreDay, emballagesDay, emballagesAnchor)

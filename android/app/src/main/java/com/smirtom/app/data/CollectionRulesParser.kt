@@ -184,7 +184,7 @@ object CollectionRulesParser {
         )
     }
 
-    private fun verreChangeAnchor(fullText: String, verreDay: DayOfWeek): LocalDate? {
+    internal fun verreChangeAnchor(fullText: String, verreDay: DayOfWeek): LocalDate? {
         val match = VERRE_CHANGE_DATE.find(fullText) ?: return null
         val changeDay = frenchDayToDayOfWeek(match.groupValues[1]) ?: return null
         if (changeDay != verreDay) return null

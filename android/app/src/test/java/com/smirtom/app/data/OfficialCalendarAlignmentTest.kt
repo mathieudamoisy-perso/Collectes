@@ -49,6 +49,7 @@ class OfficialCalendarAlignmentTest {
         assertEquals(DayOfWeek.THURSDAY, rules.orduresDay)
         assertEquals(DayOfWeek.MONDAY, rules.emballagesDay)
         assertEquals(DayOfWeek.TUESDAY, rules.verreDay)
+        assertEquals(LocalDate.of(2026, 1, 12), rules.emballagesAnchor)
         assertEquals(LocalDate.of(2026, 1, 6), rules.verreAnchor)
         assertTrue(
             events.any {
