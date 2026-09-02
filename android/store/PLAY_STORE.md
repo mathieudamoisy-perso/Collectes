@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.3.0` (`versionCode` 5)
+Version actuelle : `1.4.0` (`versionCode` 6)
 
 ## 1. Compte développeur
 
@@ -41,7 +41,7 @@ Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
 
 - `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
-- `versionName` : version affichée aux utilisateurs (ex. `1.3.0`)
+- `versionName` : version affichée aux utilisateurs (ex. `1.4.0`)
 
 **Workflow multi-postes :**
 
@@ -59,7 +59,7 @@ Ne jamais uploader deux AAB avec le même `versionCode` : Play Console le refuse
 | Bannière | [feature_graphic_1024x500.png](feature_graphic_1024x500.png) | 1024×500 |
 | Captures téléphone | à prendre sur appareil / émulateur | min. 2, idéalement 4–8 |
 
-Captures utiles : accueil « Demain », liste des prochaines collectes, réglages (sélecteur de commune + lien calendrier), filtre par type de bac.
+Captures utiles : accueil « Demain », liste des prochaines collectes, guide du tri, réglages (sélecteur de commune + lien calendrier), filtre par type de bac.
 
 ### Textes FR (à coller dans la Console)
 
@@ -68,20 +68,32 @@ Captures utiles : accueil « Demain », liste des prochaines collectes, réglage
 **Description courte :**
 Rappels la veille des collectes de déchets, selon votre commune.
 
-**Description longue :**
-Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge (SMIRTOM du Vexin, Syndicat Emeraude, etc.).
+**Description longue (À propos de l'application) :**
+Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge dans le Vexin, à Sannois et à Ermont.
 
 L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants, végétaux selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
 
-Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Sannois, Ermont.
+Un guide du tri intégré indique quoi mettre (ou ne pas mettre) dans chaque bac, selon les règles de votre territoire.
+
+Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.3.0
+### Notes de version — test fermé 1.4.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Guide du tri : consignes par type de bac (à mettre / à ne pas mettre), adaptées à votre commune.
+Épiais-Rhus : nouvelle commune disponible.
+Navigation par onglets : Collectes, Guide du tri, Paramètres.
+Contact développeur : mail ou WhatsApp depuis les réglages.
+Interface plus fluide : actualisation par glissement, barre de navigation qui se cache au défilement.
+```
+
+### Notes de version — test fermé 1.3.0 (historique)
 
 ```
 Sannois (Pavillons) : bac jaune hebdomadaire et collecte des végétaux (ex. jaune + végétaux le même jour).
@@ -121,6 +133,7 @@ Déclarer en cohérence avec la politique :
   - `smirtomduvexin.net` (communes du Vexin)
   - `ville-sannois.fr` (Sannois)
   - `ermont.fr` (Ermont)
+  - `syndicat-emeraude.fr` (Syndicat Emeraude)
 - Pas de pub, pas d’analytics
 - Chiffrement en transit (HTTPS)
 
@@ -130,9 +143,9 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.3.0
+## 8. Parcours Console — beta 1.4.0
 
-1. `git pull` puis vérifier `versionCode = 5` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 6` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
@@ -140,6 +153,6 @@ Déclarer en cohérence avec la politique :
 6. Mettre à jour la description courte / longue si ce n’est pas déjà fait
 7. Vérifier **Data safety** et l’URL de politique de confidentialité
 8. **Réviser et publier** la piste fermée
-9. Vérifier sur un appareil testeur : Sannois Pavillons (végétaux + jaune), Ermont, actualisation, ouverture du PDF
+9. Vérifier sur un appareil testeur : guide du tri, Épiais-Rhus, contact développeur, actualisation, ouverture du PDF
 
 Ensuite seulement : **Production** (après validation et délai éventuel imposé par Google).

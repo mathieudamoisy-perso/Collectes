@@ -34,7 +34,6 @@ data class VexinCommune(
 
     /** Sous-titre du lien « Calendrier officiel » dans les réglages. */
     fun officialCalendarSubtitle(): String = when {
-        usesSmirtomNetwork -> "PDF SMIRTOM du Vexin — $displayName"
         usesEmeraudeCalendarSource -> "PDF Syndicat Emeraude — $displayName"
         usesSannoisMunicipalSource -> "PDF ville de Sannois — $displayName"
         else -> "PDF calendrier officiel — $displayName"
@@ -42,9 +41,9 @@ data class VexinCommune(
 
     /** Titre du bandeau source dans le guide du tri. */
     fun guideSourceTitle(): String = when {
-        usesSmirtomNetwork -> WasteGuideTerritory.SMIRTOM_VEXIN.displayName
         usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.displayName
         usesSannoisMunicipalSource -> "Ville de Sannois"
+        usesSmirtomNetwork -> "Communes du Vexin"
         else -> displayName
     }
 
@@ -66,7 +65,7 @@ data class VexinCommune(
     }
 
     fun guideInfoLinkLabel(): String = when {
-        usesSmirtomNetwork -> "En savoir plus sur smirtomduvexin.net"
+        usesSmirtomNetwork -> "En savoir plus sur le site officiel"
         usesEmeraudeCalendarSource -> "En savoir plus sur syndicat-emeraude.fr"
         usesSannoisMunicipalSource -> "En savoir plus sur ville-sannois.fr"
         else -> "Page déchets de $displayName"

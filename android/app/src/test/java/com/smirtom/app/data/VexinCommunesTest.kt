@@ -114,6 +114,11 @@ class VexinCommunesTest {
 
     @Test
     fun guideSourceLabelsMatchPdfSource() {
+        val magny = VexinCommunes.default
+        assertEquals("Communes du Vexin", magny.guideSourceTitle())
+        assertNull(magny.guideSourceSubtitle())
+        assertEquals("En savoir plus sur le site officiel", magny.guideInfoLinkLabel())
+
         val sannois = VexinCommunes.bySlug("sannois")!!
         assertEquals("Ville de Sannois", sannois.guideSourceTitle())
         assertTrue(sannois.guideSourceSubtitle()!!.contains("ville-sannois.fr"))
@@ -130,7 +135,8 @@ class VexinCommunesTest {
     @Test
     fun officialCalendarSubtitleReflectsPdfSource() {
         val magny = VexinCommunes.default
-        assertTrue(magny.officialCalendarSubtitle().contains("SMIRTOM"))
+        assertTrue(magny.officialCalendarSubtitle().contains("calendrier officiel", ignoreCase = true))
+        assertFalse(magny.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
 
         val sannois = VexinCommunes.bySlug("sannois")!!
         assertFalse(sannois.officialCalendarSubtitle().contains("Emeraude", ignoreCase = true))

@@ -1,11 +1,12 @@
-# Smirtom / Collectes
+# Collectes
 
-Application Android **Collectes** pour recevoir des rappels la veille des collectes de déchets, selon votre commune (SMIRTOM du Vexin, Syndicat Emeraude, etc.).
+Application Android **Collectes** pour recevoir des rappels la veille des collectes de déchets, selon votre commune.
 
 ## Fonctionnalités
 
 - Téléchargement automatique du calendrier officiel de l'année en cours (PDF)
 - Parsing des dates de collecte (ordures, emballages, verre, encombrants, végétaux selon les communes)
+- Guide du tri par type de bac, adapté à la source officielle de votre commune
 - Notifications locales la veille (heure configurable par créneaux de 30 min, défaut 12h, plage 5h–23h)
 - Changement d'année automatique (re-sync du calendrier)
 - Fonctionne hors ligne après la première synchronisation
@@ -17,6 +18,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 | Magny-en-Vexin | SMIRTOM du Vexin |
 | Théméricourt | SMIRTOM du Vexin |
 | Cormeilles-en-Vexin | SMIRTOM du Vexin |
+| Épiais-Rhus | SMIRTOM du Vexin |
 | Sannois | Ville de Sannois |
 | Ermont | Syndicat Emeraude (Ermont) |
 
@@ -31,7 +33,7 @@ Ouvrir le dossier `android/` dans Android Studio.
 
 Guide complet : [android/store/PLAY_STORE.md](android/store/PLAY_STORE.md)
 
-**Version actuelle :** `1.3.0` (`versionCode` 5)
+**Version actuelle :** `1.4.0` (`versionCode` 6)
 
 ### Keystore (une fois)
 
@@ -80,8 +82,9 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 - Commune
 - Heure du rappel (5h à 23h, pas de 30 min, défaut 12h)
 - Test de notification (rappel fictif avec un type de collecte aléatoire)
-- Lien vers le calendrier officiel (SMIRTOM ou source municipale selon la commune)
+- Lien vers le calendrier officiel (source municipale ou syndicale selon la commune)
 - Politique de confidentialité
+- Contact développeur (mail ou WhatsApp)
 
 ## Structure du projet
 
