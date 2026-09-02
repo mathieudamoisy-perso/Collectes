@@ -78,7 +78,7 @@ class PreferencesManager(private val context: Context) {
     }
 
     companion object {
-        const val CALENDAR_LOGIC_VERSION = 13
+        const val CALENDAR_LOGIC_VERSION = 18
 
         @Volatile
         var cachedSelectedCommune: VexinCommune? = null

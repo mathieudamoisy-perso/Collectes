@@ -126,42 +126,46 @@ class CalendarRepository(
 
             val pdfUrl = commune.officialCalendarUrl.takeIf { it.isNotBlank() }
                 ?: runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
-            val pdfText = if (pdfUrl != null) {
+            val pdfFile = if (pdfUrl != null) {
                 runCatching {
-                    val pdfFile = fetcher.downloadPdf(
+                    fetcher.downloadPdf(
                         pdfUrl,
                         fetcher.pdfCacheFile(context.filesDir, currentYear, commune.slug)
                     )
-                    parser.extractText(pdfFile)
                 }.getOrNull()
             } else {
                 null
             }
+            val pdfText = pdfFile?.let { runCatching { parser.extractText(it) }.getOrNull() }
             val pageText = runCatching {
                 communeRulesFetcher.fetchText(commune)
             }.getOrNull()
 
-            val rules = CalendarReconciler.reconcile(
-                pdfText = pdfText,
-                pageText = pageText,
-                commune = commune,
-                year = currentYear
-            )
-            val regularEvents = CalendarDateGenerator.generate(
-                currentYear,
-                rules,
-                includeNextYearJanuary = true
-            )
-
-            val encombrantsEvents = if (rules.encombrantsMonthOrdinal != null) {
-                CalendarDateGenerator.encombrantsDates(currentYear, rules, includeNextYearJanuary = true)
-                    .map { date -> CollectionDay(date, listOf(WasteType.ENCOMBRANTS)) }
+            val ccvtEvents = pdfFile?.let { CcvtCalendarParser.parseIfPresent(it, currentYear) }
+            val events = if (ccvtEvents != null) {
+                ccvtEvents
             } else {
-                encombrantsFetcher.toCollectionDays(
-                    encombrantsFetcher.fetchDates(currentYear, commune)
+                val rules = CalendarReconciler.reconcile(
+                    pdfText = pdfText,
+                    pageText = pageText,
+                    commune = commune,
+                    year = currentYear
                 )
+                val regularEvents = CalendarDateGenerator.generate(
+                    currentYear,
+                    rules,
+                    includeNextYearJanuary = true
+                )
+                val encombrantsEvents = if (rules.encombrantsMonthOrdinal != null) {
+                    CalendarDateGenerator.encombrantsDates(currentYear, rules, includeNextYearJanuary = true)
+                        .map { date -> CollectionDay(date, listOf(WasteType.ENCOMBRANTS)) }
+                } else {
+                    encombrantsFetcher.toCollectionDays(
+                        encombrantsFetcher.fetchDates(currentYear, commune)
+                    )
+                }
+                CollectionDayMerger.merge(regularEvents + encombrantsEvents)
             }
-            val events = CollectionDayMerger.merge(regularEvents + encombrantsEvents)
 
             collectionDao.clearAll()
             collectionDao.insertAll(events.map { it.toEntity() })

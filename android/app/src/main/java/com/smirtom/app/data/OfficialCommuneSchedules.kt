@@ -99,8 +99,8 @@ object OfficialCommuneSchedules {
         emballagesDay: DayOfWeek,
         verreDay: DayOfWeek,
         verreOrdinal: Int,
-        encombrantsDay: DayOfWeek,
-        encombrantsOrdinal: Int,
+        encombrantsDay: DayOfWeek? = null,
+        encombrantsOrdinal: Int? = null,
         emballagesRecurrence: CollectionRecurrence = CollectionRecurrence.BIWEEKLY,
         vegetauxSchedule: VegetauxSchedule? = null
     ): CollectionRules {

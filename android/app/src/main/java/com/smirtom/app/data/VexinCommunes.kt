@@ -1,5 +1,6 @@
 package com.smirtom.app.data
 
+import java.text.Collator
 import java.util.Locale
 
 data class VexinCommune(
@@ -31,6 +32,9 @@ data class VexinCommune(
 
     val usesSannoisMunicipalSource: Boolean
         get() = officialCalendarUrl.contains("ville-sannois.fr", ignoreCase = true)
+
+    val usesCcvtCalendarSource: Boolean
+        get() = officialCalendarUrl.contains("vexinthelle.fr", ignoreCase = true)
 
     /** Sous-titre du lien « Calendrier officiel » dans les réglages. */
     fun officialCalendarSubtitle(): String = when {
@@ -86,18 +90,17 @@ data class VexinCommune(
 }
 
 object VexinCommunes {
+    private val displayNameOrder = Collator.getInstance(Locale.FRENCH).apply {
+        strength = Collator.PRIMARY
+    }
+
     private val allCommunes = listOf(
         VexinCommune(
-            slug = nameToSlug("Magny-en-Vexin"),
-            displayName = "Magny-en-Vexin",
+            slug = nameToSlug("Bouconvillers"),
+            displayName = "Bouconvillers",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf"
-        ),
-        VexinCommune(
-            slug = nameToSlug("Théméricourt"),
-            displayName = "Théméricourt",
-            officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
+                "https://vexinthelle.fr/wp-content/uploads/2026/01/BOUCONVILLERS-2026.pdf",
+            infoPageUrl = "https://bouconvillers.fr/vie-pratique/environnement/le-tri-selectif-2/"
         ),
         VexinCommune(
             slug = nameToSlug("Cormeilles-en-Vexin"),
@@ -112,6 +115,19 @@ object VexinCommunes {
                 "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
         ),
         VexinCommune(
+            slug = nameToSlug("Ermont"),
+            displayName = "Ermont",
+            officialCalendarUrl =
+                "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
+            infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Magny-en-Vexin"),
+            displayName = "Magny-en-Vexin",
+            officialCalendarUrl =
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf"
+        ),
+        VexinCommune(
             slug = nameToSlug("Sannois"),
             displayName = "Sannois",
             officialCalendarUrl =
@@ -119,13 +135,12 @@ object VexinCommunes {
             infoPageUrl = "https://www.ville-sannois.fr/media/10163"
         ),
         VexinCommune(
-            slug = nameToSlug("Ermont"),
-            displayName = "Ermont",
+            slug = nameToSlug("Théméricourt"),
+            displayName = "Théméricourt",
             officialCalendarUrl =
-                "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
-            infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
         )
-    )
+    ).sortedWith(compareBy(displayNameOrder) { it.displayName })
 
     val all: List<VexinCommune> = allCommunes
 

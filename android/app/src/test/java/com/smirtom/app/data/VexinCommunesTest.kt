@@ -10,15 +10,16 @@ import org.junit.Test
 class VexinCommunesTest {
     @Test
     fun includesAllSupportedCommunes() {
-        assertEquals(6, VexinCommunes.all.size)
+        assertEquals(7, VexinCommunes.all.size)
         assertEquals(
             listOf(
-                "Magny-en-Vexin",
-                "Théméricourt",
+                "Bouconvillers",
                 "Cormeilles-en-Vexin",
                 "Épiais-Rhus",
+                "Ermont",
+                "Magny-en-Vexin",
                 "Sannois",
-                "Ermont"
+                "Théméricourt"
             ),
             VexinCommunes.all.map { it.displayName }
         )
@@ -39,6 +40,7 @@ class VexinCommunesTest {
         assertNotNull(VexinCommunes.bySlug("sannois"))
         assertNotNull(VexinCommunes.bySlug("ermont"))
         assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
+        assertNotNull(VexinCommunes.bySlug("bouconvillers"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
     }
@@ -98,6 +100,18 @@ class VexinCommunesTest {
         assertFalse(commune.usesSmirtomNetwork)
         assertFalse(commune.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
         assertTrue(commune.officialCalendarSubtitle().contains("Emeraude", ignoreCase = true))
+    }
+
+    @Test
+    fun bouconvillersUsesExternalCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("bouconvillers")!!
+        assertEquals("Bouconvillers", commune.displayName)
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("vexinthelle.fr"))
+        assertTrue(commune.infoPageUrl!!.contains("bouconvillers.fr"))
+        assertFalse(commune.usesSmirtomNetwork)
+        assertTrue(commune.usesCcvtCalendarSource)
+        assertEquals("Bouconvillers", commune.guideSourceTitle())
     }
 
     @Test
