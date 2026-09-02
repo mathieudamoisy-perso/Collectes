@@ -1,5 +1,7 @@
 package com.smirtom.app.data
 
+import java.util.Locale
+
 data class VexinCommune(
     val slug: String,
     val displayName: String,
@@ -57,8 +59,8 @@ object VexinCommunes {
             infoPageUrl = "https://www.ville-sannois.fr/media/10163"
         ),
         VexinCommune(
-            slug = nameToSlug("Ermont-Eaubonne"),
-            displayName = "Ermont-Eaubonne",
+            slug = nameToSlug("Ermont"),
+            displayName = "Ermont",
             officialCalendarUrl =
                 "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
             infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm"
@@ -70,7 +72,13 @@ object VexinCommunes {
     val default: VexinCommune = allCommunes.first { it.slug == "magny-en-vexin" }
 
     fun bySlug(slug: String): VexinCommune? {
-        return allCommunes.find { it.slug.equals(slug, ignoreCase = true) }
+        return allCommunes.find { it.slug.equals(normalizeSlug(slug), ignoreCase = true) }
+    }
+
+    /** Anciens slugs conservés pour les préférences déjà enregistrées. */
+    fun normalizeSlug(slug: String): String = when (slug.lowercase(Locale.FRENCH)) {
+        "ermont-eaubonne" -> "ermont"
+        else -> slug
     }
 
     fun nameToSlug(name: String): String {

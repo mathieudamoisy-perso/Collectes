@@ -153,9 +153,10 @@ class CalendarRepository(
     suspend fun getUpcomingEvents(filter: WasteType? = null): List<CollectionDay> = withContext(Dispatchers.IO) {
         if (!isCachedCalendarForSelectedCommune()) return@withContext emptyList()
         val today = LocalDate.now(zoneId)
+        val tomorrow = today.plusDays(1)
         val events = collectionDao.getEventsFrom(today.toEpochDay())
             .mapNotNull { it.toCollectionDay() }
-            .filter { it.date.isAfter(today) }
+            .filter { it.date.isAfter(tomorrow) }
             .sortedBy { it.date }
         applyFilter(events, filter)
     }

@@ -24,7 +24,9 @@ class PreferencesManager(private val context: Context) {
     }
 
     val selectedCommune: Flow<VexinCommune> = context.dataStore.data.map { prefs ->
-        val slug = prefs[communeSlugKey] ?: VexinCommunes.default.slug
+        val slug = VexinCommunes.normalizeSlug(
+            prefs[communeSlugKey] ?: VexinCommunes.default.slug
+        )
         VexinCommunes.bySlug(slug) ?: VexinCommunes.default
     }
 
@@ -63,6 +65,6 @@ class PreferencesManager(private val context: Context) {
     }
 
     companion object {
-        const val CALENDAR_LOGIC_VERSION = 9
+        const val CALENDAR_LOGIC_VERSION = 13
     }
 }

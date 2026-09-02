@@ -5,7 +5,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 ## Fonctionnalités
 
 - Téléchargement automatique du calendrier officiel de l'année en cours (PDF)
-- Parsing des dates de collecte (ordures, emballages, verre, encombrants selon les communes)
+- Parsing des dates de collecte (ordures, emballages, verre, encombrants, végétaux selon les communes)
 - Notifications locales la veille (heure configurable par créneaux de 30 min, défaut 12h, plage 5h–23h)
 - Changement d'année automatique (re-sync du calendrier)
 - Fonctionne hors ligne après la première synchronisation
@@ -18,7 +18,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 | Théméricourt | SMIRTOM du Vexin |
 | Cormeilles-en-Vexin | SMIRTOM du Vexin |
 | Sannois | Ville de Sannois |
-| Ermont-Eaubonne | Syndicat Emeraude (Ermont) |
+| Ermont | Syndicat Emeraude (Ermont) |
 
 ## Prérequis
 
@@ -31,7 +31,7 @@ Ouvrir le dossier `android/` dans Android Studio.
 
 Guide complet : [android/store/PLAY_STORE.md](android/store/PLAY_STORE.md)
 
-**Version actuelle :** `1.2.0` (`versionCode` 4)
+**Version actuelle :** `1.3.0` (`versionCode` 5)
 
 ### Keystore (une fois)
 

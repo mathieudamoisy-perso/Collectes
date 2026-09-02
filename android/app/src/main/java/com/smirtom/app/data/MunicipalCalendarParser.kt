@@ -18,6 +18,36 @@ object MunicipalCalendarParser {
         RegexOption.IGNORE_CASE
     )
 
+    private val MONTH_NAMES =
+        """janvier|janv|février|fevrier|févr|fevr|mars|avril|avr|mai|juin|juillet|juil|août|aout|septembre|sept|octobre|oct|novembre|nov|décembre|decembre|déc|dec"""
+    private val VEGETAUX_SAME_MONTH_RANGE = Regex(
+        """du\s+(\d{1,2}|1er|[123]o)(?:er|e|ème|eme)?\s+au\s+(\d{1,2}|1er|[123]o)(?:er|e|ème|eme)?\s+($MONTH_NAMES)""",
+        RegexOption.IGNORE_CASE
+    )
+    private val VEGETAUX_CROSS_MONTH_RANGE = Regex(
+        """du\s+(\d{1,2}|1er|[123]o)(?:er|e|ème|eme)?\s+($MONTH_NAMES)\s+au\s+(\d{1,2}|1er|[123]o)(?:er|e|ème|eme)?\s+($MONTH_NAMES)""",
+        RegexOption.IGNORE_CASE
+    )
+    private val VEGETAUX_KEYWORD = Regex(
+        """v[eéèêëã‰]+g[eéèêëã‰]+taux""",
+        RegexOption.IGNORE_CASE
+    )
+    private val VEGETAUX_NAMED_DATE = Regex(
+        """(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+(\d{1,2}|1er|[123]o)(?:er|e|ème|eme)?\s+($MONTH_NAMES)""",
+        RegexOption.IGNORE_CASE
+    )
+    private val MONTH_MAP = mapOf(
+        "janvier" to 1, "janv" to 1,
+        "février" to 2, "fevrier" to 2, "févr" to 2, "fevr" to 2,
+        "mars" to 3, "avril" to 4, "avr" to 4,
+        "mai" to 5, "juin" to 6, "juillet" to 7, "juil" to 7,
+        "août" to 8, "aout" to 8,
+        "septembre" to 9, "sept" to 9,
+        "octobre" to 10, "oct" to 10,
+        "novembre" to 11, "nov" to 11,
+        "décembre" to 12, "decembre" to 12, "déc" to 12, "dec" to 12
+    )
+
     fun parseIfPresent(text: String, year: Int): CollectionRules? {
         val normalized = CollectionRulesParser.normalizeSource(text)
         if (!normalized.contains("pavillons")) return null
@@ -30,6 +60,8 @@ object MunicipalCalendarParser {
 
         val verreMonthly = monthlyAfterKeyword(section, "verre") ?: return null
         val encombrantsMonthly = monthlyAfterKeyword(section, "encombrants")
+        val vegetauxSchedule = vegetauxScheduleAfterKeyword(section)
+        val emballagesRecurrence = emballagesRecurrence(section)
 
         val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
         return CollectionRules(
@@ -39,11 +71,12 @@ object MunicipalCalendarParser {
             verreDay = verreMonthly.first,
             verreAnchor = emballagesAnchor,
             orduresRecurrence = CollectionRecurrence.WEEKLY,
-            emballagesRecurrence = CollectionRecurrence.BIWEEKLY,
+            emballagesRecurrence = emballagesRecurrence,
             verreRecurrence = CollectionRecurrence.MONTHLY_NTH_WEEKDAY,
             verreMonthOrdinal = verreMonthly.second,
             encombrantsDay = encombrantsMonthly?.first,
-            encombrantsMonthOrdinal = encombrantsMonthly?.second
+            encombrantsMonthOrdinal = encombrantsMonthly?.second,
+            vegetauxSchedule = vegetauxSchedule
         )
     }
 
@@ -56,6 +89,72 @@ object MunicipalCalendarParser {
             .filter { it > start }
             .minOrNull() ?: (start + 1200).coerceAtMost(text.length)
         return text.substring(start, end)
+    }
+
+    private fun emballagesRecurrence(section: String): CollectionRecurrence {
+        val index = section.indexOf("emballages").takeIf { it >= 0 }
+            ?: section.indexOf("papiers").takeIf { it >= 0 }
+            ?: return CollectionRecurrence.WEEKLY
+        val window = section.substring(index, (index + 160).coerceAtMost(section.length))
+        return if (window.contains("2 semaines") || window.contains("deux semaines")) {
+            CollectionRecurrence.BIWEEKLY
+        } else {
+            CollectionRecurrence.WEEKLY
+        }
+    }
+
+    private fun vegetauxScheduleAfterKeyword(section: String): VegetauxSchedule? {
+        val index = VEGETAUX_KEYWORD.find(section)?.range?.first ?: return null
+        val window = normalizeOcrDigits(
+            section.substring(index, (index + 220).coerceAtMost(section.length))
+        )
+        val day = WEEKDAY_COLLECT.find(window)?.let { frenchDayToDayOfWeek(it.groupValues[1]) }
+            ?: return null
+
+        val ranges = buildList {
+            VEGETAUX_SAME_MONTH_RANGE.findAll(window).forEach { match ->
+                val startDay = parseDayNumber(match.groupValues[1]) ?: return@forEach
+                val endDay = parseDayNumber(match.groupValues[2]) ?: return@forEach
+                val month = monthNumber(match.groupValues[3]) ?: return@forEach
+                add(MonthDayRange(MonthDay(month, startDay), MonthDay(month, endDay)))
+            }
+            VEGETAUX_CROSS_MONTH_RANGE.findAll(window).forEach { match ->
+                val startDay = parseDayNumber(match.groupValues[1]) ?: return@forEach
+                val startMonth = monthNumber(match.groupValues[2]) ?: return@forEach
+                val endDay = parseDayNumber(match.groupValues[3]) ?: return@forEach
+                val endMonth = monthNumber(match.groupValues[4]) ?: return@forEach
+                add(MonthDayRange(MonthDay(startMonth, startDay), MonthDay(endMonth, endDay)))
+            }
+        }
+        val activeRanges = ranges.ifEmpty {
+            listOf(MonthDayRange(MonthDay(1, 1), MonthDay(12, 31)))
+        }
+
+        val extraDates = VEGETAUX_NAMED_DATE.findAll(window).mapNotNull { match ->
+            val dayOfMonth = parseDayNumber(match.groupValues[1]) ?: return@mapNotNull null
+            val month = monthNumber(match.groupValues[2]) ?: return@mapNotNull null
+            MonthDay(month, dayOfMonth)
+        }.toList()
+
+        return VegetauxSchedule(
+            dayOfWeek = day,
+            activeRanges = activeRanges,
+            extraDates = extraDates
+        )
+    }
+
+    private fun monthNumber(raw: String): Int? {
+        return MONTH_MAP[raw.lowercase(Locale.FRENCH)]
+    }
+
+    private fun normalizeOcrDigits(text: String): String {
+        return text.replace(Regex("""(\d)o""")) { "${it.groupValues[1]}0" }
+    }
+
+    private fun parseDayNumber(raw: String): Int? {
+        val normalized = raw.lowercase(Locale.FRENCH).replace("er", "").replace("ème", "").replace("eme", "")
+        if (normalized == "1") return 1
+        return normalized.toIntOrNull()
     }
 
     private fun weekdayAfterKeyword(section: String, vararg keywords: String): DayOfWeek? {

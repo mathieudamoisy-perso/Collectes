@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Liquor
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Weekend
@@ -22,6 +23,7 @@ object WasteTypeIcons {
     fun imageVector(type: WasteType): ImageVector = when (type) {
         WasteType.ORDURES -> Icons.Outlined.DeleteOutline
         WasteType.EMBALLAGES -> Icons.Outlined.Recycling
+        WasteType.VEGETAUX -> Icons.Outlined.Grass
         WasteType.VERRE -> Icons.Outlined.Liquor
         WasteType.ENCOMBRANTS -> Icons.Outlined.Weekend
     }

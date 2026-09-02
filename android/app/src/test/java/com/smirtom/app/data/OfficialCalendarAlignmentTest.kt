@@ -12,7 +12,7 @@ class OfficialCalendarAlignmentTest {
     private val themericourt = VexinCommunes.bySlug("themericourt")!!
     private val cormeilles = VexinCommunes.bySlug("cormeilles-en-vexin")!!
     private val sannois = VexinCommunes.bySlug("sannois")!!
-    private val ermont = VexinCommunes.bySlug("ermont-eaubonne")!!
+    private val ermont = VexinCommunes.bySlug("ermont")!!
 
     @Test
     fun magnyMatchesOfficialPdfGrid() {

@@ -19,6 +19,43 @@ class MunicipalCalendarParserTest {
         assertEquals(2, rules.verreMonthOrdinal)
         assertEquals(DayOfWeek.WEDNESDAY, rules.encombrantsDay)
         assertEquals(1, rules.encombrantsMonthOrdinal)
+        assertEquals(DayOfWeek.TUESDAY, rules.vegetauxSchedule?.dayOfWeek)
+    }
+
+    @Test
+    fun sannoisSeptember8HasEmballagesAndVegetauxForPavillons() {
+        val rules = MunicipalCalendarParser.parseIfPresent(loadFixture("sannois.txt"), 2026)!!
+        val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+        val sept8 = events.single { it.date == LocalDate.of(2026, 9, 8) }
+
+        assertEquals(CollectionRecurrence.WEEKLY, rules.emballagesRecurrence)
+        assertEquals(
+            listOf(WasteType.EMBALLAGES, WasteType.VEGETAUX),
+            sept8.wasteTypes
+        )
+    }
+
+    @Test
+    fun sannoisSeptember15HasEmballagesAndVegetauxForPavillons() {
+        val rules = MunicipalCalendarParser.parseIfPresent(loadFixture("sannois.txt"), 2026)!!
+        val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+        val sept15 = events.single { it.date == LocalDate.of(2026, 9, 15) }
+
+        assertEquals(
+            listOf(WasteType.EMBALLAGES, WasteType.VEGETAUX),
+            sept15.wasteTypes
+        )
+    }
+
+    @Test
+    fun sannoisFebruaryVegetauxOnlyOnSpecialTuesday() {
+        val rules = MunicipalCalendarParser.parseIfPresent(loadFixture("sannois.txt"), 2026)!!
+        val events = CalendarDateGenerator.generate(2026, rules, includeNextYearJanuary = false)
+        val februaryVegetaux = events
+            .filter { it.date.monthValue == 2 && WasteType.VEGETAUX in it.wasteTypes }
+            .map { it.date }
+
+        assertEquals(listOf(LocalDate.of(2026, 2, 17)), februaryVegetaux)
     }
 
     @Test
@@ -33,6 +70,8 @@ class MunicipalCalendarParserTest {
         assertEquals(4, rules.verreMonthOrdinal)
         assertEquals(DayOfWeek.WEDNESDAY, rules.encombrantsDay)
         assertEquals(2, rules.encombrantsMonthOrdinal)
+        assertEquals(DayOfWeek.MONDAY, rules.vegetauxSchedule?.dayOfWeek)
+        assertEquals(CollectionRecurrence.WEEKLY, rules.emballagesRecurrence)
     }
 
     @Test

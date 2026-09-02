@@ -25,6 +25,11 @@ object WasteTypeColors {
             container = Color(0xFFFBF3D0),
             containerMuted = Color(0xFFFDF8E8)
         ),
+        WasteType.VEGETAUX to WasteTypePalette(
+            accent = Color(0xFF8B6914),
+            container = Color(0xFFF0E4C8),
+            containerMuted = Color(0xFFF7F0E3)
+        ),
         WasteType.VERRE to WasteTypePalette(
             accent = Color(0xFF5E8F66),
             container = Color(0xFFDCEFDE),
@@ -47,6 +52,11 @@ object WasteTypeColors {
             accent = Color(0xFFE6D48A),
             container = Color(0xFF3A3520),
             containerMuted = Color(0xFF2E2B1C)
+        ),
+        WasteType.VEGETAUX to WasteTypePalette(
+            accent = Color(0xFFD4BC82),
+            container = Color(0xFF3A3220),
+            containerMuted = Color(0xFF2E281A)
         ),
         WasteType.VERRE to WasteTypePalette(
             accent = Color(0xFFA8C5AC),

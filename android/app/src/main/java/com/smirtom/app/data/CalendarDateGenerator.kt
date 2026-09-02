@@ -78,6 +78,9 @@ object CalendarDateGenerator {
         encombrantsDates(year, rules, includeNextYearJanuary).forEach { date ->
             days += CollectionDay(date, listOf(WasteType.ENCOMBRANTS))
         }
+        vegetauxDates(year, rules, includeNextYearJanuary).forEach { date ->
+            days += CollectionDay(date, listOf(WasteType.VEGETAUX))
+        }
         return CollectionDayMerger.merge(days)
     }
 
@@ -98,6 +101,11 @@ object CalendarDateGenerator {
         includeNextYearJanuary: Boolean
     ): List<LocalDate> {
         return when (rules.emballagesRecurrence) {
+            CollectionRecurrence.WEEKLY -> weeklyDates(
+                year,
+                rules.emballagesDay,
+                includeNextYearJanuary
+            )
             CollectionRecurrence.BIWEEKLY -> biweeklyDates(
                 year,
                 rules.emballagesDay,
@@ -131,6 +139,15 @@ object CalendarDateGenerator {
         val day = rules.encombrantsDay ?: return emptyList()
         val ordinal = rules.encombrantsMonthOrdinal ?: return emptyList()
         return monthlyNthWeekdays(year, day, ordinal, includeNextYearJanuary)
+    }
+
+    fun vegetauxDates(
+        year: Int,
+        rules: CollectionRules,
+        includeNextYearJanuary: Boolean
+    ): List<LocalDate> {
+        val schedule = rules.vegetauxSchedule ?: return emptyList()
+        return datesInRange(year, includeNextYearJanuary) { schedule.includes(it) }
     }
 
     private fun weeklyDates(

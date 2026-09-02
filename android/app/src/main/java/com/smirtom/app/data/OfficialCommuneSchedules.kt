@@ -37,13 +37,13 @@ object OfficialCommuneSchedules {
         "themericourt" to Weekdays(DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
         "cormeilles-en-vexin" to Weekdays(DayOfWeek.THURSDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
         "sannois" to Weekdays(DayOfWeek.THURSDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY),
-        "ermont-eaubonne" to Weekdays(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
+        "ermont" to Weekdays(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
     )
 
-    fun weekdaysFor(slug: String): Weekdays? = weekdays[slug]
+    fun weekdaysFor(slug: String): Weekdays? = weekdays[VexinCommunes.normalizeSlug(slug)]
 
     fun rules(year: Int, communeSlug: String): CollectionRules {
-        when (communeSlug) {
+        when (VexinCommunes.normalizeSlug(communeSlug)) {
             "sannois" -> return municipalFallback(
                 year = year,
                 orduresDay = DayOfWeek.THURSDAY,
@@ -51,20 +51,28 @@ object OfficialCommuneSchedules {
                 verreDay = DayOfWeek.MONDAY,
                 verreOrdinal = 2,
                 encombrantsDay = DayOfWeek.WEDNESDAY,
-                encombrantsOrdinal = 1
+                encombrantsOrdinal = 1,
+                emballagesRecurrence = CollectionRecurrence.WEEKLY
             )
-            "ermont-eaubonne" -> return municipalFallback(
+            "ermont" -> return municipalFallback(
                 year = year,
                 orduresDay = DayOfWeek.TUESDAY,
                 emballagesDay = DayOfWeek.THURSDAY,
                 verreDay = DayOfWeek.FRIDAY,
                 verreOrdinal = 4,
                 encombrantsDay = DayOfWeek.WEDNESDAY,
-                encombrantsOrdinal = 2
+                encombrantsOrdinal = 2,
+                emballagesRecurrence = CollectionRecurrence.WEEKLY,
+                vegetauxSchedule = VegetauxSchedule(
+                    dayOfWeek = DayOfWeek.MONDAY,
+                    activeRanges = listOf(
+                        MonthDayRange(MonthDay(1, 1), MonthDay(12, 31))
+                    )
+                )
             )
         }
 
-        val days = weekdays[communeSlug] ?: weekdays.getValue("magny-en-vexin")
+        val days = weekdays[VexinCommunes.normalizeSlug(communeSlug)] ?: weekdays.getValue("magny-en-vexin")
         val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(
             year,
             1,
@@ -91,7 +99,9 @@ object OfficialCommuneSchedules {
         verreDay: DayOfWeek,
         verreOrdinal: Int,
         encombrantsDay: DayOfWeek,
-        encombrantsOrdinal: Int
+        encombrantsOrdinal: Int,
+        emballagesRecurrence: CollectionRecurrence = CollectionRecurrence.BIWEEKLY,
+        vegetauxSchedule: VegetauxSchedule? = null
     ): CollectionRules {
         val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, emballagesDay)
         return CollectionRules(
@@ -101,11 +111,12 @@ object OfficialCommuneSchedules {
             verreDay = verreDay,
             verreAnchor = emballagesAnchor,
             orduresRecurrence = CollectionRecurrence.WEEKLY,
-            emballagesRecurrence = CollectionRecurrence.BIWEEKLY,
+            emballagesRecurrence = emballagesRecurrence,
             verreRecurrence = CollectionRecurrence.MONTHLY_NTH_WEEKDAY,
             verreMonthOrdinal = verreOrdinal,
             encombrantsDay = encombrantsDay,
-            encombrantsMonthOrdinal = encombrantsOrdinal
+            encombrantsMonthOrdinal = encombrantsOrdinal,
+            vegetauxSchedule = vegetauxSchedule
         )
     }
 }

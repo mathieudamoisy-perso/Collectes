@@ -17,18 +17,18 @@ object CollectionDayMerger {
 
     /**
      * Un seul bac régulier par jour (ordures, emballages ou verre).
-     * Les encombrants peuvent coexister : ce n’est pas un bac hebdomadaire.
+     * Les encombrants et végétaux peuvent coexister avec un bac régulier.
      */
     internal fun collapseTypes(types: List<WasteType>): List<WasteType> {
         val unique = types.distinct()
-        val encombrants = unique.filter { it == WasteType.ENCOMBRANTS }
-        val regular = unique.filter { it != WasteType.ENCOMBRANTS }
+        val ancillary = unique.filter { it == WasteType.ENCOMBRANTS || it == WasteType.VEGETAUX }
+        val regular = unique.filter { it != WasteType.ENCOMBRANTS && it != WasteType.VEGETAUX }
         val oneRegular = when {
             regular.size <= 1 -> regular
             WasteType.EMBALLAGES in regular -> listOf(WasteType.EMBALLAGES)
             WasteType.VERRE in regular -> listOf(WasteType.VERRE)
             else -> regular.take(1)
         }
-        return (oneRegular + encombrants).sortedBy { it.ordinal }
+        return (oneRegular + ancillary).sortedBy { it.ordinal }
     }
 }

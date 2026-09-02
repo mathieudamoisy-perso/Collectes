@@ -17,7 +17,7 @@ class VexinCommunesTest {
                 "Théméricourt",
                 "Cormeilles-en-Vexin",
                 "Sannois",
-                "Ermont-Eaubonne"
+                "Ermont"
             ),
             VexinCommunes.all.map { it.displayName }
         )
@@ -35,6 +35,7 @@ class VexinCommunesTest {
         assertEquals("Théméricourt", VexinCommunes.bySlug("themericourt")?.displayName)
         assertNotNull(VexinCommunes.bySlug("cormeilles-en-vexin"))
         assertNotNull(VexinCommunes.bySlug("sannois"))
+        assertNotNull(VexinCommunes.bySlug("ermont"))
         assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
@@ -74,9 +75,10 @@ class VexinCommunesTest {
     }
 
     @Test
-    fun ermontEaubonneUsesExternalCalendarAndInfoPage() {
-        val commune = VexinCommunes.bySlug("ermont-eaubonne")!!
-        assertEquals("Ermont-Eaubonne", commune.displayName)
+    fun ermontUsesExternalCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("ermont")!!
+        assertEquals("Ermont", commune.displayName)
+        assertEquals("ermont", commune.slug)
         assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
         assertTrue(commune.officialCalendarUrl.contains("ermont.fr"))
         assertTrue(commune.infoPageUrl!!.contains("ermont.fr"))

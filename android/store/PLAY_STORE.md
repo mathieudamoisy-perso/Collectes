@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.2.0` (`versionCode` 4)
+Version actuelle : `1.3.0` (`versionCode` 5)
 
 ## 1. Compte développeur
 
@@ -41,7 +41,7 @@ Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
 
 - `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
-- `versionName` : version affichée aux utilisateurs (ex. `1.1.0`)
+- `versionName` : version affichée aux utilisateurs (ex. `1.3.0`)
 
 **Workflow multi-postes :**
 
@@ -71,17 +71,27 @@ Rappels la veille des collectes de déchets, selon votre commune.
 **Description longue :**
 Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge (SMIRTOM du Vexin, Syndicat Emeraude, etc.).
 
-L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
+L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants, végétaux selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
 
-Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Sannois, Ermont-Eaubonne.
+Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Sannois, Ermont.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.2.0
+### Notes de version — test fermé 1.3.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Sannois (Pavillons) : bac jaune hebdomadaire et collecte des végétaux (ex. jaune + végétaux le même jour).
+Ermont : commune renommée (plus « Ermont-Eaubonne »), calendrier Pavillons corrigé (emballages, végétaux, encombrants).
+Théméricourt : correction des dates de bac jaune.
+Actualisation plus fluide : les collectes restent visibles pendant le rechargement ou le changement de commune.
+Resynchronisation automatique après mise à jour du calendrier.
+```
+
+### Notes de version — test fermé 1.2.0 (historique)
 
 ```
 Calendrier plus fiable : meilleure lecture des dates selon chaque commune (jours officiels, emballages et verre).
@@ -110,7 +120,7 @@ Déclarer en cohérence avec la politique :
 - Réseau : téléchargement de documents publics sur les sites officiels des collectivités / syndicats, notamment :
   - `smirtomduvexin.net` (communes du Vexin)
   - `ville-sannois.fr` (Sannois)
-  - `ermont.fr` (Ermont-Eaubonne)
+  - `ermont.fr` (Ermont)
 - Pas de pub, pas d’analytics
 - Chiffrement en transit (HTTPS)
 
@@ -120,9 +130,9 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.2.0
+## 8. Parcours Console — beta 1.3.0
 
-1. `git pull` puis vérifier `versionCode = 4` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 5` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
@@ -130,6 +140,6 @@ Déclarer en cohérence avec la politique :
 6. Mettre à jour la description courte / longue si ce n’est pas déjà fait
 7. Vérifier **Data safety** et l’URL de politique de confidentialité
 8. **Réviser et publier** la piste fermée
-9. Vérifier sur un appareil testeur : changement de commune, actualisation, ouverture du PDF
+9. Vérifier sur un appareil testeur : Sannois Pavillons (végétaux + jaune), Ermont, actualisation, ouverture du PDF
 
 Ensuite seulement : **Production** (après validation et délai éventuel imposé par Google).

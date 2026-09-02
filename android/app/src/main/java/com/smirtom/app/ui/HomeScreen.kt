@@ -151,6 +151,7 @@ fun HomeScreen(
                         item {
                             AnimatedContent(
                                 targetState = uiState.tomorrowWasteTypes,
+                                contentKey = { types -> types.joinToString { it.name } },
                                 transitionSpec = {
                                     fadeIn(tween(250)) togetherWith fadeOut(tween(250))
                                 },
@@ -159,8 +160,7 @@ fun HomeScreen(
                                 TomorrowCard(
                                     tomorrowLabel = uiState.tomorrowLabel,
                                     wasteTypes = wasteTypes,
-                                    activeFilter = uiState.activeFilter,
-                                    showEmptyState = !isRefreshing
+                                    activeFilter = uiState.activeFilter
                                 )
                             }
                         }
@@ -198,7 +198,11 @@ fun HomeScreen(
                             ) { day ->
                                 UpcomingItem(
                                     day = day,
-                                    modifier = Modifier.animateItem()
+                                    modifier = if (isRefreshing) {
+                                        Modifier
+                                    } else {
+                                        Modifier.animateItem()
+                                    }
                                 )
                             }
                         }
@@ -269,8 +273,7 @@ private fun WasteTypeFilterRow(
 private fun TomorrowCard(
     tomorrowLabel: String,
     wasteTypes: List<WasteType>,
-    activeFilter: WasteType?,
-    showEmptyState: Boolean = true
+    activeFilter: WasteType?
 ) {
     val cardColor = if (wasteTypes.isEmpty()) {
         MaterialTheme.colorScheme.surfaceContainerLow
@@ -302,17 +305,15 @@ private fun TomorrowCard(
                 Text(tomorrowLabel, style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 if (wasteTypes.isEmpty()) {
-                    if (showEmptyState) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            NoCollectionIcon(size = 20.dp)
-                            Text(
-                                "Rien à sortir",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        NoCollectionIcon(size = 20.dp)
+                        Text(
+                            "Rien à sortir",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 } else {
                     wasteTypes.forEach { type ->

@@ -49,23 +49,34 @@ object PdfGridMarkers {
         val candidates = (0..7).map { offset ->
             fallback.plusDays(offset * 7L)
         }
-        val best = candidates.maxWithOrNull(
-            compareBy<LocalDate>(
-                { scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, it) },
-                { it.toEpochDay() }
-            )
-        ) ?: return fallback
-        return if (scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, best) >= 3) {
+        val bestScore = candidates.maxOf { scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, it) }
+        val tied = candidates.filter { scoreBiweeklyTextOverlap(pdfText, year, emballagesDay, it) == bestScore }
+        val secondWeek = fallback.plusDays(7)
+        val best = when {
+            tied.size >= 2 && fallback in tied && secondWeek in tied -> secondWeek
+            else -> tied.minBy { it.toEpochDay() }
+        }
+        return if (bestScore >= 3) {
             best
         } else {
             fallback
         }
     }
 
+    private fun emballagesTokenPattern(abbr: String, dayOfMonth: Int): Regex {
+        return Regex(
+            """\b${Regex.escape(abbr)}\s+$dayOfMonth\b(?!\s+(?:om|[ab])\b)"""
+        )
+    }
+
+    private fun pdfMarksEmballagesDay(normalized: String, abbr: String, dayOfMonth: Int): Boolean {
+        return emballagesTokenPattern(abbr, dayOfMonth).containsMatchIn(normalized)
+    }
+
     private fun plainDayNumbers(text: String, dayOfWeek: DayOfWeek): Set<Int> {
         val abbr = ABBR[dayOfWeek] ?: return emptySet()
         val normalized = CollectionRulesParser.normalizeSource(text)
-        val pattern = Regex("""\b$abbr\s+(\d{1,2})\b(?!\s+om\b)""")
+        val pattern = Regex("""\b$abbr\s+(\d{1,2})\b(?!\s+(?:om|[ab])\b)""")
         return pattern.findAll(normalized)
             .mapNotNull { match ->
                 val day = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
@@ -89,8 +100,7 @@ object PdfGridMarkers {
             if (date.dayOfWeek == dayOfWeek) {
                 val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(anchor, date)
                 if (daysBetween >= 0 && daysBetween % 14L == 0L) {
-                    val token = "$abbr ${date.dayOfMonth}"
-                    if (Regex("""\b${Regex.escape(token)}\b""").containsMatchIn(normalized)) {
+                    if (pdfMarksEmballagesDay(normalized, abbr, date.dayOfMonth)) {
                         score++
                     }
                 }
