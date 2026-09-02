@@ -28,7 +28,9 @@ data class HomeUiState(
     val upcoming: List<CollectionDay> = emptyList(),
     val activeFilter: WasteType? = null,
     val syncState: SyncState = SyncState.Idle,
-    val commune: String = "Magny-en-Vexin"
+    val commune: String = "Magny-en-Vexin",
+    val contentCommuneSlug: String? = null,
+    val isLoadingNewCommune: Boolean = false
 )
 
 class HomeViewModel(
@@ -46,12 +48,22 @@ class HomeViewModel(
                 when (sync) {
                     is SyncState.Loading -> {
                         val commune = repository.getSelectedCommune()
-                        _uiState.value = _uiState.value.copy(
-                            syncState = sync,
-                            commune = commune.displayName,
-                            tomorrowWasteTypes = emptyList(),
-                            upcoming = emptyList()
-                        )
+                        val sameCommune = commune.slug == _uiState.value.contentCommuneSlug
+                        _uiState.value = if (sameCommune) {
+                            _uiState.value.copy(
+                                syncState = sync,
+                                commune = commune.displayName,
+                                isLoadingNewCommune = false
+                            )
+                        } else {
+                            _uiState.value.copy(
+                                syncState = sync,
+                                commune = commune.displayName,
+                                tomorrowWasteTypes = emptyList(),
+                                upcoming = emptyList(),
+                                isLoadingNewCommune = true
+                            )
+                        }
                     }
                     is SyncState.Success -> {
                         _uiState.value = _uiState.value.copy(syncState = sync)
@@ -101,7 +113,9 @@ class HomeViewModel(
             tomorrowWasteTypes = tomorrowTypes,
             upcoming = filteredUpcoming,
             activeFilter = filter,
-            commune = commune.displayName
+            commune = commune.displayName,
+            contentCommuneSlug = commune.slug,
+            isLoadingNewCommune = false
         )
     }
 }
