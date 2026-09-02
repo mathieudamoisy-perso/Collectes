@@ -60,9 +60,11 @@ import com.smirtom.app.ui.rememberBottomBarHideScrollConnection
 import com.smirtom.app.ui.rememberBottomBarInset
 import com.smirtom.app.ui.rememberBottomBarFallbackHeight
 import com.smirtom.app.ui.rememberBottomBarScrollState
+import com.smirtom.app.ui.rememberBottomBarVisibility
 import com.smirtom.app.ui.rememberPagerNestedScrollConnection
 import com.smirtom.app.ui.LocalBottomBarHideScroll
 import com.smirtom.app.ui.LocalBottomBarInset
+import com.smirtom.app.ui.LocalBottomBarVisibility
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
                         bottomBarFallbackHeight
                     }
                     val bottomBarInset = rememberBottomBarInset(bottomBarHeight)
+                    val bottomBarVisibility = rememberBottomBarVisibility(bottomBarScrollState)
                     val pagerNestedScrollConnection = rememberPagerNestedScrollConnection(pagerState)
                     val bottomBarHideScrollConnection = rememberBottomBarHideScrollConnection(
                         bottomBarScrollState
@@ -169,7 +172,8 @@ class MainActivity : ComponentActivity() {
                         CompositionLocalProvider(
                             LocalPagerNestedScroll provides pagerNestedScrollConnection,
                             LocalBottomBarHideScroll provides bottomBarHideScrollConnection,
-                            LocalBottomBarInset provides bottomBarInset
+                            LocalBottomBarInset provides bottomBarInset,
+                            LocalBottomBarVisibility provides bottomBarVisibility
                         ) {
                             HorizontalPager(
                                 state = pagerState,

@@ -96,6 +96,7 @@ fun HomeScreen(
     var refreshFromPull by remember { mutableStateOf(false) }
 
     val showPullRefresh = isRefreshing && refreshFromPull
+    val bottomInset = LocalBottomBarInset.current * LocalBottomBarVisibility.current
 
     Column(modifier = modifier.fillMaxSize()) {
         CollectesAppHeader(communeName = uiState.commune)
@@ -132,7 +133,7 @@ fun HomeScreen(
                     start = 16.dp,
                     end = 16.dp,
                     top = 12.dp,
-                    bottom = 12.dp
+                    bottom = 21.dp + bottomInset
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {

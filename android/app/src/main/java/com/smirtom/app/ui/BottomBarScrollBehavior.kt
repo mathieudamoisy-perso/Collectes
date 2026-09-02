@@ -26,6 +26,9 @@ val BottomBarTabRowHeight = 64.dp
 
 val LocalBottomBarInset = compositionLocalOf { 0.dp }
 
+/** 1 = barre visible, 0 = barre masquée (animé). */
+val LocalBottomBarVisibility = compositionLocalOf { 1f }
+
 val LocalBottomBarHideScroll = compositionLocalOf<NestedScrollConnection?> { null }
 
 @Stable

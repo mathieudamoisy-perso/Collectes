@@ -52,7 +52,8 @@ data class VexinCommune(
     }
 
     fun guideSourceSubtitle(): String? = when {
-        usesSmirtomNetwork -> null
+        usesSmirtomNetwork ->
+            "Règles indicatives — consultez smirtomduvexin.net pour la source officielle"
         usesEmeraudeCalendarSource ->
             "Règles indicatives — consultez syndicat-emeraude.fr pour la source officielle"
         usesSannoisMunicipalSource ->

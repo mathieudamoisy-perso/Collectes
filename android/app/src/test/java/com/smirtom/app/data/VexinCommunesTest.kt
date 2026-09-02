@@ -130,7 +130,7 @@ class VexinCommunesTest {
     fun guideSourceLabelsMatchPdfSource() {
         val magny = VexinCommunes.default
         assertEquals("Communes du Vexin", magny.guideSourceTitle())
-        assertNull(magny.guideSourceSubtitle())
+        assertTrue(magny.guideSourceSubtitle()!!.contains("smirtomduvexin.net"))
         assertEquals("En savoir plus sur le site officiel", magny.guideInfoLinkLabel())
 
         val sannois = VexinCommunes.bySlug("sannois")!!
