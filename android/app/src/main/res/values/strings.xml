@@ -4,4 +4,7 @@
     <string name="notification_channel_name">Rappels collecte</string>
     <string name="notification_channel_description">Rappels la veille du passage des camions de collecte</string>
     <string name="privacy_policy_url">https://mathieudamoisy-perso.github.io/Smirtom/privacy-policy.html</string>
+    <string name="developer_contact_email">mdamoisy@gmail.com</string>
+    <string name="feedback_email_subject">[Collectes] Message</string>
+    <string name="developer_whatsapp_phone">33769399285</string>
 </resources>

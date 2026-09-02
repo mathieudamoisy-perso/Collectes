@@ -82,8 +82,9 @@ fun HomeScreen(
         selectedGuide = guides.find { it.type == type }
     }
     val isRefreshing = uiState.syncState is SyncState.Loading
-    val showSkeleton = uiState.isLoadingNewCommune || uiState.isInitialLoading
     val hasStaleContent = uiState.upcoming.isNotEmpty() || uiState.tomorrowWasteTypes.isNotEmpty()
+    val showSkeleton = uiState.isLoadingNewCommune || uiState.isInitialLoading ||
+        (isRefreshing && !hasStaleContent)
     val contentAlpha by animateFloatAsState(
         targetValue = if (isRefreshing && hasStaleContent && !showSkeleton) 0.55f else 1f,
         animationSpec = tween(200),
@@ -154,6 +155,13 @@ fun HomeScreen(
             }
 
             if (showSkeleton) {
+                item {
+                    Text(
+                        text = "Chargement du calendrier…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 item { TomorrowCardSkeleton() }
                 item {
                     FilterRowSkeleton()

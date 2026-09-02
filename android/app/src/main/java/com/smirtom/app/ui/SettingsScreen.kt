@@ -18,11 +18,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -31,6 +34,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -57,6 +62,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.smirtom.app.R
 import com.smirtom.app.data.ReminderTime
 import com.smirtom.app.util.BatteryOptimizationHelper
+import com.smirtom.app.util.FeedbackHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +86,8 @@ fun SettingsScreen(
     var ignoringBatteryOptimizations by remember {
         mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
     }
+    var feedbackEmailError by remember { mutableStateOf<String?>(null) }
+    var feedbackWhatsAppError by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -351,6 +359,77 @@ fun SettingsScreen(
             }
 
             item {
+                SettingsSectionCard {
+                    SettingsSectionHeader(
+                        icon = Icons.Outlined.Email,
+                        title = "Me contacter"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Un bug, une idée ou un mot sympa ?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsContactOptionRow(
+                        icon = Icons.Outlined.Email,
+                        title = "Par mail",
+                        subtitle = "Via votre application mail",
+                        onClick = {
+                            feedbackEmailError = null
+                            FeedbackHelper.openDeveloperEmail(
+                                context = context,
+                                recipient = context.getString(R.string.developer_contact_email),
+                                subject = context.getString(R.string.feedback_email_subject),
+                                appVersion = versionName,
+                                communeName = selectedCommune.displayName
+                            ).onFailure {
+                                feedbackEmailError = "Impossible d'ouvrir l'application mail"
+                            }
+                        },
+                        openContentDescription = "Ouvrir l'application mail"
+                    )
+                    feedbackEmailError?.let { message ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                    SettingsContactOptionRow(
+                        icon = Icons.AutoMirrored.Outlined.Chat,
+                        title = "Par WhatsApp",
+                        subtitle = "Message direct",
+                        onClick = {
+                            feedbackWhatsAppError = null
+                            FeedbackHelper.openDeveloperWhatsApp(
+                                context = context,
+                                phoneE164 = context.getString(R.string.developer_whatsapp_phone),
+                                appVersion = versionName,
+                                communeName = selectedCommune.displayName
+                            ).onFailure {
+                                feedbackWhatsAppError = "Impossible d'ouvrir WhatsApp"
+                            }
+                        },
+                        openContentDescription = "Ouvrir WhatsApp"
+                    )
+                    feedbackWhatsAppError?.let { message ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Version $versionName",
@@ -363,6 +442,50 @@ fun SettingsScreen(
                 )
             }
         }
+}
+
+@Composable
+private fun SettingsContactOptionRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    openContentDescription: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+            contentDescription = openContentDescription,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+    }
 }
 
 @Composable

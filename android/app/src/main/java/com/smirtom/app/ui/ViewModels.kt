@@ -167,7 +167,8 @@ class HomeViewModel(
             commune = commune.displayName,
             contentCommuneSlug = commune.slug,
             isLoadingNewCommune = false,
-            isInitialLoading = false
+            isInitialLoading = !repository.hasCachedCalendar() &&
+                _uiState.value.syncState !is SyncState.Error
         )
         repository.refreshHomeSnapshotCache(filter)
     }

@@ -187,6 +187,8 @@ class CalendarRepository(
         }
     }
 
+    suspend fun hasCachedCalendar(): Boolean = isCachedCalendarForSelectedCommune()
+
     suspend fun getSelectedCommune(): VexinCommune = preferencesManager.getSelectedCommune()
 
     suspend fun setCommune(commune: VexinCommune) {
