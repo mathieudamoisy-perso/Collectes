@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.4.0` (`versionCode` 6)
+Version actuelle : `1.4.1` (`versionCode` 7)
 
 ## 1. Compte développeur
 
@@ -81,9 +81,15 @@ Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun 
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.4.0
+### Notes de version — test fermé 1.4.1
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Chargement du calendrier : affichage plus épuré pendant la synchronisation (squelette sans message texte).
+```
+
+### Notes de version — test fermé 1.4.0 (historique)
 
 ```
 Guide du tri : consignes par type de bac (à mettre / à ne pas mettre), adaptées à votre commune.
@@ -143,9 +149,9 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.4.0
+## 8. Parcours Console — beta 1.4.1
 
-1. `git pull` puis vérifier `versionCode = 6` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 7` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
