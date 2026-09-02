@@ -16,12 +16,67 @@ data class VexinCommune(
     val usesSmirtomNetwork: Boolean
         get() = infoPageUrl == null
 
+    val guideTerritory: WasteGuideTerritory
+        get() = if (usesSmirtomNetwork) {
+            WasteGuideTerritory.SMIRTOM_VEXIN
+        } else {
+            WasteGuideTerritory.SYNDICAT_EMERAUDE
+        }
+
+    val usesEmeraudeCalendarSource: Boolean
+        get() = !usesSmirtomNetwork && (
+            officialCalendarUrl.contains("/EMERAUDE/", ignoreCase = true) ||
+                officialCalendarUrl.contains("syndicat-emeraude", ignoreCase = true)
+            )
+
+    val usesSannoisMunicipalSource: Boolean
+        get() = officialCalendarUrl.contains("ville-sannois.fr", ignoreCase = true)
+
     /** Sous-titre du lien « Calendrier officiel » dans les réglages. */
-    fun officialCalendarSubtitle(): String = if (usesSmirtomNetwork) {
-        "PDF SMIRTOM du Vexin — $displayName"
-    } else {
-        "PDF officiel de $displayName"
+    fun officialCalendarSubtitle(): String = when {
+        usesSmirtomNetwork -> "PDF SMIRTOM du Vexin — $displayName"
+        usesEmeraudeCalendarSource -> "PDF Syndicat Emeraude — $displayName"
+        usesSannoisMunicipalSource -> "PDF ville de Sannois — $displayName"
+        else -> "PDF calendrier officiel — $displayName"
     }
+
+    /** Titre du bandeau source dans le guide du tri. */
+    fun guideSourceTitle(): String = when {
+        usesSmirtomNetwork -> WasteGuideTerritory.SMIRTOM_VEXIN.displayName
+        usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.displayName
+        usesSannoisMunicipalSource -> "Ville de Sannois"
+        else -> displayName
+    }
+
+    fun guideSourceSubtitle(): String? = when {
+        usesSmirtomNetwork -> null
+        usesEmeraudeCalendarSource ->
+            "Règles indicatives — consultez syndicat-emeraude.fr pour la source officielle"
+        usesSannoisMunicipalSource ->
+            "Règles indicatives — consultez ville-sannois.fr pour la source officielle"
+        infoPageUrl != null ->
+            "Règles indicatives — consultez le site de $displayName pour la source officielle"
+        else -> null
+    }
+
+    fun guideInfoUrl(): String = when {
+        usesSmirtomNetwork -> pageUrl
+        usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.infoUrl
+        else -> infoPageUrl ?: pageUrl
+    }
+
+    fun guideInfoLinkLabel(): String = when {
+        usesSmirtomNetwork -> "En savoir plus sur smirtomduvexin.net"
+        usesEmeraudeCalendarSource -> "En savoir plus sur syndicat-emeraude.fr"
+        usesSannoisMunicipalSource -> "En savoir plus sur ville-sannois.fr"
+        else -> "Page déchets de $displayName"
+    }
+
+    fun guideSecondaryInfoUrl(): String? =
+        if (usesEmeraudeCalendarSource) infoPageUrl else null
+
+    fun guideSecondaryInfoLinkLabel(): String? =
+        guideSecondaryInfoUrl()?.let { "Page déchets de $displayName" }
 
     /** Termes pour retrouver le PDF calendrier sur le site SMIRTOM. */
     fun pdfSearchTerms(): List<String> = listOf(
@@ -48,6 +103,12 @@ object VexinCommunes {
         VexinCommune(
             slug = nameToSlug("Cormeilles-en-Vexin"),
             displayName = "Cormeilles-en-Vexin",
+            officialCalendarUrl =
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Épiais-Rhus"),
+            displayName = "Épiais-Rhus",
             officialCalendarUrl =
                 "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
         ),

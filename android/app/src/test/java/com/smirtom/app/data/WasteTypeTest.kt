@@ -14,4 +14,10 @@ class WasteTypeTest {
         assertEquals("Ordures ménagères (gris)", WasteType.ORDURES.notificationLabel)
         assertEquals("Verre (vert)", WasteType.VERRE.notificationLabel)
     }
+
+    @Test
+    fun encombrantsLabelsMentionCurbsideNotBin() {
+        assertEquals("À sortir devant le logement", WasteType.ENCOMBRANTS.guideSubtitle)
+        assertEquals("Encombrants (devant le logement)", WasteType.ENCOMBRANTS.collectionLineLabel)
+    }
 }

@@ -24,11 +24,14 @@ class PreferencesManager(private val context: Context) {
     }
 
     val selectedCommune: Flow<VexinCommune> = context.dataStore.data.map { prefs ->
-        val slug = VexinCommunes.normalizeSlug(
-            prefs[communeSlugKey] ?: VexinCommunes.default.slug
-        )
-        VexinCommunes.bySlug(slug) ?: VexinCommunes.default
+        resolveCommune(prefs)
     }
+
+    suspend fun warmUpSelectedCommune() {
+        cachedSelectedCommune = getSelectedCommune()
+    }
+
+    fun peekSelectedCommune(): VexinCommune = cachedSelectedCommune ?: VexinCommunes.default
 
     suspend fun setReminderTime(minutesOfDay: Int) {
         context.dataStore.edit { prefs ->
@@ -41,6 +44,7 @@ class PreferencesManager(private val context: Context) {
         context.dataStore.edit { prefs ->
             prefs[communeSlugKey] = commune.slug
         }
+        cachedSelectedCommune = commune
     }
 
     suspend fun getReminderTimeMinutes(): Int = reminderTimeMinutes.first()
@@ -64,7 +68,20 @@ class PreferencesManager(private val context: Context) {
         return ReminderTime.DEFAULT_MINUTES
     }
 
+    private fun resolveCommune(prefs: Preferences): VexinCommune {
+        val slug = VexinCommunes.normalizeSlug(
+            prefs[communeSlugKey] ?: VexinCommunes.default.slug
+        )
+        val commune = VexinCommunes.bySlug(slug) ?: VexinCommunes.default
+        cachedSelectedCommune = commune
+        return commune
+    }
+
     companion object {
         const val CALENDAR_LOGIC_VERSION = 13
+
+        @Volatile
+        var cachedSelectedCommune: VexinCommune? = null
+            private set
     }
 }

@@ -14,6 +14,20 @@ enum class WasteType(val label: String, val colorName: String) {
             else -> "$label ($colorName)"
         }
 
+    /** Sous-titre dans le guide du tri (bac ou consigne de sortie). */
+    val guideSubtitle: String
+        get() = when (this) {
+            ENCOMBRANTS -> "À sortir devant le logement"
+            else -> "Bac $colorName"
+        }
+
+    /** Libellé dans les listes de collecte (écran d'accueil, notifications visuelles). */
+    val collectionLineLabel: String
+        get() = when (this) {
+            ENCOMBRANTS -> "$label (devant le logement)"
+            else -> "$label ($colorName)"
+        }
+
     companion object {
         fun fromStorage(value: String): WasteType? = entries.find { it.name == value }
     }

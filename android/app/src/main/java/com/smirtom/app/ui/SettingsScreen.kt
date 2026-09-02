@@ -1,11 +1,7 @@
 package com.smirtom.app.ui
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +25,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -40,9 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -63,15 +56,15 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.smirtom.app.R
 import com.smirtom.app.data.ReminderTime
-import com.smirtom.app.notifications.NotificationHelper
-import com.smirtom.app.notifications.NotificationTestHelper
 import com.smirtom.app.util.BatteryOptimizationHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit = {},
+    showBack: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     val reminderTimeMinutes by viewModel.reminderTimeMinutes.collectAsState()
     val selectedCommune by viewModel.selectedCommune.collectAsState()
@@ -87,36 +80,6 @@ fun SettingsScreen(
     var ignoringBatteryOptimizations by remember {
         mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
     }
-    var notificationTestError by remember { mutableStateOf<String?>(null) }
-    var pendingNotificationTest by remember { mutableStateOf(false) }
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (pendingNotificationTest) {
-            pendingNotificationTest = false
-            notificationTestError = if (granted) {
-                if (NotificationTestHelper.showRandomTestReminder(context)) null
-                else "Impossible d'afficher la notification"
-            } else {
-                "Autorisez les notifications pour tester le rappel"
-            }
-        }
-    }
-
-    fun sendTestNotification() {
-        notificationTestError = null
-        if (NotificationHelper.canPostNotifications(context)) {
-            if (!NotificationTestHelper.showRandomTestReminder(context)) {
-                notificationTestError = "Impossible d'afficher la notification"
-            }
-            return
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pendingNotificationTest = true
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -129,25 +92,41 @@ fun SettingsScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Réglages") },
-                navigationIcon = {
+    val bottomInset = if (!showBack) LocalBottomBarInset.current else 0.dp
+
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .then(if (!showBack) Modifier.pagerNestedScroll() else Modifier),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 8.dp,
+            bottom = 8.dp + bottomInset
+        ),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            if (showBack) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
                     }
+                    Text(
+                        "Réglages",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
-            )
+            } else {
+                CompactScreenHeader(title = "Réglages", horizontalPadding = 0.dp)
+            }
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
             item {
                 SettingsSectionCard {
                     SettingsSectionHeader(
@@ -241,27 +220,6 @@ fun SettingsScreen(
                                 )
                             }
                         }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = { sendTestNotification() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Tester une notification")
-                    }
-                    Text(
-                        text = "Génère un rappel fictif pour un type de collecte aléatoire",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    notificationTestError?.let { message ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
                     }
                 }
             }
@@ -396,14 +354,15 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Version $versionName",
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
         }
-    }
 }
 
 @Composable

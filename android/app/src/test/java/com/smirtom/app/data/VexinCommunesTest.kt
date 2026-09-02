@@ -10,12 +10,13 @@ import org.junit.Test
 class VexinCommunesTest {
     @Test
     fun includesAllSupportedCommunes() {
-        assertEquals(5, VexinCommunes.all.size)
+        assertEquals(6, VexinCommunes.all.size)
         assertEquals(
             listOf(
                 "Magny-en-Vexin",
                 "Théméricourt",
                 "Cormeilles-en-Vexin",
+                "Épiais-Rhus",
                 "Sannois",
                 "Ermont"
             ),
@@ -34,6 +35,7 @@ class VexinCommunesTest {
         assertNotNull(VexinCommunes.bySlug("themericourt"))
         assertEquals("Théméricourt", VexinCommunes.bySlug("themericourt")?.displayName)
         assertNotNull(VexinCommunes.bySlug("cormeilles-en-vexin"))
+        assertNotNull(VexinCommunes.bySlug("epiais-rhus"))
         assertNotNull(VexinCommunes.bySlug("sannois"))
         assertNotNull(VexinCommunes.bySlug("ermont"))
         assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
@@ -66,6 +68,17 @@ class VexinCommunesTest {
     }
 
     @Test
+    fun epiaisRhusSharesCormeillesCalendarPdf() {
+        val commune = VexinCommunes.bySlug("epiais-rhus")!!
+        assertEquals("Épiais-Rhus", commune.displayName)
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("Cormeilles-Epiais", ignoreCase = true))
+        assertTrue(commune.pageUrl.contains("epiais-rhus"))
+        assertNull(commune.infoPageUrl)
+        assertTrue(commune.usesSmirtomNetwork)
+    }
+
+    @Test
     fun sannoisUsesExternalCalendarAndInfoPage() {
         val commune = VexinCommunes.bySlug("sannois")!!
         assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
@@ -84,6 +97,7 @@ class VexinCommunesTest {
         assertTrue(commune.infoPageUrl!!.contains("ermont.fr"))
         assertFalse(commune.usesSmirtomNetwork)
         assertFalse(commune.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
+        assertTrue(commune.officialCalendarSubtitle().contains("Emeraude", ignoreCase = true))
     }
 
     @Test
@@ -99,14 +113,37 @@ class VexinCommunesTest {
     }
 
     @Test
-    fun officialCalendarSubtitleMentionsSmirtomOnlyForVexinCommunes() {
+    fun guideSourceLabelsMatchPdfSource() {
+        val sannois = VexinCommunes.bySlug("sannois")!!
+        assertEquals("Ville de Sannois", sannois.guideSourceTitle())
+        assertTrue(sannois.guideSourceSubtitle()!!.contains("ville-sannois.fr"))
+        assertFalse(sannois.guideSourceSubtitle()!!.contains("Emeraude", ignoreCase = true))
+        assertTrue(sannois.guideInfoLinkLabel().contains("ville-sannois.fr"))
+        assertNull(sannois.guideSecondaryInfoUrl())
+
+        val ermont = VexinCommunes.bySlug("ermont")!!
+        assertEquals("Syndicat Emeraude", ermont.guideSourceTitle())
+        assertTrue(ermont.guideInfoLinkLabel().contains("syndicat-emeraude.fr"))
+        assertNotNull(ermont.guideSecondaryInfoUrl())
+    }
+
+    @Test
+    fun officialCalendarSubtitleReflectsPdfSource() {
         val magny = VexinCommunes.default
-        assertTrue(magny.usesSmirtomNetwork)
         assertTrue(magny.officialCalendarSubtitle().contains("SMIRTOM"))
 
         val sannois = VexinCommunes.bySlug("sannois")!!
-        assertFalse(sannois.usesSmirtomNetwork)
-        assertFalse(sannois.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
-        assertTrue(sannois.officialCalendarSubtitle().contains("Sannois"))
+        assertFalse(sannois.officialCalendarSubtitle().contains("Emeraude", ignoreCase = true))
+        assertTrue(sannois.officialCalendarSubtitle().contains("ville de Sannois", ignoreCase = true))
+
+        val ermont = VexinCommunes.bySlug("ermont")!!
+        assertTrue(ermont.officialCalendarSubtitle().contains("Emeraude", ignoreCase = true))
+    }
+
+    @Test
+    fun guideTerritoryMatchesNetwork() {
+        assertEquals(WasteGuideTerritory.SMIRTOM_VEXIN, VexinCommunes.default.guideTerritory)
+        assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("ermont")!!.guideTerritory)
+        assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("sannois")!!.guideTerritory)
     }
 }

@@ -22,6 +22,13 @@ sealed class SyncState {
     data class Error(val message: String) : SyncState()
 }
 
+data class HomeSnapshot(
+    val tomorrowLabel: String,
+    val tomorrowWasteTypes: List<WasteType>,
+    val upcoming: List<CollectionDay>,
+    val communeSlug: String
+)
+
 class CalendarRepository(
     private val context: Context,
     private val fetcher: SmirtomFetcher = SmirtomFetcher(),
@@ -38,6 +45,50 @@ class CalendarRepository(
 
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
+
+    companion object {
+        @Volatile
+        private var cachedHomeSnapshot: HomeSnapshot? = null
+
+        fun peekHomeSnapshot(): HomeSnapshot? = cachedHomeSnapshot
+
+        internal fun updateCachedHomeSnapshot(snapshot: HomeSnapshot?) {
+            cachedHomeSnapshot = snapshot
+        }
+    }
+
+    fun peekHomeSnapshot(): HomeSnapshot? = Companion.peekHomeSnapshot()
+
+    suspend fun warmUpHomeSnapshot() = withContext(Dispatchers.IO) {
+        updateCachedHomeSnapshot(buildHomeSnapshot(filter = null))
+    }
+
+    suspend fun refreshHomeSnapshotCache(filter: WasteType? = null) = withContext(Dispatchers.IO) {
+        updateCachedHomeSnapshot(buildHomeSnapshot(filter))
+    }
+
+    private suspend fun buildHomeSnapshot(filter: WasteType?): HomeSnapshot? {
+        if (!isCachedCalendarForSelectedCommune()) return null
+        val today = LocalDate.now(zoneId)
+        val tomorrow = today.plusDays(1)
+        val commune = preferencesManager.getSelectedCommune()
+        val tomorrowTypes = getCollectionsOn(tomorrow, filter = null)
+        val upcoming = getUpcomingEvents(filter)
+        val tomorrowLabel = formatDateLabel(tomorrow)
+        return HomeSnapshot(
+            tomorrowLabel = tomorrowLabel,
+            tomorrowWasteTypes = tomorrowTypes,
+            upcoming = upcoming,
+            communeSlug = commune.slug
+        )
+    }
+
+    private fun formatDateLabel(date: LocalDate): String {
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("EEEE d MMMM", java.util.Locale.FRENCH)
+        return date.format(formatter).replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(java.util.Locale.FRENCH) else it.toString()
+        }
+    }
 
     suspend fun ensureCalendarSynced(force: Boolean = false): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
@@ -140,12 +191,14 @@ class CalendarRepository(
 
     suspend fun setCommune(commune: VexinCommune) {
         preferencesManager.setCommune(commune)
+        updateCachedHomeSnapshot(null)
         clearLocalCalendarCache()
     }
 
     suspend fun clearLocalCalendarCache() = withContext(Dispatchers.IO) {
         collectionDao.clearAll()
         syncMetadataDao.clear()
+        updateCachedHomeSnapshot(null)
         fetcher.deleteCachedPdfs(context.filesDir)
         fetcher.deleteCachedPdfs(context.cacheDir)
     }

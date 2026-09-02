@@ -28,21 +28,60 @@ data class HomeUiState(
     val upcoming: List<CollectionDay> = emptyList(),
     val activeFilter: WasteType? = null,
     val syncState: SyncState = SyncState.Idle,
-    val commune: String = "Magny-en-Vexin",
+    val commune: String = "",
     val contentCommuneSlug: String? = null,
-    val isLoadingNewCommune: Boolean = false
+    val isLoadingNewCommune: Boolean = false,
+    val isInitialLoading: Boolean = true
 )
 
 class HomeViewModel(
-    private val repository: CalendarRepository
+    private val repository: CalendarRepository,
+    private val preferencesManager: PreferencesManager,
+    initialCommune: VexinCommune
 ) : ViewModel() {
     private val zoneId = ZoneId.of("Europe/Paris")
     private val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
-    private val _uiState = MutableStateFlow(HomeUiState())
+    private val _uiState = MutableStateFlow(buildInitialState(initialCommune))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private fun buildInitialState(commune: VexinCommune): HomeUiState {
+        val snapshot = repository.peekHomeSnapshot()
+        return if (snapshot != null && snapshot.communeSlug == commune.slug) {
+            HomeUiState(
+                tomorrowLabel = snapshot.tomorrowLabel,
+                tomorrowWasteTypes = snapshot.tomorrowWasteTypes,
+                upcoming = snapshot.upcoming,
+                commune = commune.displayName,
+                contentCommuneSlug = commune.slug,
+                isInitialLoading = false
+            )
+        } else {
+            HomeUiState(
+                commune = commune.displayName,
+                contentCommuneSlug = commune.slug,
+                isInitialLoading = true
+            )
+        }
+    }
+
     init {
+        viewModelScope.launch {
+            loadUpcoming(_uiState.value.activeFilter)
+        }
+        viewModelScope.launch {
+            preferencesManager.selectedCommune.collect { commune ->
+                if (commune.slug != _uiState.value.contentCommuneSlug) {
+                    _uiState.value = _uiState.value.copy(
+                        commune = commune.displayName,
+                        tomorrowWasteTypes = emptyList(),
+                        upcoming = emptyList(),
+                        activeFilter = null,
+                        isLoadingNewCommune = true
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             repository.syncState.collect { sync ->
                 when (sync) {
@@ -61,6 +100,7 @@ class HomeViewModel(
                                 commune = commune.displayName,
                                 tomorrowWasteTypes = emptyList(),
                                 upcoming = emptyList(),
+                                activeFilter = null,
                                 isLoadingNewCommune = true
                             )
                         }
@@ -68,6 +108,13 @@ class HomeViewModel(
                     is SyncState.Success -> {
                         _uiState.value = _uiState.value.copy(syncState = sync)
                         loadUpcoming(_uiState.value.activeFilter)
+                    }
+                    is SyncState.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            syncState = sync,
+                            isLoadingNewCommune = false,
+                            isInitialLoading = false
+                        )
                     }
                     else -> {
                         _uiState.value = _uiState.value.copy(syncState = sync)
@@ -94,8 +141,12 @@ class HomeViewModel(
 
     fun setFilter(filter: WasteType?) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(activeFilter = filter)
-            loadUpcoming(filter)
+            val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
+            _uiState.value = _uiState.value.copy(
+                activeFilter = filter,
+                upcoming = filteredUpcoming
+            )
+            repository.refreshHomeSnapshotCache(filter)
         }
     }
 
@@ -103,7 +154,7 @@ class HomeViewModel(
         val today = LocalDate.now(zoneId)
         val commune = repository.getSelectedCommune()
         val tomorrow = today.plusDays(1)
-        val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter)
+        val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter = null)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
 
         _uiState.value = _uiState.value.copy(
@@ -115,17 +166,32 @@ class HomeViewModel(
             activeFilter = filter,
             commune = commune.displayName,
             contentCommuneSlug = commune.slug,
-            isLoadingNewCommune = false
+            isLoadingNewCommune = false,
+            isInitialLoading = false
         )
+        repository.refreshHomeSnapshotCache(filter)
+    }
+
+    suspend fun findNextCollection(type: WasteType): LocalDate? {
+        val today = LocalDate.now(zoneId)
+        val tomorrow = today.plusDays(1)
+        val tomorrowTypes = repository.getCollectionsOn(tomorrow, type)
+        if (tomorrowTypes.isNotEmpty()) return tomorrow
+        return repository.getUpcomingEvents(filter = type).firstOrNull()?.date
     }
 }
 
 class HomeViewModelFactory(
-    private val repository: CalendarRepository
+    private val repository: CalendarRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HomeViewModel(repository) as T
+        return HomeViewModel(
+            repository,
+            preferencesManager,
+            preferencesManager.peekSelectedCommune()
+        ) as T
     }
 }
 
@@ -141,8 +207,8 @@ class SettingsViewModel(
 
     val selectedCommune: StateFlow<VexinCommune> = preferencesManager.selectedCommune.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = VexinCommunes.default
+        started = SharingStarted.Eagerly,
+        initialValue = preferencesManager.peekSelectedCommune()
     )
 
     val communes: List<VexinCommune> = VexinCommunes.all
