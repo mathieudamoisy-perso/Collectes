@@ -34,7 +34,7 @@ Ouvrir le dossier `android/` dans Android Studio.
 
 Guide complet : [android/store/PLAY_STORE.md](android/store/PLAY_STORE.md)
 
-**Version actuelle :** `1.4.1` (`versionCode` 7)
+**Version actuelle :** `1.5.0` (`versionCode` 8)
 
 ### Keystore (une fois)
 

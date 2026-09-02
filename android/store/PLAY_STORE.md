@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.4.1` (`versionCode` 7)
+Version actuelle : `1.5.0` (`versionCode` 8)
 
 ## 1. Compte développeur
 
@@ -41,7 +41,7 @@ Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
 
 - `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
-- `versionName` : version affichée aux utilisateurs (ex. `1.4.0`)
+- `versionName` : version affichée aux utilisateurs (ex. `1.5.0`)
 
 **Workflow multi-postes :**
 
@@ -75,15 +75,22 @@ L’application télécharge le calendrier officiel de votre commune, affiche la
 
 Un guide du tri intégré indique quoi mettre (ou ne pas mettre) dans chaque bac, selon les règles de votre territoire.
 
-Communes disponibles : Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
+Communes disponibles : Bouconvillers, Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.4.1
+### Notes de version — test fermé 1.5.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Bouconvillers : nouvelle commune disponible (calendrier CCVT / Vexin-Thelle).
+Interface : barre de navigation plus stable au défilement.
+```
+
+### Notes de version — test fermé 1.4.1 (historique)
 
 ```
 Chargement du calendrier : affichage plus épuré pendant la synchronisation (squelette sans message texte).
@@ -136,7 +143,9 @@ Déclarer en cohérence avec la politique :
 - Pas de compte, pas de collecte partagée avec des tiers
 - Données **sur l’appareil uniquement** : commune, heure de rappel, calendrier
 - Réseau : téléchargement de documents publics sur les sites officiels des collectivités / syndicats, notamment :
-  - `smirtomduvexin.net` (communes du Vexin)
+  - `smirtomduvexin.net` (communes du Vexin — SMIRTOM)
+  - `vexinthelle.fr` (CCVT / Vexin-Thelle, ex. Bouconvillers)
+  - `bouconvillers.fr` (page d’information tri sélectif)
   - `ville-sannois.fr` (Sannois)
   - `ermont.fr` (Ermont)
   - `syndicat-emeraude.fr` (Syndicat Emeraude)
@@ -149,16 +158,16 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.4.1
+## 8. Parcours Console — beta 1.5.0
 
-1. `git pull` puis vérifier `versionCode = 7` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 8` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
 5. Coller les **notes de version** (section 4)
-6. Mettre à jour la description courte / longue si ce n’est pas déjà fait
+6. Mettre à jour la description longue (ajouter Bouconvillers) si ce n’est pas déjà fait
 7. Vérifier **Data safety** et l’URL de politique de confidentialité
 8. **Réviser et publier** la piste fermée
-9. Vérifier sur un appareil testeur : guide du tri, Épiais-Rhus, contact développeur, actualisation, ouverture du PDF
+9. Vérifier sur un appareil testeur : Bouconvillers (sync calendrier CCVT), barre de navigation au scroll, guide du tri, ouverture du PDF
 
 Ensuite seulement : **Production** (après validation et délai éventuel imposé par Google).
