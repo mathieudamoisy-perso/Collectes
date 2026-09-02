@@ -155,13 +155,6 @@ fun HomeScreen(
             }
 
             if (showSkeleton) {
-                item {
-                    Text(
-                        text = "Chargement du calendrier…",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
                 item { TomorrowCardSkeleton() }
                 item {
                     FilterRowSkeleton()
