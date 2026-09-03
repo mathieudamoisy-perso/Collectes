@@ -82,12 +82,6 @@ data class VexinCommune(
     fun guideSecondaryInfoLinkLabel(): String? =
         guideSecondaryInfoUrl()?.let { "Page déchets de $displayName" }
 
-    /** Termes pour retrouver le PDF calendrier sur le site SMIRTOM. */
-    fun pdfSearchTerms(): List<String> = listOf(
-        displayName,
-        displayName.replace("-", " "),
-        slug.replace("-", " ")
-    )
 }
 
 object VexinCommunes {

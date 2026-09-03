@@ -16,7 +16,6 @@ import java.util.Locale
 class ReminderScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val zoneId = ZoneId.of("Europe/Paris")
-    private val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
     fun scheduleUpcomingReminders(events: List<CollectionDay>, reminderTimeMinutes: Int) {
         events.forEach { cancelReminder(it) }

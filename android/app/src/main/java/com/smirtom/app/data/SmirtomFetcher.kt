@@ -5,7 +5,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import org.jsoup.nodes.Element
 import java.io.File
-import java.time.LocalDate
 
 class SmirtomFetcher {
     companion object {
@@ -127,7 +126,6 @@ class SmirtomFetcher {
         }?.forEach { it.delete() }
     }
 
-    fun currentYear(): Int = LocalDate.now().year
 }
 
 class CalendarFetchException(message: String) : Exception(message)

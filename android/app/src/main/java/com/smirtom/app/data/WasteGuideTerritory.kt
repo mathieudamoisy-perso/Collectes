@@ -5,10 +5,5 @@ enum class WasteGuideTerritory(
     val infoUrl: String
 ) {
     SMIRTOM_VEXIN("SMIRTOM du Vexin", "https://smirtomduvexin.net"),
-    SYNDICAT_EMERAUDE("Syndicat Emeraude", "https://www.syndicat-emeraude.fr");
-
-    fun detailUrl(commune: VexinCommune): String = when (this) {
-        SMIRTOM_VEXIN -> commune.pageUrl
-        SYNDICAT_EMERAUDE -> infoUrl
-    }
+    SYNDICAT_EMERAUDE("Syndicat Emeraude", "https://www.syndicat-emeraude.fr")
 }
