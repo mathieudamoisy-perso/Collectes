@@ -69,6 +69,8 @@ import java.util.Locale
 fun HomeScreen(
     uiState: HomeUiState,
     commune: VexinCommune,
+    communes: List<VexinCommune>,
+    onCommuneSelected: (VexinCommune) -> Unit,
     onRefresh: () -> Unit,
     onFilterChange: (WasteType?) -> Unit,
     onNextCollectionClick: (WasteType) -> Unit,
@@ -77,6 +79,7 @@ fun HomeScreen(
 ) {
     val guides = remember(commune.slug) { WasteStreamGuides.forCommune(commune) }
     var selectedGuide by remember { mutableStateOf<WasteStreamGuide?>(null) }
+    var showCommunePicker by remember { mutableStateOf(false) }
 
     fun openGuideDetail(type: WasteType) {
         selectedGuide = guides.find { it.type == type }
@@ -99,7 +102,18 @@ fun HomeScreen(
     val bottomInset = LocalBottomBarInset.current * LocalBottomBarVisibility.current
 
     Column(modifier = modifier.fillMaxSize()) {
-        CollectesAppHeader(communeName = uiState.commune)
+        CollectesAppHeader(
+            communeName = uiState.commune,
+            onCommuneClick = { showCommunePicker = true }
+        )
+        if (showCommunePicker) {
+            CommunePickerBottomSheet(
+                communes = communes,
+                selectedSlug = commune.slug,
+                onSelect = onCommuneSelected,
+                onDismiss = { showCommunePicker = false }
+            )
+        }
         PullToRefreshBox(
             isRefreshing = showPullRefresh,
             onRefresh = {

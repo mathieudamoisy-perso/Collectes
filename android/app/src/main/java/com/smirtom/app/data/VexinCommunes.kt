@@ -145,7 +145,8 @@ object VexinCommunes {
 
     val all: List<VexinCommune> = allCommunes
 
-    val default: VexinCommune = allCommunes.first { it.slug == "magny-en-vexin" }
+    /** Première commune de la liste triée (ordre alphabétique français). */
+    val default: VexinCommune = allCommunes.first()
 
     fun bySlug(slug: String): VexinCommune? {
         return allCommunes.find { it.slug.equals(normalizeSlug(slug), ignoreCase = true) }

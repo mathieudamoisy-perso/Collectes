@@ -26,9 +26,10 @@ class VexinCommunesTest {
     }
 
     @Test
-    fun defaultIsMagnyEnVexin() {
-        assertEquals("magny-en-vexin", VexinCommunes.default.slug)
-        assertEquals("Magny-en-Vexin", VexinCommunes.default.displayName)
+    fun defaultIsFirstSortedCommune() {
+        assertEquals(VexinCommunes.all.first(), VexinCommunes.default)
+        assertEquals("bouconvillers", VexinCommunes.default.slug)
+        assertEquals("Bouconvillers", VexinCommunes.default.displayName)
     }
 
     @Test
@@ -47,7 +48,7 @@ class VexinCommunesTest {
 
     @Test
     fun magnyOfficialCalendarIsDirectPdf() {
-        val url = VexinCommunes.default.officialCalendarUrl
+        val url = VexinCommunes.bySlug("magny-en-vexin")!!.officialCalendarUrl
         assertTrue(url.endsWith(".pdf"))
         assertTrue(url.contains("Magny-en-vexin", ignoreCase = true))
     }
@@ -128,7 +129,7 @@ class VexinCommunesTest {
 
     @Test
     fun guideSourceLabelsMatchPdfSource() {
-        val magny = VexinCommunes.default
+        val magny = VexinCommunes.bySlug("magny-en-vexin")!!
         assertEquals("Communes du Vexin", magny.guideSourceTitle())
         assertTrue(magny.guideSourceSubtitle()!!.contains("smirtomduvexin.net"))
         assertEquals("En savoir plus sur le site officiel", magny.guideInfoLinkLabel())
@@ -148,7 +149,7 @@ class VexinCommunesTest {
 
     @Test
     fun officialCalendarSubtitleReflectsPdfSource() {
-        val magny = VexinCommunes.default
+        val magny = VexinCommunes.bySlug("magny-en-vexin")!!
         assertTrue(magny.officialCalendarSubtitle().contains("calendrier officiel", ignoreCase = true))
         assertFalse(magny.officialCalendarSubtitle().contains("SMIRTOM", ignoreCase = true))
 
@@ -162,7 +163,14 @@ class VexinCommunesTest {
 
     @Test
     fun guideTerritoryMatchesNetwork() {
-        assertEquals(WasteGuideTerritory.SMIRTOM_VEXIN, VexinCommunes.default.guideTerritory)
+        assertEquals(
+            WasteGuideTerritory.SMIRTOM_VEXIN,
+            VexinCommunes.bySlug("magny-en-vexin")!!.guideTerritory
+        )
+        assertEquals(
+            WasteGuideTerritory.SYNDICAT_EMERAUDE,
+            VexinCommunes.default.guideTerritory
+        )
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("ermont")!!.guideTerritory)
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("sannois")!!.guideTerritory)
     }

@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
@@ -80,7 +79,6 @@ fun SettingsScreen(
         context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
     }
     val lifecycleOwner = LocalLifecycleOwner.current
-    var communeMenuExpanded by remember { mutableStateOf(false) }
     var reminderTimeMenuExpanded by remember { mutableStateOf(false) }
     val reminderTimeOptions = remember { ReminderTime.options() }
     var ignoringBatteryOptimizations by remember {
@@ -135,50 +133,6 @@ fun SettingsScreen(
                 CompactScreenHeader(title = "Réglages", horizontalPadding = 0.dp)
             }
         }
-            item {
-                SettingsSectionCard {
-                    SettingsSectionHeader(
-                        icon = Icons.Default.Place,
-                        title = "Commune"
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    ExposedDropdownMenuBox(
-                        expanded = communeMenuExpanded,
-                        onExpandedChange = { communeMenuExpanded = it },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = selectedCommune.displayName,
-                            onValueChange = {},
-                            readOnly = true,
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                            },
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = communeMenuExpanded,
-                            onDismissRequest = { communeMenuExpanded = false }
-                        ) {
-                            viewModel.communes.forEach { commune ->
-                                DropdownMenuItem(
-                                    text = { Text(commune.displayName) },
-                                    onClick = {
-                                        communeMenuExpanded = false
-                                        if (commune.slug != selectedCommune.slug) {
-                                            viewModel.setCommune(commune)
-                                        }
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             item {
                 SettingsSectionCard {

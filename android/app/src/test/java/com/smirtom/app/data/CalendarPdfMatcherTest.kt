@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CalendarPdfMatcherTest {
-    private val magny = VexinCommunes.default
+    private val magny = VexinCommunes.bySlug("magny-en-vexin")!!
 
     @Test
     fun matchesMagnyPdfUrl() {

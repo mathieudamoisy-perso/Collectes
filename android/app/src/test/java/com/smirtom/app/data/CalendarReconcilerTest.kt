@@ -8,7 +8,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 class CalendarReconcilerTest {
-    private val magny = VexinCommunes.default
+    private val magny = VexinCommunes.bySlug("magny-en-vexin")!!
     private val ambleville = VexinCommune("ambleville", "Ambleville")
     private val clery = VexinCommune("clery-en-vexin", "Cléry-en-Vexin")
     private val charmont = VexinCommune("charmont", "Charmont")

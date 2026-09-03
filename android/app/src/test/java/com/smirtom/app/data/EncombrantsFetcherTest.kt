@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 class EncombrantsFetcherTest {
     private val fetcher = EncombrantsFetcher()
-    private val magny = VexinCommunes.default
+    private val magny = VexinCommunes.bySlug("magny-en-vexin")!!
 
     @Test
     fun toCollectionDaysUsesEncombrantsType() {

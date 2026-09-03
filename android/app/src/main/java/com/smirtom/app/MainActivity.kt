@@ -248,6 +248,8 @@ private fun CollectesTab(
     HomeScreen(
         uiState = homeState,
         commune = commune,
+        communes = settingsViewModel.communes,
+        onCommuneSelected = { settingsViewModel.setCommune(it) },
         onRefresh = onRefresh,
         onFilterChange = onFilterChange,
         onNextCollectionClick = onNextCollectionClick,

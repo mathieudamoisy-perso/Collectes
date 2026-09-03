@@ -1,5 +1,6 @@
 package com.smirtom.app.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -16,8 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,6 +34,7 @@ private val BrandGreenDark = Color(0xFFA8C5AC)
 @Composable
 fun CollectesAppHeader(
     communeName: String,
+    onCommuneClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val brandColor = if (isSystemInDarkTheme()) BrandGreenDark else BrandGreen
@@ -51,8 +57,15 @@ fun CollectesAppHeader(
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(start = 12.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(
+                        onClick = onCommuneClick,
+                        role = Role.Button
+                    )
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Place,
@@ -66,6 +79,12 @@ fun CollectesAppHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Changer de commune",
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
         }

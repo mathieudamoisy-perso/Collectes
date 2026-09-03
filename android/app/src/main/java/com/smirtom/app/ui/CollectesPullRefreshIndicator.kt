@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +52,7 @@ import kotlin.math.sin
 
 private val BrandGreen = Color(0xFF5E8F66)
 private val BrandGreenDark = Color(0xFFA8C5AC)
+private val IndicatorBackgroundLight = Color.White
 private val RingSize = 44.dp
 private val CheckmarkSize = 22.dp
 private val RingStrokeWidth = 2.5.dp
@@ -304,7 +306,13 @@ fun CollectesPullRefreshIndicator(
         else -> 1f
     }
 
-    val tint = if (isSystemInDarkTheme()) BrandGreenDark else BrandGreen
+    val darkTheme = isSystemInDarkTheme()
+    val tint = if (darkTheme) BrandGreenDark else BrandGreen
+    val indicatorBackground = if (darkTheme) {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    } else {
+        IndicatorBackgroundLight
+    }
 
     Box(
         modifier = modifier
@@ -312,7 +320,7 @@ fun CollectesPullRefreshIndicator(
             .size(RingSize)
             .graphicsLayer { alpha = hostAlpha }
             .clip(CircleShape)
-            .background(Color.White),
+            .background(indicatorBackground),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {

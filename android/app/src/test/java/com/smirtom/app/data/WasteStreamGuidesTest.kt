@@ -27,7 +27,7 @@ class WasteStreamGuidesTest {
 
     @Test
     fun forCommuneUsesTerritory() {
-        val magny = VexinCommunes.default
+        val magny = VexinCommunes.bySlug("magny-en-vexin")!!
         val ermont = VexinCommunes.bySlug("ermont")!!
 
         assertEquals(
