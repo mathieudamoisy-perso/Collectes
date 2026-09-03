@@ -176,10 +176,7 @@ fun HomeScreen(
                     FilterRowSkeleton()
                 }
                 item {
-                    Text(
-                        "Toutes les collectes",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    SkeletonPulseBox(modifier = Modifier.width(180.dp), height = 20.dp)
                 }
                 items(4) {
                     UpcomingItemSkeleton()
