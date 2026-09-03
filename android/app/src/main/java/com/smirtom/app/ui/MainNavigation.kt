@@ -53,12 +53,11 @@ import kotlin.math.abs
 @Composable
 fun BottomBarOverlay(
     pagerState: PagerState,
-    scrollState: BottomBarScrollState,
+    visibility: Float,
     onTabSelected: (AppTab) -> Unit,
     onHeightChanged: (Dp) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val visibility = rememberBottomBarVisibility(scrollState)
     SmirtomBottomBar(
         pagerState = pagerState,
         onTabSelected = onTabSelected,

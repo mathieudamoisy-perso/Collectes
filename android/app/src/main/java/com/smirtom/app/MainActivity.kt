@@ -179,7 +179,7 @@ class MainActivity : ComponentActivity() {
                                 state = pagerState,
                                 modifier = Modifier.fillMaxSize(),
                                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
-                                beyondViewportPageCount = tabs.lastIndex,
+                                beyondViewportPageCount = 1,
                                 pageSpacing = 0.dp
                             ) { page ->
                                 Box(
@@ -222,7 +222,7 @@ class MainActivity : ComponentActivity() {
 
                         BottomBarOverlay(
                             pagerState = pagerState,
-                            scrollState = bottomBarScrollState,
+                            visibility = bottomBarVisibility,
                             onTabSelected = ::selectTab,
                             onHeightChanged = { bottomBarMeasuredHeight = it },
                             modifier = Modifier.align(Alignment.BottomCenter)

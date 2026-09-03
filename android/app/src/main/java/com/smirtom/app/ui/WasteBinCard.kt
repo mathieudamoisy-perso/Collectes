@@ -2,6 +2,7 @@ package com.smirtom.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,7 +37,8 @@ fun WasteBinCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val palette = WasteTypeColors.palette(guide.type)
+    val darkTheme = isSystemInDarkTheme()
+    val palette = remember(guide.type, darkTheme) { WasteTypeColors.paletteFor(guide.type, darkTheme) }
     val previewItems = guide.acceptedItems.take(3)
 
     Card(
@@ -103,7 +106,8 @@ fun WasteTypeLine(
     showInfoIcon: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val palette = WasteTypeColors.palette(type)
+    val darkTheme = isSystemInDarkTheme()
+    val palette = remember(type, darkTheme) { WasteTypeColors.paletteFor(type, darkTheme) }
     val clickableModifier = if (onClick != null) {
         modifier.clickable(onClick = onClick)
     } else {

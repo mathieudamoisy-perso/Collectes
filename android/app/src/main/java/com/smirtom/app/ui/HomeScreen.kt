@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -277,6 +278,7 @@ private fun WasteTypeFilterRow(
     activeFilter: WasteType?,
     onFilterChange: (WasteType?) -> Unit
 ) {
+    val darkTheme = isSystemInDarkTheme()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,7 +299,7 @@ private fun WasteTypeFilterRow(
         )
         WasteType.entries.forEach { type ->
             val selected = activeFilter == type
-            val palette = WasteTypeColors.palette(type)
+            val palette = remember(type, darkTheme) { WasteTypeColors.paletteFor(type, darkTheme) }
             FilterChip(
                 selected = selected,
                 onClick = { onFilterChange(if (selected) null else type) },
@@ -334,12 +336,15 @@ private fun TomorrowCard(
     wasteTypes: List<WasteType>,
     onTypeClick: (WasteType) -> Unit
 ) {
+    val darkTheme = isSystemInDarkTheme()
     val cardColor = if (wasteTypes.isEmpty()) {
         MaterialTheme.colorScheme.surfaceContainerLow
     } else {
         WasteTypeColors.cardBackgroundOrDefault(wasteTypes)
     }
-    val accentColor = wasteTypes.firstOrNull()?.let { WasteTypeColors.palette(it).accent }
+    val accentColor = remember(wasteTypes, darkTheme) {
+        wasteTypes.firstOrNull()?.let { WasteTypeColors.paletteFor(it, darkTheme).accent }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -387,13 +392,17 @@ private fun TomorrowCard(
     }
 }
 
+private val upcomingDateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
+
 @Composable
 private fun UpcomingItem(
     day: CollectionDay,
     modifier: Modifier = Modifier
 ) {
-    val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-    val accentColor = day.wasteTypes.firstOrNull()?.let { WasteTypeColors.palette(it).accent }
+    val darkTheme = isSystemInDarkTheme()
+    val accentColor = remember(day.wasteTypes, darkTheme) {
+        day.wasteTypes.firstOrNull()?.let { WasteTypeColors.paletteFor(it, darkTheme).accent }
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -416,7 +425,7 @@ private fun UpcomingItem(
             }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = day.date.format(formatter).replaceFirstChar {
+                    text = day.date.format(upcomingDateFormatter).replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
                     },
                     fontWeight = FontWeight.SemiBold

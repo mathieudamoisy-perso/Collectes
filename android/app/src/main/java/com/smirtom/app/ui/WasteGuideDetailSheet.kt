@@ -51,6 +51,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private val nextCollectionFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WasteGuideDetailBottomSheet(
@@ -137,8 +139,7 @@ fun WasteGuideDetailContent(
 
         if (showNextCollection) {
             nextDate?.let { date ->
-            val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-            val label = date.format(formatter).replaceFirstChar {
+            val label = date.format(nextCollectionFormatter).replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
             }
             Card(
