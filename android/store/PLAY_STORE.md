@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.5.0` (`versionCode` 8)
+Version actuelle : `1.5.1` (`versionCode` 9)
 
 ## 1. Compte développeur
 
@@ -41,7 +41,7 @@ Fichier à envoyer : `android/app/build/outputs/bundle/release/app-release.aab`
 La version est définie **une seule fois** dans `android/app/build.gradle.kts` (fichier versionné dans git) :
 
 - `versionCode` : entier **strictement croissant** à chaque upload Play Store (2, 3, 4…)
-- `versionName` : version affichée aux utilisateurs (ex. `1.5.0`)
+- `versionName` : version affichée aux utilisateurs (ex. `1.5.1`)
 
 **Workflow multi-postes :**
 
@@ -81,9 +81,17 @@ Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun 
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.5.0
+### Notes de version — test fermé 1.5.1
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Alignement technique Collectes : package, thème et données locales unifiés sous le nom Collectes.
+Politique de confidentialité : URL mise à jour (GitHub Pages Collectes).
+Migration automatique des données et rappels depuis les versions précédentes.
+```
+
+### Notes de version — test fermé 1.5.0 (historique)
 
 ```
 Bouconvillers : nouvelle commune disponible (calendrier CCVT / Vexin-Thelle).
@@ -158,16 +166,15 @@ Déclarer en cohérence avec la politique :
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
 
-## 8. Parcours Console — beta 1.5.0
+## 8. Parcours Console — beta 1.5.1
 
-1. `git pull` puis vérifier `versionCode = 8` dans `build.gradle.kts`
+1. `git pull` puis vérifier `versionCode = 9` et `versionName = 1.5.1` dans `build.gradle.kts`
 2. Builder l’AAB release (section 3)
 3. Play Console → **Tests fermés** → **Créer une version**
 4. Uploader `app-release.aab`
-5. Coller les **notes de version** (section 4)
-6. Mettre à jour la description longue (ajouter Bouconvillers) si ce n’est pas déjà fait
-7. Vérifier **Data safety** et l’URL de politique de confidentialité
-8. **Réviser et publier** la piste fermée
-9. Vérifier sur un appareil testeur : Bouconvillers (sync calendrier CCVT), barre de navigation au scroll, guide du tri, ouverture du PDF
+5. Coller les **notes de version 1.5.1** (section 4)
+6. Vérifier **Data safety** et l’URL de politique de confidentialité (`…/Collectes/privacy-policy.html`)
+7. **Réviser et publier** la piste fermée
+8. Vérifier sur un appareil testeur (mise à jour depuis 1.5.0) : commune et rappels conservés, sync calendrier, notifications, guide du tri
 
 Ensuite seulement : **Production** (après validation et délai éventuel imposé par Google).
