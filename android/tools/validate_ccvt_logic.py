@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image
 
-PNG = Path(r"c:\Projets Cursor\Smirtom\android\app\src\test\resources\calendars\bouconvillers_page.png")
+PNG = Path(__file__).resolve().parents[1] / "app" / "src" / "test" / "resources" / "calendars" / "bouconvillers_page.png"
 SCALE = 6
 YEAR = 2026
 

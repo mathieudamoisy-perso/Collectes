@@ -58,7 +58,7 @@ fun BottomBarOverlay(
     onHeightChanged: (Dp) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    SmirtomBottomBar(
+    CollectesBottomBar(
         pagerState = pagerState,
         onTabSelected = onTabSelected,
         visibility = visibility,
@@ -85,7 +85,7 @@ private val tabIcons = mapOf(
 )
 
 @Composable
-fun SmirtomBottomBar(
+fun CollectesBottomBar(
     pagerState: PagerState,
     onTabSelected: (AppTab) -> Unit,
     visibility: Float,
