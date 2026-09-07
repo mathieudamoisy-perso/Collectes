@@ -24,4 +24,4 @@
 -keep class androidx.datastore.** { *; }
 
 # Receivers / workers referenced from the manifest
--keep class com.smirtom.app.notifications.** { *; }
+-keep class com.collectes.app.notifications.** { *; }

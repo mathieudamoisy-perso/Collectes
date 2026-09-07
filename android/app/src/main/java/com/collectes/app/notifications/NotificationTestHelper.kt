@@ -1,0 +1,31 @@
+package com.collectes.app.notifications
+
+import android.content.Context
+import com.collectes.app.data.WasteType
+import java.time.LocalDate
+import kotlin.random.Random
+
+object NotificationTestHelper {
+    const val TEST_NOTIFICATION_ID = Int.MAX_VALUE
+
+    fun randomCollectionEvent(today: LocalDate = LocalDate.now(), random: Random = Random.Default): Pair<LocalDate, List<WasteType>> {
+        val wasteType = WasteType.entries.random(random)
+        val collectionDate = today.plusDays(1)
+        return collectionDate to listOf(wasteType)
+    }
+
+    fun showRandomTestReminder(context: Context): Boolean {
+        NotificationHelper.createChannel(context)
+        if (!NotificationHelper.canPostNotifications(context)) return false
+
+        val (collectionDate, wasteTypes) = randomCollectionEvent()
+        val message = ReminderScheduler.formatReminderMessage(collectionDate, wasteTypes)
+        NotificationHelper.showReminder(
+            context = context,
+            notificationId = TEST_NOTIFICATION_ID,
+            wasteTypes = wasteTypes,
+            message = message
+        )
+        return true
+    }
+}

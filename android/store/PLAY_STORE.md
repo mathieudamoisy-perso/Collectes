@@ -130,7 +130,7 @@ Règles de secours si le site officiel est injoignable.
 Fichier source : [docs/privacy-policy.html](../../docs/privacy-policy.html)
 
 URL utilisée dans l’app (`privacy_policy_url`) :
-`https://mathieudamoisy-perso.github.io/Smirtom/privacy-policy.html`
+`https://mathieudamoisy-perso.github.io/Collectes/privacy-policy.html`
 
 Activer **GitHub Pages** sur le dépôt (`Settings → Pages`, source : dossier `/docs` de la branche principale) pour que cette URL réponde. Coller la même URL dans Play Console → Politique de confidentialité.
 

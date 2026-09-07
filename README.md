@@ -91,7 +91,7 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 ```
 android/
-  app/src/main/java/com/smirtom/app/
+  app/src/main/java/com/collectes/app/
     data/           # Fetcher, parser PDF, base Room
     notifications/  # Alarmes et rappels locaux
     ui/             # Interface Compose

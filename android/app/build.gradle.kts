@@ -19,7 +19,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.smirtom.app"
+    namespace = "com.collectes.app"
     compileSdk = 36
 
     defaultConfig {
