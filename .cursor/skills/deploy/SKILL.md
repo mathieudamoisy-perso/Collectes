@@ -61,10 +61,10 @@ Avant build multi-poste : rappeler `git pull` pour éviter un `versionCode` déj
 
 ## 3. Documentation à mettre à jour
 
-### `README.md`
-- Ligne **Version actuelle** : `` `X.Y.Z` (`versionCode` N) ``
+### `README.md` (doc utilisateur final uniquement)
 - Tableau **Communes prises en charge** si une commune a été ajoutée/retirée
-- Description / réglages seulement si le comportement produit change vraiment
+- Introduction / fonctionnalités / premier lancement / réglages seulement si le comportement produit change vraiment
+- Ne pas y remettre version, build, keystore, structure projet ou tests
 
 ### `android/store/PLAY_STORE.md`
 - En-tête **Version actuelle**
