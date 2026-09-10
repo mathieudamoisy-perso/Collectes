@@ -1,12 +1,9 @@
-# Gradle / Android build
+# Gradle / Android
 .gradle/
 **/build/
 local.properties
 *.apk
 *.aab
-*.ap_
-*.dex
-*.class
 *.hprof
 *.log
 
@@ -15,7 +12,7 @@ local.properties
 .cxx/
 captures/
 
-# Kotlin incremental cache
+# Kotlin
 .kotlin/
 
 # IDE
@@ -30,7 +27,13 @@ captures/
 Thumbs.db
 desktop.ini
 
-# Secrets / signing (keep out of git)
+# Python (android/tools)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets / signing
 keystore.properties
 android/keystore/
 *.keystore
