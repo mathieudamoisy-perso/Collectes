@@ -16,6 +16,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 | Commune | Source calendrier |
 |---------|-------------------|
 | Bouconvillers | CCVT (Vexin-Thelle) |
+| Cabourg | Normandie Cabourg Pays d’Auge |
 | Magny-en-Vexin | SMIRTOM du Vexin |
 | Théméricourt | SMIRTOM du Vexin |
 | Cormeilles-en-Vexin | SMIRTOM du Vexin |

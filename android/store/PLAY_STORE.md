@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.5.1` (`versionCode` 9)
+Version actuelle : `1.6.0` (`versionCode` 10)
 
 ## 1. Compte développeur
 
@@ -69,21 +69,28 @@ Captures utiles : accueil « Demain », liste des prochaines collectes, guide du
 Rappels la veille des collectes de déchets, selon votre commune.
 
 **Description longue (À propos de l'application) :**
-Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge dans le Vexin, à Sannois et à Ermont.
+Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge dans le Vexin, à Sannois, Ermont et Cabourg.
 
 L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants, végétaux selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
 
 Un guide du tri intégré indique quoi mettre (ou ne pas mettre) dans chaque bac, selon les règles de votre territoire.
 
-Communes disponibles : Bouconvillers, Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
+Communes disponibles : Bouconvillers, Cabourg, Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.5.1
+### Notes de version — test fermé 1.6.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Cabourg : nouvelle commune disponible (calendrier Normandie Cabourg Pays d’Auge).
+Calendrier : ordures et emballages affichés correctement le même jour quand les deux sont collectés.
+```
+
+### Notes de version — test fermé 1.5.1 (historique)
 
 ```
 Alignement technique Collectes : package, thème et données locales unifiés sous le nom Collectes.
@@ -154,6 +161,8 @@ Déclarer en cohérence avec la politique :
   - `smirtomduvexin.net` (communes du Vexin — SMIRTOM)
   - `vexinthelle.fr` (CCVT / Vexin-Thelle, ex. Bouconvillers)
   - `bouconvillers.fr` (page d’information tri sélectif)
+  - `normandiecabourgpaysdauge.fr` (Normandie Cabourg Pays d’Auge, ex. Cabourg)
+  - `cabourg.fr` (page d’information déchets)
   - `ville-sannois.fr` (Sannois)
   - `ermont.fr` (Ermont)
   - `syndicat-emeraude.fr` (Syndicat Emeraude)
