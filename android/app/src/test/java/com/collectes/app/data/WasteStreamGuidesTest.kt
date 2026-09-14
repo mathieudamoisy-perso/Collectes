@@ -26,9 +26,18 @@ class WasteStreamGuidesTest {
     }
 
     @Test
+    fun ncpaTerritoryHasFiveGuidesWithAcceptedItems() {
+        val guides = WasteStreamGuides.forTerritory(WasteGuideTerritory.NCPA)
+        assertEquals(5, guides.size)
+        val verre = guides.find { it.type == WasteType.VERRE }!!
+        assertTrue(verre.tips.any { it.contains("apport volontaire", ignoreCase = true) })
+    }
+
+    @Test
     fun forCommuneUsesTerritory() {
         val magny = VexinCommunes.bySlug("magny-en-vexin")!!
         val ermont = VexinCommunes.bySlug("ermont")!!
+        val cabourg = VexinCommunes.bySlug("cabourg")!!
 
         assertEquals(
             WasteStreamGuides.forTerritory(WasteGuideTerritory.SMIRTOM_VEXIN),
@@ -37,6 +46,10 @@ class WasteStreamGuidesTest {
         assertEquals(
             WasteStreamGuides.forTerritory(WasteGuideTerritory.SYNDICAT_EMERAUDE),
             WasteStreamGuides.forCommune(ermont)
+        )
+        assertEquals(
+            WasteStreamGuides.forTerritory(WasteGuideTerritory.NCPA),
+            WasteStreamGuides.forCommune(cabourg)
         )
     }
 

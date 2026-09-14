@@ -16,19 +16,22 @@ object CollectionDayMerger {
     }
 
     /**
-     * Un seul bac régulier par jour (ordures, emballages ou verre).
-     * Les encombrants et végétaux peuvent coexister avec un bac régulier.
+     * Ordures peuvent coexister avec emballages/verre (ex. Cabourg, CCVT).
+     * Emballages et verre restent exclusifs (alternance SMIRTOM).
+     * Encombrants / végétaux peuvent coexister avec un bac régulier.
      */
     internal fun collapseTypes(types: List<WasteType>): List<WasteType> {
         val unique = types.distinct()
         val ancillary = unique.filter { it == WasteType.ENCOMBRANTS || it == WasteType.VEGETAUX }
-        val regular = unique.filter { it != WasteType.ENCOMBRANTS && it != WasteType.VEGETAUX }
-        val oneRegular = when {
-            regular.size <= 1 -> regular
-            WasteType.EMBALLAGES in regular -> listOf(WasteType.EMBALLAGES)
-            WasteType.VERRE in regular -> listOf(WasteType.VERRE)
-            else -> regular.take(1)
+        val recycling = when {
+            WasteType.EMBALLAGES in unique -> listOf(WasteType.EMBALLAGES)
+            WasteType.VERRE in unique -> listOf(WasteType.VERRE)
+            else -> emptyList()
         }
-        return (oneRegular + ancillary).sortedBy { it.ordinal }
+        val regular = buildList {
+            if (WasteType.ORDURES in unique) add(WasteType.ORDURES)
+            addAll(recycling)
+        }
+        return (regular + ancillary).sortedBy { it.ordinal }
     }
 }

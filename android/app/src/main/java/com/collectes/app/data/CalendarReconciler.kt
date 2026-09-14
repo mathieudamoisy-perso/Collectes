@@ -14,6 +14,10 @@ object CalendarReconciler {
         commune: VexinCommune,
         year: Int
     ): CollectionRules {
+        if (commune.usesNcpaCalendarSource) {
+            return OfficialCommuneSchedules.rules(year, commune.slug)
+        }
+
         if (!commune.usesSmirtomNetwork) {
             pdfText?.let { MunicipalCalendarParser.parseIfPresent(it, year) }?.let { return it }
         }

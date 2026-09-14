@@ -10,10 +10,11 @@ import org.junit.Test
 class VexinCommunesTest {
     @Test
     fun includesAllSupportedCommunes() {
-        assertEquals(7, VexinCommunes.all.size)
+        assertEquals(8, VexinCommunes.all.size)
         assertEquals(
             listOf(
                 "Bouconvillers",
+                "Cabourg",
                 "Cormeilles-en-Vexin",
                 "Épiais-Rhus",
                 "Ermont",
@@ -42,8 +43,24 @@ class VexinCommunesTest {
         assertNotNull(VexinCommunes.bySlug("ermont"))
         assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
         assertNotNull(VexinCommunes.bySlug("bouconvillers"))
+        assertNotNull(VexinCommunes.bySlug("cabourg"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
+    }
+
+    @Test
+    fun cabourgUsesNcpaCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("cabourg")!!
+        assertEquals("Cabourg", commune.displayName)
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("normandiecabourgpaysdauge.fr"))
+        assertTrue(commune.infoPageUrl!!.contains("cabourg.fr"))
+        assertFalse(commune.usesSmirtomNetwork)
+        assertTrue(commune.usesNcpaCalendarSource)
+        assertEquals(WasteGuideTerritory.NCPA, commune.guideTerritory)
+        assertTrue(commune.officialCalendarSubtitle().contains("Normandie Cabourg Pays d’Auge"))
+        assertEquals(WasteGuideTerritory.NCPA.displayName, commune.guideSourceTitle())
+        assertTrue(commune.guideInfoLinkLabel().contains("normandiecabourgpaysdauge.fr"))
     }
 
     @Test
@@ -173,5 +190,6 @@ class VexinCommunesTest {
         )
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("ermont")!!.guideTerritory)
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("sannois")!!.guideTerritory)
+        assertEquals(WasteGuideTerritory.NCPA, VexinCommunes.bySlug("cabourg")!!.guideTerritory)
     }
 }

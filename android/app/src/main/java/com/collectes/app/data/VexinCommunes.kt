@@ -18,10 +18,10 @@ data class VexinCommune(
         get() = infoPageUrl == null
 
     val guideTerritory: WasteGuideTerritory
-        get() = if (usesSmirtomNetwork) {
-            WasteGuideTerritory.SMIRTOM_VEXIN
-        } else {
-            WasteGuideTerritory.SYNDICAT_EMERAUDE
+        get() = when {
+            usesSmirtomNetwork -> WasteGuideTerritory.SMIRTOM_VEXIN
+            usesNcpaCalendarSource -> WasteGuideTerritory.NCPA
+            else -> WasteGuideTerritory.SYNDICAT_EMERAUDE
         }
 
     val usesEmeraudeCalendarSource: Boolean
@@ -33,6 +33,9 @@ data class VexinCommune(
     val usesSannoisMunicipalSource: Boolean
         get() = officialCalendarUrl.contains("ville-sannois.fr", ignoreCase = true)
 
+    val usesNcpaCalendarSource: Boolean
+        get() = officialCalendarUrl.contains("normandiecabourgpaysdauge.fr", ignoreCase = true)
+
     val usesCcvtCalendarSource: Boolean
         get() = officialCalendarUrl.contains("vexinthelle.fr", ignoreCase = true)
 
@@ -40,6 +43,7 @@ data class VexinCommune(
     fun officialCalendarSubtitle(): String = when {
         usesEmeraudeCalendarSource -> "PDF Syndicat Emeraude — $displayName"
         usesSannoisMunicipalSource -> "PDF ville de Sannois — $displayName"
+        usesNcpaCalendarSource -> "PDF Normandie Cabourg Pays d’Auge — $displayName"
         else -> "PDF calendrier officiel — $displayName"
     }
 
@@ -47,6 +51,7 @@ data class VexinCommune(
     fun guideSourceTitle(): String = when {
         usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.displayName
         usesSannoisMunicipalSource -> "Ville de Sannois"
+        usesNcpaCalendarSource -> WasteGuideTerritory.NCPA.displayName
         usesSmirtomNetwork -> "Communes du Vexin"
         else -> displayName
     }
@@ -58,6 +63,8 @@ data class VexinCommune(
             "Règles indicatives — consultez syndicat-emeraude.fr pour la source officielle"
         usesSannoisMunicipalSource ->
             "Règles indicatives — consultez ville-sannois.fr pour la source officielle"
+        usesNcpaCalendarSource ->
+            "Règles indicatives — consultez normandiecabourgpaysdauge.fr pour la source officielle"
         infoPageUrl != null ->
             "Règles indicatives — consultez le site de $displayName pour la source officielle"
         else -> null
@@ -66,6 +73,7 @@ data class VexinCommune(
     fun guideInfoUrl(): String = when {
         usesSmirtomNetwork -> pageUrl
         usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.infoUrl
+        usesNcpaCalendarSource -> WasteGuideTerritory.NCPA.infoUrl
         else -> infoPageUrl ?: pageUrl
     }
 
@@ -73,11 +81,14 @@ data class VexinCommune(
         usesSmirtomNetwork -> "En savoir plus sur le site officiel"
         usesEmeraudeCalendarSource -> "En savoir plus sur syndicat-emeraude.fr"
         usesSannoisMunicipalSource -> "En savoir plus sur ville-sannois.fr"
+        usesNcpaCalendarSource -> "En savoir plus sur normandiecabourgpaysdauge.fr"
         else -> "Page déchets de $displayName"
     }
 
-    fun guideSecondaryInfoUrl(): String? =
-        if (usesEmeraudeCalendarSource) infoPageUrl else null
+    fun guideSecondaryInfoUrl(): String? = when {
+        usesEmeraudeCalendarSource || usesNcpaCalendarSource -> infoPageUrl
+        else -> null
+    }
 
     fun guideSecondaryInfoLinkLabel(): String? =
         guideSecondaryInfoUrl()?.let { "Page déchets de $displayName" }
@@ -96,6 +107,13 @@ object VexinCommunes {
             officialCalendarUrl =
                 "https://vexinthelle.fr/wp-content/uploads/2026/01/BOUCONVILLERS-2026.pdf",
             infoPageUrl = "https://bouconvillers.fr/vie-pratique/environnement/le-tri-selectif-2/"
+        ),
+        VexinCommune(
+            slug = nameToSlug("Cabourg"),
+            displayName = "Cabourg",
+            officialCalendarUrl =
+                "https://www.normandiecabourgpaysdauge.fr/app/uploads/2026/03/Cabourg-Calendrier-de-collecte-2026.pdf",
+            infoPageUrl = "https://www.cabourg.fr/habiter/votre-quotidien/environnement/dechets/"
         ),
         VexinCommune(
             slug = nameToSlug("Cormeilles-en-Vexin"),

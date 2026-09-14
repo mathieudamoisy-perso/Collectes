@@ -2,9 +2,10 @@
 name: deploy
 description: >-
   Prépare une release Play Store Collectes : bump de version, build AAB,
-  mise à jour README/PLAY_STORE/politique de confidentialité, et notes de
-  version à coller dans Play Console. Use when the user runs /deploy or asks
-  to release, publish, ship a beta, or generate an AAB for Collectes.
+  mise à jour README/PLAY_STORE/politique de confidentialité, notes de
+  version Play Console, et e-mail d’annonce beta fermée prêt à coller.
+  Use when the user runs /deploy or asks to release, publish, ship a beta,
+  or generate an AAB for Collectes.
 disable-model-invocation: true
 ---
 
@@ -22,6 +23,7 @@ Deploy Progress:
 - [ ] 4. Mettre à jour la politique de confidentialité si besoin
 - [ ] 5. Builder l’AAB release
 - [ ] 6. Livrer les notes de version (copie-coller) + résumé
+- [ ] 7. Livrer l’e-mail d’annonce beta (copie-coller)
 ```
 
 ## 1. Analyser les changements
@@ -146,11 +148,13 @@ Structurer la réponse ainsi :
 1. **Version** : `X.Y.Z` (`versionCode` N)
 2. **AAB** : chemin absolu ou relatif du fichier généré + confirmation OK
 3. **Notes de version** : bloc prêt à coller (fenced, sans backticks internes) — **exactement** le texte mis dans `PLAY_STORE.md`
-4. **Docs** : liste des fichiers touchés (README, PLAY_STORE, privacy si applicable)
-5. **Prochaines étapes manuelles** (courtes) :
+4. **E-mail beta** : objet + corps prêts à coller (voir §7)
+5. **Docs** : liste des fichiers touchés (README, PLAY_STORE, privacy si applicable)
+6. **Prochaines étapes manuelles** (courtes) :
    - (si privacy modifiée) push `main` pour GitHub Pages
    - Play Console → Tests fermés → Créer une version → uploader l’AAB → coller les notes
    - vérifier Data safety + URL privacy
+   - envoyer l’e-mail aux testeurs (après publication de la version sur le track test fermé)
    - commit/push du bump de version si souhaité (ne pas le faire automatiquement)
 
 ### Style des notes
@@ -165,9 +169,82 @@ Bouconvillers : nouvelle commune disponible (calendrier CCVT / Vexin-Thelle).
 Interface : barre de navigation plus stable au défilement.
 ```
 
+## 7. E-mail d’annonce — test fermé
+
+À produire **systématiquement** en fin de deploy (même si Mathieu n’envoie pas tout de suite). Texte **prêt à copier-coller** dans Gmail (ou autre), en français, ton simple et personnel.
+
+### Destinataires
+
+- **À** : Mathieu (lui-même) ou laisser vide
+- **Cci (BCC)** : **toutes** les adresses de la liste Play Console → Tests → Tests fermés → Testeurs
+- Ne **jamais** committer la liste d’e-mails dans le repo
+- Ne pas mettre les testeurs en **À** / **Cc** (respect de la vie privée entre testeurs)
+- N’envoyer **qu’après** que la version soit disponible sur le track test fermé (sinon le lien Play ne propose pas encore la MAJ)
+
+Si Mathieu demande explicitement d’**envoyer** le mail via Gmail MCP : s’authentifier si besoin, puis brouillon/envoi avec BCC. Sinon : uniquement le texte à coller.
+
+### Format de la réponse (obligatoire)
+
+Deux blocs distincts, texte brut (pas de markdown dans le corps collable) :
+
+**Objet :**
+```
+Collectes X.Y.Z — nouveautés du test fermé
+```
+
+**Corps :**
+```
+Bonjour,
+
+Une nouvelle version de Collectes (X.Y.Z) est dispo en test fermé sur le Play Store.
+
+Nouveautés :
+- Bullet utilisateur 1
+- Bullet utilisateur 2
+- …
+
+Pour mettre à jour : ouvrir Play Store → Collectes (ou le lien d’invitation au test) → Mettre à jour.
+Après installation : ouvrir l’app et tirer pour rafraîchir le calendrier si besoin.
+
+Un souci ou une idée ? Répondre à ce mail ou utiliser Contact développeur dans les réglages de l’app.
+
+Merci pour vos retours,
+Mathieu
+```
+
+### Règles de rédaction
+
+- Reprendre les **mêmes bullets** que les notes Play Console (reformulation légère OK si plus naturelle en mail)
+- 3 à 6 puces max ; pas de jargon technique
+- Mentionner une **nouvelle commune** en premier si c’est le cas
+- Si privacy / domaines changent : une phrase du type « la politique de confidentialité a été mise à jour »
+- Pas de lien deep-play inventé ; parler du Play Store / lien d’invitation déjà connu des testeurs
+- Pas d’emojis sauf si Mathieu le demande
+
+### Exemple de ton
+
+```
+Bonjour,
+
+Une nouvelle version de Collectes (1.6.0) est dispo en test fermé sur le Play Store.
+
+Nouveautés :
+- Cabourg : nouvelle commune (calendrier Normandie Cabourg Pays d’Auge)
+- Calendrier : ordures et emballages affichés correctement le même jour quand les deux sont collectés
+
+Pour mettre à jour : ouvrir Play Store → Collectes → Mettre à jour.
+Après installation : ouvrir l’app et tirer pour rafraîchir le calendrier si besoin.
+
+Un souci ou une idée ? Répondre à ce mail ou utiliser Contact développeur dans les réglages de l’app.
+
+Merci pour vos retours,
+Mathieu
+```
+
 ## Hors scope
 
 - Ne pas uploader vers Play Console (pas d’API)
 - Ne pas committer / pusher sauf demande explicite
 - Ne pas régénérer icônes / feature graphic / captures sauf demande
 - Ne pas modifier le keystore ni committer `keystore.properties` / `*.jks`
+- Ne pas envoyer l’e-mail beta sans demande explicite de Mathieu

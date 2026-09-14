@@ -16,6 +16,18 @@ data class MonthDay(val month: Int, val day: Int) {
 
 data class MonthDayRange(val start: MonthDay, val end: MonthDay)
 
+/** Jour de semaine actif seulement sur certaines plages (ex. mercredi OM Cabourg en juillet–août). */
+data class SeasonalWeekday(
+    val dayOfWeek: DayOfWeek,
+    val activeRanges: List<MonthDayRange>
+) {
+    fun includes(date: LocalDate): Boolean {
+        if (date.dayOfWeek != dayOfWeek) return false
+        val monthDay = MonthDay(date.monthValue, date.dayOfMonth)
+        return activeRanges.any { monthDay.isWithin(it) }
+    }
+}
+
 data class VegetauxSchedule(
     val dayOfWeek: DayOfWeek,
     val activeRanges: List<MonthDayRange>,

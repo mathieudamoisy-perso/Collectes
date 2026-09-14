@@ -20,6 +20,7 @@ object WasteStreamGuides {
         val guides = when (territory) {
             WasteGuideTerritory.SMIRTOM_VEXIN -> smirtomGuides
             WasteGuideTerritory.SYNDICAT_EMERAUDE -> emeraudeGuides
+            WasteGuideTerritory.NCPA -> ncpaGuides
         }
         return displayOrder.mapNotNull { type -> guides[type] }
     }
@@ -174,6 +175,90 @@ object WasteStreamGuides {
             tips = listOf(
                 "À sortir devant votre logement la veille au soir — pas dans un bac",
                 "Pour tout renseignement : prevention@syndicat-emeraude.fr"
+            )
+        )
+    )
+
+    private val ncpaGuides: Map<WasteType, WasteStreamGuide> = mapOf(
+        WasteType.EMBALLAGES to WasteStreamGuide(
+            type = WasteType.EMBALLAGES,
+            acceptedItems = listOf(
+                "Bouteilles et flacons en plastique",
+                "Boîtes métalliques",
+                "Briques alimentaires",
+                "Petits cartons",
+                "Journaux et magazines"
+            ),
+            rejectedItems = listOf(
+                "Verre",
+                "Déchets organiques",
+                "Emballages souillés non rinçables"
+            ),
+            tips = listOf(
+                "Sacs jaunes disponibles en mairie et à la déchetterie de Périers-en-Auge",
+                "Emballages vides ; sortis la veille dès 19h"
+            )
+        ),
+        WasteType.ORDURES to WasteStreamGuide(
+            type = WasteType.ORDURES,
+            acceptedItems = listOf(
+                "Textiles sanitaires (mouchoirs, couches, lingettes…)",
+                "Objets en plastique non recyclables",
+                "Vaisselle cassée"
+            ),
+            rejectedItems = listOf(
+                "Emballages recyclables",
+                "Verre",
+                "Végétaux"
+            )
+        ),
+        WasteType.VERRE to WasteStreamGuide(
+            type = WasteType.VERRE,
+            acceptedItems = listOf(
+                "Bouteilles",
+                "Pots et bocaux",
+                "Flacons de parfum"
+            ),
+            rejectedItems = listOf(
+                "Bouchons et couvercles métalliques",
+                "Porcelaine et céramique",
+                "Miroirs et vitres"
+            ),
+            tips = listOf(
+                "Apport volontaire uniquement (pas de collecte en porte-à-porte)",
+                "Dépôt interdit de 21h à 8h à Cabourg"
+            )
+        ),
+        WasteType.VEGETAUX to WasteStreamGuide(
+            type = WasteType.VEGETAUX,
+            acceptedItems = listOf(
+                "Tontes de gazon",
+                "Feuilles mortes",
+                "Petites branches"
+            ),
+            rejectedItems = listOf(
+                "Pierres et graviers",
+                "Terre",
+                "Pots en plastique"
+            ),
+            tips = listOf(
+                "Sacs verts payants (1 €) ; max 8 sacs par collecte",
+                "Disponibles à la déchetterie de Périers-en-Auge"
+            )
+        ),
+        WasteType.ENCOMBRANTS to WasteStreamGuide(
+            type = WasteType.ENCOMBRANTS,
+            acceptedItems = listOf(
+                "Meubles",
+                "Gros objets non réutilisables"
+            ),
+            rejectedItems = listOf(
+                "Déchets dangereux",
+                "Gravats",
+                "Électroménager (→ déchèterie)"
+            ),
+            tips = listOf(
+                "1 enlèvement gratuit par an sur rendez-vous (Ressourcerie l’Auguste, Dives-sur-Mer)"
             )
         )
     )

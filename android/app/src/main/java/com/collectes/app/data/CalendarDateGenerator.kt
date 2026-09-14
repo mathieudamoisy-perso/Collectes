@@ -81,7 +81,13 @@ object CalendarDateGenerator {
         vegetauxDates(year, rules, includeNextYearJanuary).forEach { date ->
             days += CollectionDay(date, listOf(WasteType.VEGETAUX))
         }
-        return CollectionDayMerger.merge(days)
+        val merged = CollectionDayMerger.merge(days)
+        if (rules.excludedDates.isEmpty()) return merged
+        return merged.filterNot { day ->
+            rules.excludedDates.any {
+                it.month == day.date.monthValue && it.day == day.date.dayOfMonth
+            }
+        }
     }
 
     private fun orduresDates(
@@ -90,9 +96,17 @@ object CalendarDateGenerator {
         includeNextYearJanuary: Boolean
     ): List<LocalDate> {
         return when (rules.orduresRecurrence) {
-            CollectionRecurrence.WEEKLY -> weeklyDates(year, rules.orduresDay, includeNextYearJanuary)
+            CollectionRecurrence.WEEKLY -> datesInRange(year, includeNextYearJanuary) { date ->
+                isOrdureCollectionDay(date, rules)
+            }
             else -> emptyList()
         }
+    }
+
+    private fun isOrdureCollectionDay(date: LocalDate, rules: CollectionRules): Boolean {
+        if (date.dayOfWeek == rules.orduresDay) return true
+        if (date.dayOfWeek in rules.orduresExtraDays) return true
+        return rules.orduresSeasonalExtraDays.any { it.includes(date) }
     }
 
     private fun emballagesDates(

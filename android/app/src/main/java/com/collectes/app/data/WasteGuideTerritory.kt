@@ -5,5 +5,9 @@ enum class WasteGuideTerritory(
     val infoUrl: String
 ) {
     SMIRTOM_VEXIN("SMIRTOM du Vexin", "https://smirtomduvexin.net"),
-    SYNDICAT_EMERAUDE("Syndicat Emeraude", "https://www.syndicat-emeraude.fr")
+    SYNDICAT_EMERAUDE("Syndicat Emeraude", "https://www.syndicat-emeraude.fr"),
+    NCPA(
+        "Normandie Cabourg Pays d’Auge",
+        "https://www.normandiecabourgpaysdauge.fr/la-collecte-des-dechets-dans-la-communaute-de-communes/"
+    )
 }

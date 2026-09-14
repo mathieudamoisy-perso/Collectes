@@ -50,7 +50,13 @@ data class CollectionRules(
     val verreMonthOrdinal: Int? = null,
     val encombrantsDay: java.time.DayOfWeek? = null,
     val encombrantsMonthOrdinal: Int? = null,
-    val vegetauxSchedule: VegetauxSchedule? = null
+    val vegetauxSchedule: VegetauxSchedule? = null,
+    /** Jours OM supplémentaires toute l’année (ex. vendredi à Cabourg). */
+    val orduresExtraDays: Set<java.time.DayOfWeek> = emptySet(),
+    /** Jours OM saisonniers (ex. mercredi juillet–août à Cabourg). */
+    val orduresSeasonalExtraDays: List<SeasonalWeekday> = emptyList(),
+    /** Dates sans collecte (ex. 25/12 et 01/01 à Cabourg). */
+    val excludedDates: List<MonthDay> = emptyList()
 ) {
     companion object {
         /** Rythme officiel 2026 de la commune si le site est injoignable. */
