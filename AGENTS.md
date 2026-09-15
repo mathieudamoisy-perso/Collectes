@@ -41,6 +41,6 @@
   - **Risques** : listing des risques liés aux modifications.
 
 # Garde-fous
-- Les fichiers `.MD` ne doivent **JAMAIS** être alimentés / écrits / modifiés par une IA.
+- Le fichier `AGENTS.MD` ne doit **JAMAIS** être alimenté / écrit / modifié par une IA.
 - Demande **TOUJOURS** l’autorisation avant de télécharger un nouveau module ou framework.
 - Release Play Store : suivre le skill `.cursor/skills/deploy` seulement si je le demande (`/deploy`).
