@@ -56,7 +56,9 @@ data class CollectionRules(
     /** Jours OM saisonniers (ex. mercredi juillet–août à Cabourg). */
     val orduresSeasonalExtraDays: List<SeasonalWeekday> = emptyList(),
     /** Dates sans collecte (ex. 25/12 et 01/01 à Cabourg). */
-    val excludedDates: List<MonthDay> = emptyList()
+    val excludedDates: List<MonthDay> = emptyList(),
+    /** Collecte déplacée (ex. jeudi 01/01 → samedi 03/01 Thelloise). */
+    val dateSubstitutions: List<DateSubstitution> = emptyList()
 ) {
     companion object {
         /** Rythme officiel 2026 de la commune si le site est injoignable. */
@@ -65,3 +67,5 @@ data class CollectionRules(
         }
     }
 }
+
+data class DateSubstitution(val from: MonthDay, val to: MonthDay)

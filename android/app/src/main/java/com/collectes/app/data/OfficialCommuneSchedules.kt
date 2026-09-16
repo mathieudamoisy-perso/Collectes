@@ -9,6 +9,7 @@ import java.time.DayOfWeek
  *
  * Dernier recours si PDF et page commune sont injoignables.
  * Cabourg : règles NCPA / mairie (PDF graphique non parsable comme Emeraude).
+ * Blaincourt-lès-Précy : règles Thelloise (tableau de jours, pas une grille).
  */
 object OfficialCommuneSchedules {
     data class Weekdays(
@@ -47,6 +48,7 @@ object OfficialCommuneSchedules {
     fun rules(year: Int, communeSlug: String): CollectionRules {
         when (VexinCommunes.normalizeSlug(communeSlug)) {
             "cabourg" -> return cabourgRules(year)
+            "blaincourt-les-precy" -> return blaincourtRules(year)
             "sannois" -> return municipalFallback(
                 year = year,
                 orduresDay = DayOfWeek.THURSDAY,
@@ -120,6 +122,29 @@ object OfficialCommuneSchedules {
                 activeRanges = listOf(MonthDayRange(MonthDay(3, 19), MonthDay(11, 12)))
             ),
             excludedDates = listOf(MonthDay(1, 1), MonthDay(12, 25))
+        )
+    }
+
+    /** Source : agenda Thelloise 2026 (PDF) + mairie Blaincourt-lès-Précy. */
+    private fun blaincourtRules(year: Int): CollectionRules {
+        val emballagesAnchor = CalendarDateGenerator.firstDayOfWeekOnOrAfter(year, 1, DayOfWeek.THURSDAY)
+        return CollectionRules(
+            orduresDay = DayOfWeek.THURSDAY,
+            emballagesDay = DayOfWeek.THURSDAY,
+            emballagesAnchor = emballagesAnchor,
+            verreDay = DayOfWeek.THURSDAY,
+            verreAnchor = emballagesAnchor,
+            orduresRecurrence = CollectionRecurrence.WEEKLY,
+            emballagesRecurrence = CollectionRecurrence.WEEKLY,
+            // Pas de porte-à-porte verre (borne d’apport volontaire).
+            verreRecurrence = CollectionRecurrence.EVERY_FOUR_WEEKS,
+            vegetauxSchedule = VegetauxSchedule(
+                dayOfWeek = DayOfWeek.THURSDAY,
+                activeRanges = listOf(MonthDayRange(MonthDay(3, 30), MonthDay(11, 27)))
+            ),
+            dateSubstitutions = listOf(
+                DateSubstitution(from = MonthDay(1, 1), to = MonthDay(1, 3))
+            )
         )
     }
 

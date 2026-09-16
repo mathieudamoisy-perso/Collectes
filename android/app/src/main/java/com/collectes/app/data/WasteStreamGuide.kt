@@ -21,6 +21,7 @@ object WasteStreamGuides {
             WasteGuideTerritory.SMIRTOM_VEXIN -> smirtomGuides
             WasteGuideTerritory.SYNDICAT_EMERAUDE -> emeraudeGuides
             WasteGuideTerritory.NCPA -> ncpaGuides
+            WasteGuideTerritory.THELLOISE -> thelloiseGuides
         }
         return displayOrder.mapNotNull { type -> guides[type] }
     }
@@ -259,6 +260,95 @@ object WasteStreamGuides {
             ),
             tips = listOf(
                 "1 enlèvement gratuit par an sur rendez-vous (Ressourcerie l’Auguste, Dives-sur-Mer)"
+            )
+        )
+    )
+
+    private val thelloiseGuides: Map<WasteType, WasteStreamGuide> = mapOf(
+        WasteType.EMBALLAGES to WasteStreamGuide(
+            type = WasteType.EMBALLAGES,
+            acceptedItems = listOf(
+                "Tous les emballages en plastique",
+                "Emballages métalliques",
+                "Briques alimentaires",
+                "Cartons et papiers",
+                "Journaux, revues et magazines"
+            ),
+            rejectedItems = listOf(
+                "Verre",
+                "Déchets végétaux",
+                "Gravats, peinture, pneus, produits chimiques"
+            ),
+            tips = listOf(
+                "Emballages vidés ; inutile de les laver",
+                "En vrac dans le bac jaune, sans les imbriquer"
+            )
+        ),
+        WasteType.ORDURES to WasteStreamGuide(
+            type = WasteType.ORDURES,
+            acceptedItems = listOf(
+                "Déchets ménagers non recyclables",
+                "Textiles sanitaires",
+                "Objets en plastique non recyclables"
+            ),
+            rejectedItems = listOf(
+                "Emballages recyclables",
+                "Verre",
+                "Déchets végétaux"
+            ),
+            tips = listOf(
+                "Sortir la veille : 18h (collectif) / 19h (pavillonnaire)",
+                "Sacs fermés ; poids inférieur à 25 kg"
+            )
+        ),
+        WasteType.VERRE to WasteStreamGuide(
+            type = WasteType.VERRE,
+            acceptedItems = listOf(
+                "Bouteilles",
+                "Pots et bocaux",
+                "Flacons"
+            ),
+            rejectedItems = listOf(
+                "Vaisselle et plats en verre",
+                "Céramique",
+                "Miroirs et bris de glace"
+            ),
+            tips = listOf(
+                "Apport volontaire uniquement (borne à verre sur la commune)",
+                "Retirer couvercles, capsules et bouchons"
+            )
+        ),
+        WasteType.VEGETAUX to WasteStreamGuide(
+            type = WasteType.VEGETAUX,
+            acceptedItems = listOf(
+                "Tontes de gazon",
+                "Feuilles mortes",
+                "Branches (diamètre < 4 cm, longueur max 1,20 m)"
+            ),
+            rejectedItems = listOf(
+                "Fruits, troncs, souches, terre",
+                "Branches de plus de 4 cm",
+                "Planches de bois"
+            ),
+            tips = listOf(
+                "Volume max 1 m³ par collecte ; poids < 25 kg",
+                "Pas de lien plastique ou métal ; ne pas tasser"
+            )
+        ),
+        WasteType.ENCOMBRANTS to WasteStreamGuide(
+            type = WasteType.ENCOMBRANTS,
+            acceptedItems = listOf(
+                "Mobilier d’ameublement démonté",
+                "Gros objets non réutilisables"
+            ),
+            rejectedItems = listOf(
+                "Extincteurs, bouteilles de gaz",
+                "Amiante, produits explosifs ou radioactifs",
+                "Médicaments, DASRI, carcasses de voiture"
+            ),
+            tips = listOf(
+                "Enlèvement sur rendez-vous uniquement (thelloise-encombrants.fr)",
+                "Volume limité à 1 m³ ; max 2 m × 1,50 m / 75 kg"
             )
         )
     )

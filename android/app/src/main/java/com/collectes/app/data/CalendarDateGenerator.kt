@@ -82,12 +82,37 @@ object CalendarDateGenerator {
             days += CollectionDay(date, listOf(WasteType.VEGETAUX))
         }
         val merged = CollectionDayMerger.merge(days)
-        if (rules.excludedDates.isEmpty()) return merged
-        return merged.filterNot { day ->
+        val substituted = applyDateSubstitutions(merged, year, rules.dateSubstitutions)
+        if (rules.excludedDates.isEmpty()) return substituted
+        return substituted.filterNot { day ->
             rules.excludedDates.any {
                 it.month == day.date.monthValue && it.day == day.date.dayOfMonth
             }
         }
+    }
+
+    private fun applyDateSubstitutions(
+        events: List<CollectionDay>,
+        year: Int,
+        substitutions: List<DateSubstitution>
+    ): List<CollectionDay> {
+        if (substitutions.isEmpty()) return events
+        val byDate = events.associateBy { it.date }.toMutableMap()
+        substitutions.forEach { substitution ->
+            val from = substitution.from.toLocalDate(year)
+            val to = substitution.to.toLocalDate(year)
+            val moved = byDate.remove(from) ?: return@forEach
+            val existing = byDate[to]
+            byDate[to] = if (existing == null) {
+                CollectionDay(to, moved.wasteTypes)
+            } else {
+                CollectionDay(
+                    to,
+                    (existing.wasteTypes + moved.wasteTypes).distinct().sortedBy { it.ordinal }
+                )
+            }
+        }
+        return byDate.values.sortedBy { it.date }
     }
 
     private fun orduresDates(

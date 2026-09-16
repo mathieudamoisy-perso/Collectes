@@ -10,9 +10,10 @@ import org.junit.Test
 class VexinCommunesTest {
     @Test
     fun includesAllSupportedCommunes() {
-        assertEquals(8, VexinCommunes.all.size)
+        assertEquals(9, VexinCommunes.all.size)
         assertEquals(
             listOf(
+                "Blaincourt-lès-Précy",
                 "Bouconvillers",
                 "Cabourg",
                 "Cormeilles-en-Vexin",
@@ -29,8 +30,8 @@ class VexinCommunesTest {
     @Test
     fun defaultIsFirstSortedCommune() {
         assertEquals(VexinCommunes.all.first(), VexinCommunes.default)
-        assertEquals("bouconvillers", VexinCommunes.default.slug)
-        assertEquals("Bouconvillers", VexinCommunes.default.displayName)
+        assertEquals("blaincourt-les-precy", VexinCommunes.default.slug)
+        assertEquals("Blaincourt-lès-Précy", VexinCommunes.default.displayName)
     }
 
     @Test
@@ -44,6 +45,7 @@ class VexinCommunesTest {
         assertNotNull(VexinCommunes.bySlug("ermont-eaubonne"))
         assertNotNull(VexinCommunes.bySlug("bouconvillers"))
         assertNotNull(VexinCommunes.bySlug("cabourg"))
+        assertNotNull(VexinCommunes.bySlug("blaincourt-les-precy"))
         assertNull(VexinCommunes.bySlug("nucourt"))
         assertNull(VexinCommunes.bySlug("valmondois"))
     }
@@ -61,6 +63,21 @@ class VexinCommunesTest {
         assertTrue(commune.officialCalendarSubtitle().contains("Normandie Cabourg Pays d’Auge"))
         assertEquals(WasteGuideTerritory.NCPA.displayName, commune.guideSourceTitle())
         assertTrue(commune.guideInfoLinkLabel().contains("normandiecabourgpaysdauge.fr"))
+    }
+
+    @Test
+    fun blaincourtUsesThelloiseCalendarAndInfoPage() {
+        val commune = VexinCommunes.bySlug("blaincourt-les-precy")!!
+        assertEquals("Blaincourt-lès-Précy", commune.displayName)
+        assertTrue(commune.officialCalendarUrl.endsWith(".pdf"))
+        assertTrue(commune.officialCalendarUrl.contains("thelloise.fr"))
+        assertTrue(commune.infoPageUrl!!.contains("blaincourtlesprecy.fr"))
+        assertFalse(commune.usesSmirtomNetwork)
+        assertTrue(commune.usesThelloiseCalendarSource)
+        assertEquals(WasteGuideTerritory.THELLOISE, commune.guideTerritory)
+        assertTrue(commune.officialCalendarSubtitle().contains("Thelloise"))
+        assertEquals(WasteGuideTerritory.THELLOISE.displayName, commune.guideSourceTitle())
+        assertTrue(commune.guideInfoLinkLabel().contains("thelloise.fr"))
     }
 
     @Test
@@ -186,10 +203,12 @@ class VexinCommunesTest {
         )
         assertEquals(
             WasteGuideTerritory.SYNDICAT_EMERAUDE,
-            VexinCommunes.default.guideTerritory
+            VexinCommunes.bySlug("bouconvillers")!!.guideTerritory
         )
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("ermont")!!.guideTerritory)
         assertEquals(WasteGuideTerritory.SYNDICAT_EMERAUDE, VexinCommunes.bySlug("sannois")!!.guideTerritory)
         assertEquals(WasteGuideTerritory.NCPA, VexinCommunes.bySlug("cabourg")!!.guideTerritory)
+        assertEquals(WasteGuideTerritory.THELLOISE, VexinCommunes.bySlug("blaincourt-les-precy")!!.guideTerritory)
+        assertEquals(WasteGuideTerritory.THELLOISE, VexinCommunes.default.guideTerritory)
     }
 }

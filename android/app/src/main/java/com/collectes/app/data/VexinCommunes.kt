@@ -21,6 +21,7 @@ data class VexinCommune(
         get() = when {
             usesSmirtomNetwork -> WasteGuideTerritory.SMIRTOM_VEXIN
             usesNcpaCalendarSource -> WasteGuideTerritory.NCPA
+            usesThelloiseCalendarSource -> WasteGuideTerritory.THELLOISE
             else -> WasteGuideTerritory.SYNDICAT_EMERAUDE
         }
 
@@ -36,6 +37,9 @@ data class VexinCommune(
     val usesNcpaCalendarSource: Boolean
         get() = officialCalendarUrl.contains("normandiecabourgpaysdauge.fr", ignoreCase = true)
 
+    val usesThelloiseCalendarSource: Boolean
+        get() = officialCalendarUrl.contains("thelloise.fr", ignoreCase = true)
+
     val usesCcvtCalendarSource: Boolean
         get() = officialCalendarUrl.contains("vexinthelle.fr", ignoreCase = true)
 
@@ -44,6 +48,7 @@ data class VexinCommune(
         usesEmeraudeCalendarSource -> "PDF Syndicat Emeraude — $displayName"
         usesSannoisMunicipalSource -> "PDF ville de Sannois — $displayName"
         usesNcpaCalendarSource -> "PDF Normandie Cabourg Pays d’Auge — $displayName"
+        usesThelloiseCalendarSource -> "PDF Communauté de communes Thelloise — $displayName"
         else -> "PDF calendrier officiel — $displayName"
     }
 
@@ -52,6 +57,7 @@ data class VexinCommune(
         usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.displayName
         usesSannoisMunicipalSource -> "Ville de Sannois"
         usesNcpaCalendarSource -> WasteGuideTerritory.NCPA.displayName
+        usesThelloiseCalendarSource -> WasteGuideTerritory.THELLOISE.displayName
         usesSmirtomNetwork -> "Communes du Vexin"
         else -> displayName
     }
@@ -65,6 +71,8 @@ data class VexinCommune(
             "Règles indicatives — consultez ville-sannois.fr pour la source officielle"
         usesNcpaCalendarSource ->
             "Règles indicatives — consultez normandiecabourgpaysdauge.fr pour la source officielle"
+        usesThelloiseCalendarSource ->
+            "Règles indicatives — consultez thelloise.fr pour la source officielle"
         infoPageUrl != null ->
             "Règles indicatives — consultez le site de $displayName pour la source officielle"
         else -> null
@@ -74,6 +82,7 @@ data class VexinCommune(
         usesSmirtomNetwork -> pageUrl
         usesEmeraudeCalendarSource -> WasteGuideTerritory.SYNDICAT_EMERAUDE.infoUrl
         usesNcpaCalendarSource -> WasteGuideTerritory.NCPA.infoUrl
+        usesThelloiseCalendarSource -> WasteGuideTerritory.THELLOISE.infoUrl
         else -> infoPageUrl ?: pageUrl
     }
 
@@ -82,11 +91,13 @@ data class VexinCommune(
         usesEmeraudeCalendarSource -> "En savoir plus sur syndicat-emeraude.fr"
         usesSannoisMunicipalSource -> "En savoir plus sur ville-sannois.fr"
         usesNcpaCalendarSource -> "En savoir plus sur normandiecabourgpaysdauge.fr"
+        usesThelloiseCalendarSource -> "En savoir plus sur thelloise.fr"
         else -> "Page déchets de $displayName"
     }
 
     fun guideSecondaryInfoUrl(): String? = when {
-        usesEmeraudeCalendarSource || usesNcpaCalendarSource -> infoPageUrl
+        usesEmeraudeCalendarSource || usesNcpaCalendarSource || usesThelloiseCalendarSource ->
+            infoPageUrl
         else -> null
     }
 
@@ -101,6 +112,13 @@ object VexinCommunes {
     }
 
     private val allCommunes = listOf(
+        VexinCommune(
+            slug = nameToSlug("Blaincourt-lès-Précy"),
+            displayName = "Blaincourt-lès-Précy",
+            officialCalendarUrl =
+                "https://www.thelloise.fr/images/documents/fichiers/calendrier-collecte-2026cctcompressed.pdf",
+            infoPageUrl = "https://www.blaincourtlesprecy.fr/informations-pratiques-2/"
+        ),
         VexinCommune(
             slug = nameToSlug("Bouconvillers"),
             displayName = "Bouconvillers",

@@ -34,10 +34,21 @@ class WasteStreamGuidesTest {
     }
 
     @Test
+    fun thelloiseTerritoryHasFiveGuidesWithAcceptedItems() {
+        val guides = WasteStreamGuides.forTerritory(WasteGuideTerritory.THELLOISE)
+        assertEquals(5, guides.size)
+        val verre = guides.find { it.type == WasteType.VERRE }!!
+        assertTrue(verre.tips.any { it.contains("apport volontaire", ignoreCase = true) })
+        val encombrants = guides.find { it.type == WasteType.ENCOMBRANTS }!!
+        assertTrue(encombrants.tips.any { it.contains("rendez-vous", ignoreCase = true) })
+    }
+
+    @Test
     fun forCommuneUsesTerritory() {
         val magny = VexinCommunes.bySlug("magny-en-vexin")!!
         val ermont = VexinCommunes.bySlug("ermont")!!
         val cabourg = VexinCommunes.bySlug("cabourg")!!
+        val blaincourt = VexinCommunes.bySlug("blaincourt-les-precy")!!
 
         assertEquals(
             WasteStreamGuides.forTerritory(WasteGuideTerritory.SMIRTOM_VEXIN),
@@ -50,6 +61,10 @@ class WasteStreamGuidesTest {
         assertEquals(
             WasteStreamGuides.forTerritory(WasteGuideTerritory.NCPA),
             WasteStreamGuides.forCommune(cabourg)
+        )
+        assertEquals(
+            WasteStreamGuides.forTerritory(WasteGuideTerritory.THELLOISE),
+            WasteStreamGuides.forCommune(blaincourt)
         )
     }
 

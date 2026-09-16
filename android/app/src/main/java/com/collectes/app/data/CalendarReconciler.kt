@@ -14,7 +14,7 @@ object CalendarReconciler {
         commune: VexinCommune,
         year: Int
     ): CollectionRules {
-        if (commune.usesNcpaCalendarSource) {
+        if (commune.usesNcpaCalendarSource || commune.usesThelloiseCalendarSource) {
             return OfficialCommuneSchedules.rules(year, commune.slug)
         }
 

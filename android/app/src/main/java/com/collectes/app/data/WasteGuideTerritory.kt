@@ -9,5 +9,9 @@ enum class WasteGuideTerritory(
     NCPA(
         "Normandie Cabourg Pays d’Auge",
         "https://www.normandiecabourgpaysdauge.fr/la-collecte-des-dechets-dans-la-communaute-de-communes/"
+    ),
+    THELLOISE(
+        "Communauté de communes Thelloise",
+        "https://www.thelloise.fr/35-rubrique-dechet"
     )
 }
