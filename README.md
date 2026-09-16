@@ -15,6 +15,7 @@ Application Android **Collectes** pour recevoir des rappels la veille des collec
 
 | Commune | Source calendrier |
 |---------|-------------------|
+| Blaincourt-lès-Précy | Communauté de communes Thelloise |
 | Bouconvillers | CCVT (Vexin-Thelle) |
 | Cabourg | Normandie Cabourg Pays d’Auge |
 | Magny-en-Vexin | SMIRTOM du Vexin |

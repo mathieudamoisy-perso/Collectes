@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.6.0` (`versionCode` 10)
+Version actuelle : `1.7.0` (`versionCode` 11)
 
 ## 1. Compte développeur
 
@@ -69,21 +69,28 @@ Captures utiles : accueil « Demain », liste des prochaines collectes, guide du
 Rappels la veille des collectes de déchets, selon votre commune.
 
 **Description longue (À propos de l'application) :**
-Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge dans le Vexin, à Sannois, Ermont et Cabourg.
+Collectes vous rappelle la veille de sortir les bacs, pour les communes prises en charge dans le Vexin, à Blaincourt-lès-Précy, Sannois, Ermont et Cabourg.
 
 L’application télécharge le calendrier officiel de votre commune, affiche la collecte de demain et les prochaines dates (ordures, emballages, verre, encombrants, végétaux selon les jours prévus), et envoie une notification locale à l’heure que vous choisissez.
 
 Un guide du tri intégré indique quoi mettre (ou ne pas mettre) dans chaque bac, selon les règles de votre territoire.
 
-Communes disponibles : Bouconvillers, Cabourg, Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
+Communes disponibles : Blaincourt-lès-Précy, Bouconvillers, Cabourg, Magny-en-Vexin, Théméricourt, Cormeilles-en-Vexin, Épiais-Rhus, Sannois, Ermont.
 
 Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun compte n’est requis.
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.6.0
+### Notes de version — test fermé 1.7.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Blaincourt-lès-Précy : nouvelle commune disponible (calendrier Communauté de communes Thelloise).
+Guide du tri : règles Thelloise pour Blaincourt-lès-Précy.
+```
+
+### Notes de version — test fermé 1.6.0 (historique)
 
 ```
 Cabourg : nouvelle commune disponible (calendrier Normandie Cabourg Pays d’Auge).
@@ -161,6 +168,8 @@ Déclarer en cohérence avec la politique :
   - `smirtomduvexin.net` (communes du Vexin — SMIRTOM)
   - `vexinthelle.fr` (CCVT / Vexin-Thelle, ex. Bouconvillers)
   - `bouconvillers.fr` (page d’information tri sélectif)
+  - `thelloise.fr` (Communauté de communes Thelloise, ex. Blaincourt-lès-Précy)
+  - `blaincourtlesprecy.fr` (page d’information pratique)
   - `normandiecabourgpaysdauge.fr` (Normandie Cabourg Pays d’Auge, ex. Cabourg)
   - `cabourg.fr` (page d’information déchets)
   - `ville-sannois.fr` (Sannois)
