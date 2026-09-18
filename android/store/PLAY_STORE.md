@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.7.0` (`versionCode` 11)
+Version actuelle : `1.8.0` (`versionCode` 12)
 
 ## 1. Compte développeur
 
@@ -81,9 +81,18 @@ Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun 
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.7.0
+### Notes de version — test fermé 1.8.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Premier lancement : assistant pour choisir la commune et l’heure du rappel.
+Suggestion de commune la plus proche via la position (optionnelle).
+Réglages : choisir quels types de bacs déclenchent un rappel.
+Apparence : option pour le vert Collectes ou le thème du téléphone.
+```
+
+### Notes de version — test fermé 1.7.0 (historique)
 
 ```
 Blaincourt-lès-Précy : nouvelle commune disponible (calendrier Communauté de communes Thelloise).
@@ -163,7 +172,8 @@ Activer **GitHub Pages** sur le dépôt (`Settings → Pages`, source : dossier 
 Déclarer en cohérence avec la politique :
 
 - Pas de compte, pas de collecte partagée avec des tiers
-- Données **sur l’appareil uniquement** : commune, heure de rappel, calendrier
+- Données **sur l’appareil uniquement** : commune, heure de rappel, types de bacs à rappeler, préférences d’apparence, calendrier
+- Localisation (optionnelle) : utilisée uniquement sur l’appareil pour suggérer la commune la plus proche ; non envoyée à un serveur
 - Réseau : téléchargement de documents publics sur les sites officiels des collectivités / syndicats, notamment :
   - `smirtomduvexin.net` (communes du Vexin — SMIRTOM)
   - `vexinthelle.fr` (CCVT / Vexin-Thelle, ex. Bouconvillers)
@@ -183,6 +193,7 @@ Déclarer en cohérence avec la politique :
 - **Alarmes exactes** (`SCHEDULE_EXACT_ALARM`) : rappel à l’heure choisie la veille d’une collecte. Ne pas utiliser `USE_EXACT_ALARM`.
 - **Optimisation batterie** : optionnelle, pour que le système n’endorme pas les rappels.
 - **Notifications** : rappels locaux.
+- **Localisation** (`ACCESS_COARSE_LOCATION` / `ACCESS_FINE_LOCATION`) : optionnelle, suggestion de la commune la plus proche au premier lancement ; calcul local uniquement.
 
 ## 8. Parcours Console — beta 1.5.1
 
