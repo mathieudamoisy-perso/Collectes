@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -225,12 +227,24 @@ class SettingsViewModel(
             initialValue = WasteType.entries.toSet()
         )
 
+    private val _availableReminderTypes = MutableStateFlow(WasteType.entries.toList())
+    val availableReminderTypes: StateFlow<List<WasteType>> = _availableReminderTypes.asStateFlow()
+
     val communes: List<VexinCommune> = VexinCommunes.all
 
     private val _calendarError = MutableStateFlow<String?>(null)
     val calendarError: StateFlow<String?> = _calendarError.asStateFlow()
 
     val syncState: StateFlow<SyncState> = repository.syncState
+
+    init {
+        viewModelScope.launch {
+            combine(selectedCommune, syncState) { commune, sync -> commune.slug to sync }
+                .collectLatest {
+                    _availableReminderTypes.value = repository.getCollectedWasteTypes()
+                }
+        }
+    }
 
     fun setReminderTime(minutesOfDay: Int) {
         viewModelScope.launch {

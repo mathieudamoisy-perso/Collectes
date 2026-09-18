@@ -74,26 +74,11 @@ object FeedbackHelper {
         communeName: String
     ): Result<Unit> {
         val body = buildFeedbackBody(appVersion, communeName)
-        val mailtoIntent = Intent(
+        val intent = Intent(
             Intent.ACTION_SENDTO,
             buildMailtoUri(recipient, subject, body)
         )
-        if (mailtoIntent.resolveActivity(context.packageManager) != null) {
-            return runCatching { context.startActivity(mailtoIntent) }
-        }
-
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-        }
-        if (sendIntent.resolveActivity(context.packageManager) == null) {
-            return Result.failure(IllegalStateException("No email app available"))
-        }
-        return runCatching {
-            context.startActivity(Intent.createChooser(sendIntent, null))
-        }
+        return runCatching { context.startActivity(intent) }
     }
 
     fun openDeveloperWhatsApp(

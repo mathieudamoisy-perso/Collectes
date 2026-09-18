@@ -228,6 +228,17 @@ class CalendarRepository(
         if (filter == null) types else types.filter { it == filter }
     }
 
+    /** Types réellement présents dans le calendrier local de la commune sélectionnée. */
+    suspend fun getCollectedWasteTypes(): List<WasteType> = withContext(Dispatchers.IO) {
+        if (!isCachedCalendarForSelectedCommune()) return@withContext WasteType.entries.toList()
+        val yearStart = LocalDate.of(LocalDate.now(zoneId).year, 1, 1).toEpochDay()
+        val types = collectionDao.getEventsFrom(yearStart)
+            .mapNotNull { it.toCollectionDay() }
+            .flatMap { it.wasteTypes }
+            .toSet()
+        if (types.isEmpty()) WasteType.entries.toList() else types.sortedBy { it.ordinal }
+    }
+
     private fun applyFilter(events: List<CollectionDay>, filter: WasteType?): List<CollectionDay> {
         if (filter == null) return events
         return events.mapNotNull { day ->

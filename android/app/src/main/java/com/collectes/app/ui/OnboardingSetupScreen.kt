@@ -4,7 +4,6 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,14 +61,17 @@ fun OnboardingSetupScreen(
     onSetupComplete: (commune: VexinCommune, reminderTimeMinutes: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var step by remember { mutableStateOf(OnboardingStep.Commune) }
-    var selectedCommune by remember { mutableStateOf<VexinCommune?>(null) }
+    var step by rememberSaveable { mutableStateOf(OnboardingStep.Commune) }
+    var selectedSlug by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedCommune = remember(selectedSlug, communes) {
+        selectedSlug?.let { slug -> communes.find { it.slug == slug } }
+    }
 
     when (step) {
         OnboardingStep.Commune -> CommuneSetupStep(
             communes = communes,
             onCommuneChosen = { commune ->
-                selectedCommune = commune
+                selectedSlug = commune.slug
                 step = OnboardingStep.ReminderTime
             },
             modifier = modifier
@@ -99,14 +102,22 @@ private fun CommuneSetupStep(
     val locationHelper = remember { DeviceLocationHelper(context) }
     val scope = rememberCoroutineScope()
     var locating by remember { mutableStateOf(false) }
-    var locationError by remember { mutableStateOf<String?>(null) }
-    var suggestion by remember { mutableStateOf<NearestCommuneMatch?>(null) }
+    var locationError by rememberSaveable { mutableStateOf<String?>(null) }
+    var suggestionSlug by rememberSaveable { mutableStateOf<String?>(null) }
+    var suggestionDistanceKm by rememberSaveable { mutableStateOf<Double?>(null) }
+    val suggestion = remember(suggestionSlug, suggestionDistanceKm, communes) {
+        val slug = suggestionSlug ?: return@remember null
+        val distanceKm = suggestionDistanceKm ?: return@remember null
+        val commune = communes.find { it.slug == slug } ?: return@remember null
+        NearestCommuneMatch(commune, distanceKm)
+    }
 
     fun applyNearestFromDevice() {
         scope.launch {
             locating = true
             locationError = null
-            suggestion = null
+            suggestionSlug = null
+            suggestionDistanceKm = null
             val location = locationHelper.readBestLastKnownLocation()
             locating = false
             if (location == null) {
@@ -123,7 +134,8 @@ private fun CommuneSetupStep(
                 locationError = "Aucune commune disponible."
                 return@launch
             }
-            suggestion = match
+            suggestionSlug = match.commune.slug
+            suggestionDistanceKm = match.distanceKm
         }
     }
 
@@ -154,155 +166,160 @@ private fun CommuneSetupStep(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
     ) {
-        Text(
-            text = "Bienvenue",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Étape 1 sur 2 · Commune",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Choisissez votre commune pour afficher les collectes. " +
-                "Vous pourrez la changer plus tard.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        OutlinedButton(
-            onClick = { requestLocation() },
-            enabled = !locating,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (locating) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Recherche de la commune…")
-            } else {
-                Icon(
-                    imageVector = Icons.Outlined.MyLocation,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Utiliser ma position")
-            }
-        }
-
-        locationError?.let { message ->
+        item(key = "intro") {
+            Text(
+                text = "Bienvenue",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Étape 1 sur 2 · Commune",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
+                text = "Choisissez votre commune pour afficher les collectes. " +
+                    "Vous pourrez la changer plus tard.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            OutlinedButton(
+                onClick = { requestLocation() },
+                enabled = !locating,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (locating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Recherche de la commune…")
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.MyLocation,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Utiliser ma position")
+                }
+            }
+
+            locationError?.let { message ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         suggestion?.let { match ->
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Commune la plus proche",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = match.commune.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Text(
-                        text = formatDistanceLabel(match.distanceKm),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    )
-                    if (match.distanceKm > NearestCommuneFinder.FAR_AWAY_THRESHOLD_KM) {
-                        Spacer(modifier = Modifier.height(6.dp))
+            item(key = "suggestion") {
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Vous semblez loin des communes couvertes — vérifiez le choix.",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "Commune la plus proche",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = { onCommuneChosen(match.commune) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Continuer avec ${match.commune.displayName}")
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = match.commune.displayName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = formatDistanceLabel(match.distanceKm),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                        if (match.distanceKm > NearestCommuneFinder.FAR_AWAY_THRESHOLD_KM) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Vous semblez loin des communes couvertes — vérifiez le choix.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { onCommuneChosen(match.commune) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Continuer avec ${match.commune.displayName}")
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Ou choisissez dans la liste",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+        item(key = "list_header") {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "Ou choisissez dans la liste",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(communes, key = { it.slug }) { commune ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onCommuneChosen(commune) }
-                        .padding(vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Place,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = commune.displayName,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+        items(communes, key = { it.slug }) { commune ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onCommuneChosen(commune) }
+                    .padding(vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Place,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = commune.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
                 )
             }
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
         }
 
-        Text(
-            text = "La position reste sur l’appareil et n’est pas envoyée.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        item(key = "privacy") {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "La position reste sur l’appareil et n’est pas envoyée.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -314,7 +331,7 @@ private fun ReminderTimeSetupStep(
     modifier: Modifier = Modifier
 ) {
     val options = remember { ReminderTime.options() }
-    var selectedMinutes by remember { mutableStateOf<Int?>(null) }
+    var selectedMinutes by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = modifier

@@ -65,7 +65,6 @@ import com.collectes.app.R
 import com.collectes.app.data.ReminderTime
 import com.collectes.app.data.SyncState
 import com.collectes.app.data.SyncStatusFormatter
-import com.collectes.app.data.WasteType
 import com.collectes.app.util.BatteryOptimizationHelper
 import com.collectes.app.util.FeedbackHelper
 
@@ -82,6 +81,7 @@ fun SettingsScreen(
     val calendarError by viewModel.calendarError.collectAsState()
     val useBrandColors by viewModel.useBrandColors.collectAsState()
     val enabledReminderTypes by viewModel.enabledReminderTypes.collectAsState()
+    val availableReminderTypes by viewModel.availableReminderTypes.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
@@ -200,7 +200,7 @@ fun SettingsScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    WasteType.entries.forEach { type ->
+                    availableReminderTypes.forEach { type ->
                         val palette = remember(type, darkTheme) {
                             WasteTypeColors.paletteFor(type, darkTheme)
                         }
@@ -239,12 +239,6 @@ fun SettingsScreen(
                         title = "Apparence"
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Gardez le vert Collectes, ou utilisez les couleurs de votre téléphone.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -256,9 +250,9 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = if (useBrandColors) {
-                                    "Identité de l’app"
+                                    "Couleurs de l’app"
                                 } else {
-                                    "Couleurs du téléphone"
+                                    "Thème du téléphone"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -288,8 +282,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Autoriser Collectes à fonctionner normalement aide uniquement les " +
-                                "notifications. L’app reste légère, sans compte ni suivi.",
+                            text = "Autoriser Collectes à fonctionner normalement aide uniquement les notifications.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
