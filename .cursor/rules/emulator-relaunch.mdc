@@ -8,7 +8,8 @@ alwaysApply: true
 Dès qu’une modification de l’app Android est demandée et livrée (UI, logique, prefs, notifs…) :
 
 1. S’assurer que l’AVD `Collectes_API36` tourne (`emulator-5554`) ; le démarrer si besoin
-2. `gradlew :app:installDebug` avec `ANDROID_SERIAL=emulator-5554`
-3. Relancer l’app : `adb shell am force-stop com.collectes.app` puis `am start -n com.collectes.app/.MainActivity`
+2. Vider les données de l’app : `adb shell pm clear com.collectes.app` (repartir de zéro à chaque install)
+3. `gradlew :app:installDebug` avec `ANDROID_SERIAL=emulator-5554`
+4. Relancer l’app : `adb shell am force-stop com.collectes.app` puis `am start -n com.collectes.app/.MainActivity`
 
 Ne pas attendre que Mathieu redemande un relancement. Exceptions : pure doc / règles / questions sans changement de code.

@@ -82,7 +82,6 @@ fun OnboardingSetupScreen(
                 step = OnboardingStep.Commune
             } else {
                 ReminderTimeSetupStep(
-                    communeName = commune.displayName,
                     onBack = { step = OnboardingStep.Commune },
                     onConfirm = { minutes -> onSetupComplete(commune, minutes) },
                     modifier = modifier
@@ -325,7 +324,6 @@ private fun CommuneSetupStep(
 
 @Composable
 private fun ReminderTimeSetupStep(
-    communeName: String,
     onBack: () -> Unit,
     onConfirm: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -359,7 +357,7 @@ private fun ReminderTimeSetupStep(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "À quelle heure souhaitez-vous être prévenu la veille d’une collecte à $communeName ?",
+            text = "À quelle heure souhaitez-vous être prévenu la veille d’une collecte ?",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp)
