@@ -28,7 +28,7 @@ class VexinCommunesTest {
     }
 
     @Test
-    fun defaultIsFirstSortedCommune() {
+    fun defaultIsFirstSortedCommuneFallbackOnly() {
         assertEquals(VexinCommunes.all.first(), VexinCommunes.default)
         assertEquals("blaincourt-les-precy", VexinCommunes.default.slug)
         assertEquals("Blaincourt-lès-Précy", VexinCommunes.default.displayName)

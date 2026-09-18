@@ -38,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -53,10 +54,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.collectes.app.data.CollectionDay
 import com.collectes.app.data.SyncState
+import com.collectes.app.data.SyncStatusFormatter
 import com.collectes.app.data.VexinCommune
 import com.collectes.app.data.WasteStreamGuide
 import com.collectes.app.data.WasteStreamGuides
@@ -199,6 +202,19 @@ fun HomeScreen(
                     }
                 }
 
+                when (val sync = uiState.syncState) {
+                    is SyncState.Success -> {
+                        item {
+                            Text(
+                                text = SyncStatusFormatter.format(sync.lastSync),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    else -> Unit
+                }
+
                 item {
                     WasteTypeFilterRow(
                         activeFilter = uiState.activeFilter,
@@ -218,10 +234,11 @@ fun HomeScreen(
                 if (uiState.upcoming.isEmpty()) {
                     if (!isRefreshing) {
                         item {
-                            Text(
-                                text = "Aucune collecte à venir pour ce filtre.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            EmptyUpcomingState(
+                                activeFilter = uiState.activeFilter,
+                                onChooseCommune = { showCommunePicker = true },
+                                onRefresh = onRefresh,
+                                onClearFilter = { onFilterChange(null) }
                             )
                         }
                     }
@@ -250,6 +267,78 @@ fun HomeScreen(
             nextCollectionDate = nextCollectionDate,
             showNextCollection = false
         )
+    }
+}
+
+@Composable
+private fun EmptyUpcomingState(
+    activeFilter: WasteType?,
+    onChooseCommune: () -> Unit,
+    onRefresh: () -> Unit,
+    onClearFilter: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            NoCollectionIcon(size = 40.dp)
+            if (activeFilter == null) {
+                Text(
+                    text = "Aucune collecte à venir",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Vérifiez votre commune ou actualisez le calendrier officiel.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedButton(
+                        onClick = onChooseCommune,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Choisir ma commune")
+                    }
+                    Button(
+                        onClick = onRefresh,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Actualiser")
+                    }
+                }
+            } else {
+                Text(
+                    text = "Aucune collecte « ${activeFilter.label} »",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Essayez un autre type de bac ou affichez toutes les collectes.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Button(onClick = onClearFilter) {
+                    Text("Voir toutes les collectes")
+                }
+            }
+        }
     }
 }
 

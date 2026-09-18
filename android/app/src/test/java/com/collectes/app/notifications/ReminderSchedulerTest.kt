@@ -29,4 +29,16 @@ class ReminderSchedulerTest {
             message
         )
     }
+
+    @Test
+    fun formatReminderMessageUsesFilteredTypesOnly() {
+        val message = ReminderScheduler.formatReminderMessage(
+            LocalDate.of(2026, 9, 1),
+            listOf(WasteType.ORDURES)
+        )
+        assertEquals(
+            "Demain (mardi 1 septembre) : sortir Ordures ménagères (gris)",
+            message
+        )
+    }
 }

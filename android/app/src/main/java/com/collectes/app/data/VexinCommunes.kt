@@ -8,7 +8,10 @@ data class VexinCommune(
     val displayName: String,
     val officialCalendarUrl: String = "",
     /** Page d'info collecte ; par défaut la fiche SMIRTOM du Vexin. */
-    val infoPageUrl: String? = null
+    val infoPageUrl: String? = null,
+    /** Centre approximatif de la commune (WGS84), pour la suggestion géolocalisée. */
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 ) {
     val pageUrl: String
         get() = infoPageUrl ?: "https://smirtomduvexin.net/informations_utiles/$slug/"
@@ -117,65 +120,83 @@ object VexinCommunes {
             displayName = "Blaincourt-lès-Précy",
             officialCalendarUrl =
                 "https://www.thelloise.fr/images/documents/fichiers/calendrier-collecte-2026cctcompressed.pdf",
-            infoPageUrl = "https://www.blaincourtlesprecy.fr/informations-pratiques-2/"
+            infoPageUrl = "https://www.blaincourtlesprecy.fr/informations-pratiques-2/",
+            latitude = 49.2306,
+            longitude = 2.3553
         ),
         VexinCommune(
             slug = nameToSlug("Bouconvillers"),
             displayName = "Bouconvillers",
             officialCalendarUrl =
                 "https://vexinthelle.fr/wp-content/uploads/2026/01/BOUCONVILLERS-2026.pdf",
-            infoPageUrl = "https://bouconvillers.fr/vie-pratique/environnement/le-tri-selectif-2/"
+            infoPageUrl = "https://bouconvillers.fr/vie-pratique/environnement/le-tri-selectif-2/",
+            latitude = 49.1850,
+            longitude = 1.9150
         ),
         VexinCommune(
             slug = nameToSlug("Cabourg"),
             displayName = "Cabourg",
             officialCalendarUrl =
                 "https://www.normandiecabourgpaysdauge.fr/app/uploads/2026/03/Cabourg-Calendrier-de-collecte-2026.pdf",
-            infoPageUrl = "https://www.cabourg.fr/habiter/votre-quotidien/environnement/dechets/"
+            infoPageUrl = "https://www.cabourg.fr/habiter/votre-quotidien/environnement/dechets/",
+            latitude = 49.2883,
+            longitude = -0.1164
         ),
         VexinCommune(
             slug = nameToSlug("Cormeilles-en-Vexin"),
             displayName = "Cormeilles-en-Vexin",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf",
+            latitude = 49.0942,
+            longitude = 1.9925
         ),
         VexinCommune(
             slug = nameToSlug("Épiais-Rhus"),
             displayName = "Épiais-Rhus",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf",
+            latitude = 49.1225,
+            longitude = 2.0200
         ),
         VexinCommune(
             slug = nameToSlug("Ermont"),
             displayName = "Ermont",
             officialCalendarUrl =
                 "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
-            infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm"
+            infoPageUrl = "https://www.ermont.fr/195/dechets-menagers.htm",
+            latitude = 48.9892,
+            longitude = 2.2581
         ),
         VexinCommune(
             slug = nameToSlug("Magny-en-Vexin"),
             displayName = "Magny-en-Vexin",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf",
+            latitude = 49.1547,
+            longitude = 1.7872
         ),
         VexinCommune(
             slug = nameToSlug("Sannois"),
             displayName = "Sannois",
             officialCalendarUrl =
                 "https://www.ville-sannois.fr/sites/sannois/files/document/2026-01/calendrier-2026-sannois.pdf",
-            infoPageUrl = "https://www.ville-sannois.fr/media/10163"
+            infoPageUrl = "https://www.ville-sannois.fr/media/10163",
+            latitude = 48.9719,
+            longitude = 2.2569
         ),
         VexinCommune(
             slug = nameToSlug("Théméricourt"),
             displayName = "Théméricourt",
             officialCalendarUrl =
-                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf"
+                "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf",
+            latitude = 49.0869,
+            longitude = 1.8964
         )
     ).sortedWith(compareBy(displayNameOrder) { it.displayName })
 
     val all: List<VexinCommune> = allCommunes
 
-    /** Première commune de la liste triée (ordre alphabétique français). */
+    /** Fallback interne uniquement (jamais imposé à l'utilisateur sans choix). */
     val default: VexinCommune = allCommunes.first()
 
     fun bySlug(slug: String): VexinCommune? {

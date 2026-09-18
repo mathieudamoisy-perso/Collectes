@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.collectes.app.data.CalendarRepository
+import com.collectes.app.data.PreferencesManager
+import com.collectes.app.data.ReminderTypeFilter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,39 +20,26 @@ class ReminderReceiver : BroadcastReceiver() {
         scope.launch {
             try {
                 NotificationHelper.createChannel(context)
+                val preferences = PreferencesManager(context)
+                val enabledTypes = preferences.getEnabledReminderTypes()
+                val repository = CalendarRepository(context)
 
-                val wasteTypes = NotificationHelper.wasteTypesFromExtras(
-                    intent.getStringArrayExtra(EXTRA_WASTE_TYPES)
-                )
                 val collectionDate = intent.getStringExtra(EXTRA_COLLECTION_DATE)?.let(LocalDate::parse)
+                    ?: LocalDate.now().plusDays(1)
 
-                if (wasteTypes.isNotEmpty() && collectionDate != null) {
-                    val repository = CalendarRepository(context)
-                    val scheduledTypes = repository.getCollectionsOn(collectionDate)
-                    if (scheduledTypes.toSet() != wasteTypes.toSet()) {
-                        return@launch
-                    }
-                    val message = ReminderScheduler.formatReminderMessage(collectionDate, wasteTypes)
-                    NotificationHelper.showReminder(
-                        context = context,
-                        notificationId = collectionDate.toEpochDay().toInt(),
-                        wasteTypes = wasteTypes,
-                        message = message
-                    )
-                } else {
-                    val repository = CalendarRepository(context)
-                    val tomorrowTypes = repository.getTomorrowCollections()
-                    if (tomorrowTypes.isNotEmpty()) {
-                        val tomorrow = LocalDate.now().plusDays(1)
-                        val message = ReminderScheduler.formatReminderMessage(tomorrow, tomorrowTypes)
-                        NotificationHelper.showReminder(
-                            context = context,
-                            notificationId = tomorrow.toEpochDay().toInt(),
-                            wasteTypes = tomorrowTypes,
-                            message = message
-                        )
-                    }
-                }
+                val types = ReminderTypeFilter.filterTypes(
+                    repository.getCollectionsOn(collectionDate),
+                    enabledTypes
+                )
+                if (types.isEmpty()) return@launch
+
+                val message = ReminderScheduler.formatReminderMessage(collectionDate, types)
+                NotificationHelper.showReminder(
+                    context = context,
+                    notificationId = collectionDate.toEpochDay().toInt(),
+                    wasteTypes = types,
+                    message = message
+                )
             } finally {
                 pendingResult.finish()
             }

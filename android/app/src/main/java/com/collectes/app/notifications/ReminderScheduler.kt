@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.collectes.app.data.CollectionDay
+import com.collectes.app.data.ReminderTypeFilter
 import com.collectes.app.data.WasteType
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,13 +18,18 @@ class ReminderScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val zoneId = ZoneId.of("Europe/Paris")
 
-    fun scheduleUpcomingReminders(events: List<CollectionDay>, reminderTimeMinutes: Int) {
+    fun scheduleUpcomingReminders(
+        events: List<CollectionDay>,
+        reminderTimeMinutes: Int,
+        enabledTypes: Set<WasteType> = WasteType.entries.toSet()
+    ) {
         events.forEach { cancelReminder(it) }
+        val filtered = ReminderTypeFilter.filterEvents(events, enabledTypes)
         val now = LocalDateTime.now(zoneId)
         val hour = reminderTimeMinutes / 60
         val minute = reminderTimeMinutes % 60
 
-        events.forEach { event ->
+        filtered.forEach { event ->
             val reminderDateTime = event.date.minusDays(1).atTime(hour, minute)
             if (reminderDateTime.isAfter(now)) {
                 scheduleReminder(event, reminderDateTime)

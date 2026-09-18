@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -44,27 +43,30 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.collectes.app.data.CalendarRepository
 import com.collectes.app.data.PreferencesManager
+import com.collectes.app.data.VexinCommune
+import com.collectes.app.data.VexinCommunes
 import com.collectes.app.data.WasteType
 import com.collectes.app.ui.AppTab
+import com.collectes.app.ui.BottomBarOverlay
+import com.collectes.app.ui.CollectesTheme
+import com.collectes.app.ui.OnboardingSetupScreen
 import com.collectes.app.ui.GuideScreen
 import com.collectes.app.ui.HomeScreen
 import com.collectes.app.ui.HomeViewModel
 import com.collectes.app.ui.HomeViewModelFactory
-import com.collectes.app.ui.SettingsScreen
-import com.collectes.app.ui.SettingsViewModel
-import com.collectes.app.ui.SettingsViewModelFactory
-import com.collectes.app.ui.BottomBarOverlay
-import com.collectes.app.ui.CollectesTheme
-import com.collectes.app.ui.LocalPagerNestedScroll
-import com.collectes.app.ui.rememberBottomBarHideScrollConnection
-import com.collectes.app.ui.rememberBottomBarInset
-import com.collectes.app.ui.rememberBottomBarFallbackHeight
-import com.collectes.app.ui.rememberBottomBarScrollState
-import com.collectes.app.ui.rememberBottomBarVisibility
-import com.collectes.app.ui.rememberPagerNestedScrollConnection
 import com.collectes.app.ui.LocalBottomBarHideScroll
 import com.collectes.app.ui.LocalBottomBarInset
 import com.collectes.app.ui.LocalBottomBarVisibility
+import com.collectes.app.ui.LocalPagerNestedScroll
+import com.collectes.app.ui.SettingsScreen
+import com.collectes.app.ui.SettingsViewModel
+import com.collectes.app.ui.SettingsViewModelFactory
+import com.collectes.app.ui.rememberBottomBarFallbackHeight
+import com.collectes.app.ui.rememberBottomBarHideScrollConnection
+import com.collectes.app.ui.rememberBottomBarInset
+import com.collectes.app.ui.rememberBottomBarScrollState
+import com.collectes.app.ui.rememberBottomBarVisibility
+import com.collectes.app.ui.rememberPagerNestedScrollConnection
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -86,8 +88,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val darkTheme = isSystemInDarkTheme()
+            val useBrandColors by preferencesManager.useBrandColors.collectAsState(initial = true)
+            val scope = rememberCoroutineScope()
+            var communeSetupDone by remember { mutableStateOf<Boolean?>(null) }
 
-            CollectesTheme {
+            LaunchedEffect(preferencesManager) {
+                preferencesManager.hasCompletedCommuneSetup.collect { done ->
+                    communeSetupDone = done
+                }
+            }
+
+            CollectesTheme(useBrandColors = useBrandColors) {
                 val surfaceColor = MaterialTheme.colorScheme.surface
                 DisposableEffect(darkTheme, surfaceColor) {
                     enableEdgeToEdge(
@@ -104,133 +115,178 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    val homeViewModel: HomeViewModel = viewModel(
-                        factory = HomeViewModelFactory(repository, preferencesManager)
-                    )
-                    val settingsViewModel: SettingsViewModel = viewModel(
-                        factory = SettingsViewModelFactory(repository, preferencesManager)
-                    )
-                    val lifecycleOwner = LocalLifecycleOwner.current
-                    val scope = rememberCoroutineScope()
-
-                    val tabs = AppTab.entries
-                    var guideDetailType by remember { mutableStateOf<WasteType?>(null) }
-                    val pagerState = rememberPagerState(
-                        initialPage = 0,
-                        pageCount = { tabs.size }
-                    )
-                    val bottomBarScrollState = rememberBottomBarScrollState()
-                    var bottomBarMeasuredHeight by remember { mutableStateOf(0.dp) }
-                    val bottomBarFallbackHeight = rememberBottomBarFallbackHeight()
-                    val bottomBarHeight = if (bottomBarMeasuredHeight > 0.dp) {
-                        bottomBarMeasuredHeight
-                    } else {
-                        bottomBarFallbackHeight
-                    }
-                    val bottomBarInset = rememberBottomBarInset(bottomBarHeight)
-                    val bottomBarVisibility = rememberBottomBarVisibility(bottomBarScrollState)
-                    val pagerNestedScrollConnection = rememberPagerNestedScrollConnection(pagerState)
-                    val bottomBarHideScrollConnection = rememberBottomBarHideScrollConnection(
-                        bottomBarScrollState
-                    )
-
-                    LaunchedEffect(pagerState) {
-                        snapshotFlow { pagerState.settledPage }.collect { page ->
-                            if (tabs[page] != AppTab.Guide) {
-                                guideDetailType = null
-                            }
-                            bottomBarScrollState.show()
-                        }
-                    }
-
-                    fun selectTab(tab: AppTab) {
-                        val page = tabs.indexOf(tab)
-                        if (tab != AppTab.Guide) {
-                            guideDetailType = null
-                        }
-                        bottomBarScrollState.show()
-                        scope.launch {
-                            pagerState.animateScrollToPage(page)
-                        }
-                    }
-
-                    DisposableEffect(lifecycleOwner, homeViewModel) {
-                        val observer = LifecycleEventObserver { _, event ->
-                            if (event == Lifecycle.Event.ON_RESUME) {
-                                homeViewModel.reloadDates()
-                            }
-                        }
-                        lifecycleOwner.lifecycle.addObserver(observer)
-                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(WindowInsets.statusBars.asPaddingValues())
-                    ) {
-                        CompositionLocalProvider(
-                            LocalPagerNestedScroll provides pagerNestedScrollConnection,
-                            LocalBottomBarHideScroll provides bottomBarHideScrollConnection,
-                            LocalBottomBarInset provides bottomBarInset,
-                            LocalBottomBarVisibility provides bottomBarVisibility
+                    when (communeSetupDone) {
+                        null -> Box(modifier = Modifier.fillMaxSize())
+                        false -> Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(WindowInsets.statusBars.asPaddingValues())
                         ) {
-                            HorizontalPager(
-                                state = pagerState,
-                                modifier = Modifier.fillMaxSize(),
-                                flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
-                                beyondViewportPageCount = 1,
-                                pageSpacing = 0.dp
-                            ) { page ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .graphicsLayer { clip = true }
-                                ) {
-                                    when (tabs[page]) {
-                                        AppTab.Collectes -> CollectesTab(
-                                            homeViewModel = homeViewModel,
-                                            settingsViewModel = settingsViewModel,
-                                            onRefresh = { homeViewModel.refresh(force = true) },
-                                            onFilterChange = { homeViewModel.setFilter(it) },
-                                            onNextCollectionClick = { type ->
-                                                homeViewModel.setFilter(type)
-                                                guideDetailType = null
-                                                selectTab(AppTab.Collectes)
-                                            }
-                                        )
-                                        AppTab.Guide -> GuideTab(
-                                            settingsViewModel = settingsViewModel,
-                                            guideDetailType = guideDetailType,
-                                            onGuideDetailConsumed = { guideDetailType = null },
-                                            onNextCollectionClick = { type ->
-                                                homeViewModel.setFilter(type)
-                                                guideDetailType = null
-                                                selectTab(AppTab.Collectes)
-                                            },
-                                            homeViewModel = homeViewModel
-                                        )
-                                        AppTab.Settings -> SettingsScreen(
-                                            viewModel = settingsViewModel,
-                                            showBack = false,
-                                            modifier = Modifier.fillMaxSize()
+                            OnboardingSetupScreen(
+                                communes = VexinCommunes.all,
+                                onSetupComplete = { commune, reminderTimeMinutes ->
+                                    scope.launch {
+                                        completeOnboarding(
+                                            repository = repository,
+                                            preferencesManager = preferencesManager,
+                                            commune = commune,
+                                            reminderTimeMinutes = reminderTimeMinutes
                                         )
                                     }
-                                }
-                            }
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
                         }
-
-                        BottomBarOverlay(
-                            pagerState = pagerState,
-                            visibility = bottomBarVisibility,
-                            onTabSelected = ::selectTab,
-                            onHeightChanged = { bottomBarMeasuredHeight = it },
-                            modifier = Modifier.align(Alignment.BottomCenter)
+                        true -> CollectesMainApp(
+                            repository = repository,
+                            preferencesManager = preferencesManager
                         )
                     }
                 }
             }
         }
+    }
+
+    private suspend fun completeOnboarding(
+        repository: CalendarRepository,
+        preferencesManager: PreferencesManager,
+        commune: VexinCommune,
+        reminderTimeMinutes: Int
+    ) {
+        preferencesManager.setReminderTime(reminderTimeMinutes)
+        repository.setCommune(commune)
+        repository.ensureCalendarSynced(force = true)
+    }
+}
+
+@Composable
+private fun CollectesMainApp(
+    repository: CalendarRepository,
+    preferencesManager: PreferencesManager
+) {
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(repository, preferencesManager)
+    )
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(repository, preferencesManager)
+    )
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+
+    val tabs = AppTab.entries
+    var guideDetailType by remember { mutableStateOf<WasteType?>(null) }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { tabs.size }
+    )
+    val bottomBarScrollState = rememberBottomBarScrollState()
+    var bottomBarMeasuredHeight by remember { mutableStateOf(0.dp) }
+    val bottomBarFallbackHeight = rememberBottomBarFallbackHeight()
+    val bottomBarHeight = if (bottomBarMeasuredHeight > 0.dp) {
+        bottomBarMeasuredHeight
+    } else {
+        bottomBarFallbackHeight
+    }
+    val bottomBarInset = rememberBottomBarInset(bottomBarHeight)
+    val bottomBarVisibility = rememberBottomBarVisibility(bottomBarScrollState)
+    val pagerNestedScrollConnection = rememberPagerNestedScrollConnection(pagerState)
+    val bottomBarHideScrollConnection = rememberBottomBarHideScrollConnection(
+        bottomBarScrollState
+    )
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { page ->
+            if (tabs[page] != AppTab.Guide) {
+                guideDetailType = null
+            }
+            bottomBarScrollState.show()
+        }
+    }
+
+    fun selectTab(tab: AppTab) {
+        val page = tabs.indexOf(tab)
+        if (tab != AppTab.Guide) {
+            guideDetailType = null
+        }
+        bottomBarScrollState.show()
+        scope.launch {
+            pagerState.animateScrollToPage(page)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, homeViewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                homeViewModel.reloadDates()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.statusBars.asPaddingValues())
+    ) {
+        CompositionLocalProvider(
+            LocalPagerNestedScroll provides pagerNestedScrollConnection,
+            LocalBottomBarHideScroll provides bottomBarHideScrollConnection,
+            LocalBottomBarInset provides bottomBarInset,
+            LocalBottomBarVisibility provides bottomBarVisibility
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
+                beyondViewportPageCount = 1,
+                pageSpacing = 0.dp
+            ) { page ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { clip = true }
+                ) {
+                    when (tabs[page]) {
+                        AppTab.Collectes -> CollectesTab(
+                            homeViewModel = homeViewModel,
+                            settingsViewModel = settingsViewModel,
+                            onRefresh = { homeViewModel.refresh(force = true) },
+                            onFilterChange = { homeViewModel.setFilter(it) },
+                            onNextCollectionClick = { type ->
+                                homeViewModel.setFilter(type)
+                                guideDetailType = null
+                                selectTab(AppTab.Collectes)
+                            }
+                        )
+                        AppTab.Guide -> GuideTab(
+                            settingsViewModel = settingsViewModel,
+                            guideDetailType = guideDetailType,
+                            onGuideDetailConsumed = { guideDetailType = null },
+                            onNextCollectionClick = { type ->
+                                homeViewModel.setFilter(type)
+                                guideDetailType = null
+                                selectTab(AppTab.Collectes)
+                            },
+                            homeViewModel = homeViewModel
+                        )
+                        AppTab.Settings -> SettingsScreen(
+                            viewModel = settingsViewModel,
+                            showBack = false,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+
+        BottomBarOverlay(
+            pagerState = pagerState,
+            visibility = bottomBarVisibility,
+            onTabSelected = ::selectTab,
+            onHeightChanged = { bottomBarMeasuredHeight = it },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

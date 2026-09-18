@@ -212,15 +212,43 @@ class SettingsViewModel(
         initialValue = preferencesManager.peekSelectedCommune()
     )
 
+    val useBrandColors: StateFlow<Boolean> = preferencesManager.useBrandColors.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = true
+    )
+
+    val enabledReminderTypes: StateFlow<Set<WasteType>> =
+        preferencesManager.enabledReminderTypes.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = WasteType.entries.toSet()
+        )
+
     val communes: List<VexinCommune> = VexinCommunes.all
 
     private val _calendarError = MutableStateFlow<String?>(null)
     val calendarError: StateFlow<String?> = _calendarError.asStateFlow()
 
+    val syncState: StateFlow<SyncState> = repository.syncState
+
     fun setReminderTime(minutesOfDay: Int) {
         viewModelScope.launch {
             preferencesManager.setReminderTime(minutesOfDay)
             repository.rescheduleReminders(preferencesManager.getReminderTimeMinutes())
+        }
+    }
+
+    fun setReminderTypeEnabled(type: WasteType, enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setReminderTypeEnabled(type, enabled)
+            repository.rescheduleReminders(preferencesManager.getReminderTimeMinutes())
+        }
+    }
+
+    fun setUseBrandColors(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setUseBrandColors(enabled)
         }
     }
 

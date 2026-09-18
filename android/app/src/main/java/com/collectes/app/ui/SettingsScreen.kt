@@ -21,10 +21,11 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -38,7 +39,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +63,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.collectes.app.R
 import com.collectes.app.data.ReminderTime
+import com.collectes.app.data.SyncState
+import com.collectes.app.data.SyncStatusFormatter
+import com.collectes.app.data.WasteType
 import com.collectes.app.util.BatteryOptimizationHelper
 import com.collectes.app.util.FeedbackHelper
 
@@ -74,7 +80,11 @@ fun SettingsScreen(
     val reminderTimeMinutes by viewModel.reminderTimeMinutes.collectAsState()
     val selectedCommune by viewModel.selectedCommune.collectAsState()
     val calendarError by viewModel.calendarError.collectAsState()
+    val useBrandColors by viewModel.useBrandColors.collectAsState()
+    val enabledReminderTypes by viewModel.enabledReminderTypes.collectAsState()
+    val syncState by viewModel.syncState.collectAsState()
     val context = LocalContext.current
+    val darkTheme = isSystemInDarkTheme()
     val versionName = remember {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
     }
@@ -142,7 +152,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Notification la veille de la collecte",
+                        text = "Choisissez l’heure de la notification la veille de la collecte",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -183,32 +193,120 @@ fun SettingsScreen(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Types de bac à rappeler",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    WasteType.entries.forEach { type ->
+                        val palette = remember(type, darkTheme) {
+                            WasteTypeColors.paletteFor(type, darkTheme)
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            WasteTypeIcon(
+                                type = type,
+                                size = 20.dp,
+                                tint = palette.accent
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = type.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Switch(
+                                checked = type in enabledReminderTypes,
+                                onCheckedChange = { enabled ->
+                                    viewModel.setReminderTypeEnabled(type, enabled)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                SettingsSectionCard {
+                    SettingsSectionHeader(
+                        icon = Icons.Default.Palette,
+                        title = "Apparence"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Gardez le vert Collectes, ou utilisez les couleurs de votre téléphone.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Vert Collectes",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = if (useBrandColors) {
+                                    "Identité de l’app"
+                                } else {
+                                    "Couleurs du téléphone"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = useBrandColors,
+                            onCheckedChange = { viewModel.setUseBrandColors(it) }
+                        )
+                    }
                 }
             }
 
             if (!ignoringBatteryOptimizations) {
                 item {
-                    SettingsSectionCard(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
+                    SettingsSectionCard {
                         SettingsSectionHeader(
-                            icon = Icons.Default.BatteryAlert,
-                            title = "Optimisation batterie",
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            icon = Icons.Outlined.NotificationsActive,
+                            title = "Pour des rappels à l’heure"
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Désactivez l'optimisation pour recevoir les rappels à l'heure prévue.",
+                            text = "Android met parfois les apps en veille pour économiser la batterie. " +
+                                "Résultat : le rappel de collecte peut arriver en retard, ou pas du tout.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Autoriser Collectes à fonctionner normalement aide uniquement les " +
+                                "notifications. L’app reste légère, sans compte ni suivi.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(
                             onClick = { BatteryOptimizationHelper.openAppBatterySettings(context) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Ouvrir les paramètres batterie")
+                            Text("Autoriser les rappels à l’heure")
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Sur l’écran suivant, choisissez Autoriser ou Sans restriction. " +
+                                "Vous pourrez revenir en arrière à tout moment.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -263,6 +361,19 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
+                    }
+                    when (val sync = syncState) {
+                        is SyncState.Success -> {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = SyncStatusFormatter.format(sync.lastSync),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        else -> Unit
                     }
                 }
             }
