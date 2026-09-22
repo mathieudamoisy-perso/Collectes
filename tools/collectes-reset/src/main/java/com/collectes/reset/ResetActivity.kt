@@ -14,7 +14,7 @@ import java.io.File
 
 /**
  * Icône émulateur : pose un drapeau dans le stockage privé de l’app.
- * tools/watch-collectes-reset.ps1 le détecte (adb root) et fait uninstall + reinstall.
+ * Le daemon on-device (root) le lit et fait uninstall + reinstall.
  */
 class ResetActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,17 +40,16 @@ class ResetActivity : Activity() {
         )
 
         Thread {
-            val flag = File(filesDir, FLAG_NAME)
-            val ok = runCatching {
+            val message = runCatching {
+                val flag = File(filesDir, FLAG_NAME)
                 flag.writeText(System.currentTimeMillis().toString())
-            }.isSuccess
+                "Reset demandé…"
+            }.getOrElse {
+                "Échec. Lance tools/reset-collectes.ps1 depuis le PC"
+            }
 
             Handler(Looper.getMainLooper()).post {
-                if (ok) {
-                    toast("Reset demandé — laisse le watcher PC tourner")
-                } else {
-                    toast("Échec. Lance tools/reset-collectes.ps1 depuis le PC")
-                }
+                toast(message)
                 finish()
             }
         }.start()

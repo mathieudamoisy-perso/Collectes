@@ -103,7 +103,7 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.11.1")
 }
 
-// Stage l’APK pour l’icône « Reset Collectes » sur l’émulateur.
+// Stage l’APK + assure le daemon « Reset Collectes » sur l’émulateur (pas de watcher PC).
 afterEvaluate {
     tasks.named("installDebug").configure {
         doLast {
@@ -118,15 +118,40 @@ afterEvaluate {
             val adbExt = if (System.getProperty("os.name").startsWith("Windows")) ".exe" else ""
             val adb = "$adbHome/platform-tools/adb$adbExt"
             val serial = System.getenv("ANDROID_SERIAL") ?: "emulator-5554"
-            val process = ProcessBuilder(
+            val push = ProcessBuilder(
                 adb, "-s", serial, "push", apk.absolutePath, "/data/local/tmp/collectes-debug.apk"
             ).redirectErrorStream(true).start()
-            val output = process.inputStream.bufferedReader().readText()
-            val code = process.waitFor()
-            if (code != 0) {
-                logger.warn("Stage reset APK échoué ($code): $output")
+            val pushOut = push.inputStream.bufferedReader().readText()
+            val pushCode = push.waitFor()
+            if (pushCode != 0) {
+                logger.warn("Stage reset APK échoué ($pushCode): $pushOut")
+                return@doLast
+            }
+            logger.lifecycle("APK stagé pour Reset Collectes → /data/local/tmp/collectes-debug.apk")
+
+            val ensureScript = rootProject.projectDir.resolve("../tools/ensure-reset-daemon.ps1")
+            if (!ensureScript.isFile) {
+                logger.warn("ensure-reset-daemon.ps1 introuvable: ${ensureScript.absolutePath}")
+                return@doLast
+            }
+            val ensure = ProcessBuilder(
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                ensureScript.absolutePath
+            ).apply {
+                directory(ensureScript.parentFile)
+                redirectErrorStream(true)
+                environment()["ANDROID_SERIAL"] = serial
+            }.start()
+            val ensureOut = ensure.inputStream.bufferedReader().readText()
+            val ensureCode = ensure.waitFor()
+            if (ensureCode != 0) {
+                logger.warn("Reset daemon ensure échoué ($ensureCode): $ensureOut")
             } else {
-                logger.lifecycle("APK stagé pour Reset Collectes → /data/local/tmp/collectes-debug.apk")
+                ensureOut.lineSequence().filter { it.isNotBlank() }.forEach { logger.lifecycle(it) }
             }
         }
     }

@@ -1,7 +1,5 @@
-# Installs the "Reset Collectes" launcher icon on the emulator.
+# Installs the "Reset Collectes" launcher icon on the emulator and starts the on-device daemon.
 # Usage: powershell -File tools/install-reset-icon.ps1
-# Then start the watcher once per session:
-#   powershell -File tools/watch-collectes-reset.ps1
 
 $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -34,6 +32,8 @@ Write-Host "Installing reset icon: $apk"
 & $adb -s $serial install -r -t $apk
 if ($LASTEXITCODE -ne 0) { throw "install reset helper failed" }
 
-Write-Host "OK - icon Reset Collectes installed."
-Write-Host "Start watcher: powershell -File tools/watch-collectes-reset.ps1"
-Write-Host "Each installDebug stages Collectes APK for the 1-click reset."
+& (Join-Path $PSScriptRoot "ensure-reset-daemon.ps1")
+if ($LASTEXITCODE -ne 0) { throw "ensure reset daemon failed" }
+
+Write-Host "OK - icon Reset Collectes installed + daemon on-device."
+Write-Host "Each installDebug stages the Collectes APK and keeps the daemon alive."
