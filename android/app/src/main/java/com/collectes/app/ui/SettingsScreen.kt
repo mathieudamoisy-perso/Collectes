@@ -1,7 +1,11 @@
 package com.collectes.app.ui
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -63,9 +67,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.collectes.app.R
 import com.collectes.app.data.ReminderTime
-import com.collectes.app.data.SyncState
-import com.collectes.app.data.SyncStatusFormatter
+import com.collectes.app.notifications.NotificationHelper
 import com.collectes.app.util.BatteryOptimizationHelper
+import com.collectes.app.util.ExactAlarmHelper
 import com.collectes.app.util.FeedbackHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +86,6 @@ fun SettingsScreen(
     val useBrandColors by viewModel.useBrandColors.collectAsState()
     val enabledReminderTypes by viewModel.enabledReminderTypes.collectAsState()
     val availableReminderTypes by viewModel.availableReminderTypes.collectAsState()
-    val syncState by viewModel.syncState.collectAsState()
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
     val versionName = remember {
@@ -94,6 +97,17 @@ fun SettingsScreen(
     var ignoringBatteryOptimizations by remember {
         mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context))
     }
+    var canScheduleExactAlarms by remember {
+        mutableStateOf(ExactAlarmHelper.canScheduleExactAlarms(context))
+    }
+    var canPostNotifications by remember {
+        mutableStateOf(NotificationHelper.canPostNotifications(context))
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        canPostNotifications = NotificationHelper.canPostNotifications(context)
+    }
     var feedbackEmailError by remember { mutableStateOf<String?>(null) }
     var feedbackWhatsAppError by remember { mutableStateOf<String?>(null) }
 
@@ -102,6 +116,8 @@ fun SettingsScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 ignoringBatteryOptimizations =
                     BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
+                canScheduleExactAlarms = ExactAlarmHelper.canScheduleExactAlarms(context)
+                canPostNotifications = NotificationHelper.canPostNotifications(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -266,6 +282,68 @@ fun SettingsScreen(
                 }
             }
 
+            if (!canPostNotifications) {
+                item {
+                    SettingsSectionCard {
+                        SettingsSectionHeader(
+                            icon = Icons.Outlined.NotificationsActive,
+                            title = "Notifications"
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Sans cette autorisation, Collectes ne peut pas afficher " +
+                                "le rappel le jour de la collecte.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    notificationPermissionLauncher.launch(
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Autoriser les notifications")
+                        }
+                    }
+                }
+            }
+
+            if (!canScheduleExactAlarms) {
+                item {
+                    SettingsSectionCard {
+                        SettingsSectionHeader(
+                            icon = Icons.Filled.Notifications,
+                            title = "Alarmes exactes"
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Sans cette autorisation, Android peut retarder le rappel " +
+                                "ou le sauter quand le téléphone est en veille.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { ExactAlarmHelper.openExactAlarmSettings(context) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Autoriser les alarmes exactes")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Sur l’écran suivant, autorisez Collectes à planifier des alarmes exactes.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
             if (!ignoringBatteryOptimizations) {
                 item {
                     SettingsSectionCard {
@@ -354,19 +432,6 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
-                    }
-                    when (val sync = syncState) {
-                        is SyncState.Success -> {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = SyncStatusFormatter.format(sync.lastSync),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        else -> Unit
                     }
                 }
             }

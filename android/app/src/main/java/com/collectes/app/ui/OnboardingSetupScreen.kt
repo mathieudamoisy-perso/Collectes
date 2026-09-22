@@ -53,16 +53,18 @@ import com.collectes.app.util.DeviceLocationHelper
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private enum class OnboardingStep { Commune, ReminderTime }
+private enum class OnboardingStep { Commune, ReminderTime, Reliability }
 
 @Composable
 fun OnboardingSetupScreen(
     communes: List<VexinCommune>,
+    onCommuneSelected: (VexinCommune) -> Unit = {},
     onSetupComplete: (commune: VexinCommune, reminderTimeMinutes: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var step by rememberSaveable { mutableStateOf(OnboardingStep.Commune) }
     var selectedSlug by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedReminderMinutes by rememberSaveable { mutableStateOf<Int?>(null) }
     val selectedCommune = remember(selectedSlug, communes) {
         selectedSlug?.let { slug -> communes.find { it.slug == slug } }
     }
@@ -72,6 +74,7 @@ fun OnboardingSetupScreen(
             communes = communes,
             onCommuneChosen = { commune ->
                 selectedSlug = commune.slug
+                onCommuneSelected(commune)
                 step = OnboardingStep.ReminderTime
             },
             modifier = modifier
@@ -83,7 +86,23 @@ fun OnboardingSetupScreen(
             } else {
                 ReminderTimeSetupStep(
                     onBack = { step = OnboardingStep.Commune },
-                    onConfirm = { minutes -> onSetupComplete(commune, minutes) },
+                    onConfirm = { minutes ->
+                        selectedReminderMinutes = minutes
+                        step = OnboardingStep.Reliability
+                    },
+                    modifier = modifier
+                )
+            }
+        }
+        OnboardingStep.Reliability -> {
+            val commune = selectedCommune
+            val minutes = selectedReminderMinutes
+            if (commune == null || minutes == null) {
+                step = OnboardingStep.Commune
+            } else {
+                ReliabilitySetupScreen(
+                    onBack = { step = OnboardingStep.ReminderTime },
+                    onContinue = { onSetupComplete(commune, minutes) },
                     modifier = modifier
                 )
             }
@@ -179,7 +198,7 @@ private fun CommuneSetupStep(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Étape 1 sur 2 · Commune",
+                text = "Étape 1 sur 3 · Commune",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -350,7 +369,7 @@ private fun ReminderTimeSetupStep(
             )
         }
         Text(
-            text = "Étape 2 sur 2 · Notification",
+            text = "Étape 2 sur 3 · Notification",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 12.dp)

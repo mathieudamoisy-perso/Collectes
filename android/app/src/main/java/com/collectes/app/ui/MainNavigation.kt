@@ -2,6 +2,7 @@ package com.collectes.app.ui
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +38,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -53,7 +53,6 @@ import kotlin.math.abs
 @Composable
 fun BottomBarOverlay(
     pagerState: PagerState,
-    visibility: Float,
     onTabSelected: (AppTab) -> Unit,
     onHeightChanged: (Dp) -> Unit,
     modifier: Modifier = Modifier
@@ -61,7 +60,6 @@ fun BottomBarOverlay(
     CollectesBottomBar(
         pagerState = pagerState,
         onTabSelected = onTabSelected,
-        visibility = visibility,
         onHeightChanged = onHeightChanged,
         modifier = modifier
     )
@@ -88,7 +86,6 @@ private val tabIcons = mapOf(
 fun CollectesBottomBar(
     pagerState: PagerState,
     onTabSelected: (AppTab) -> Unit,
-    visibility: Float,
     onHeightChanged: (Dp) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -107,17 +104,11 @@ fun CollectesBottomBar(
             .onSizeChanged { size ->
                 onHeightChanged(with(density) { size.height.toDp() })
             }
-            .alpha(if (visibility < 0.05f) 0f else 1f)
-            .graphicsLayer {
-                val hiddenOffset = size.height * (1f - visibility)
-                translationY = hiddenOffset
-                alpha = visibility.coerceIn(0f, 1f)
-            }
             .background(barColor)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f * visibility)
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             )
             TabTopStripe(
                 pagerPosition = pagerPosition,
@@ -158,6 +149,7 @@ fun CollectesBottomBar(
                         filledIcon = icons.filled,
                         label = tab.label,
                         selectionWeight = weight,
+                        animateSelection = !pagerState.isScrollInProgress,
                         tint = tint,
                         selectedColor = selectedColor
                     )
@@ -183,15 +175,20 @@ private fun TabBarIcon(
     filledIcon: ImageVector,
     label: String,
     selectionWeight: Float,
+    animateSelection: Boolean,
     tint: androidx.compose.ui.graphics.Color,
     selectedColor: androidx.compose.ui.graphics.Color
 ) {
     val animatedWeight by animateFloatAsState(
         targetValue = selectionWeight,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
+        animationSpec = if (animateSelection) {
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
+            )
+        } else {
+            snap()
+        },
         label = "tabIconWeight"
     )
 

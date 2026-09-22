@@ -6,6 +6,7 @@ import com.collectes.app.data.db.CollectionEventEntity
 import com.collectes.app.data.db.SyncMetadataEntity
 import com.collectes.app.notifications.ReminderScheduler
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -90,11 +91,13 @@ class CalendarRepository(
         }
     }
 
-    suspend fun ensureCalendarSynced(force: Boolean = false): Result<Int> = withContext(Dispatchers.IO) {
+    suspend fun ensureCalendarSynced(
+        force: Boolean = false,
+        communeOverride: VexinCommune? = null,
+        scheduleReminders: Boolean = true
+    ): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
-            PDFBoxResourceLoader.init(context.applicationContext)
-
-            val commune = preferencesManager.getSelectedCommune()
+            val commune = communeOverride ?: preferencesManager.getSelectedCommune()
             val currentYear = LocalDate.now(zoneId).year
             if (force) {
                 clearLocalCalendarCache()
@@ -110,11 +113,6 @@ class CalendarRepository(
             ) {
                 val cached = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
                 if (cached.isNotEmpty()) {
-                    reminderScheduler.scheduleUpcomingReminders(
-                        cached.mapNotNull { it.toCollectionDay() },
-                        preferencesManager.getReminderTimeMinutes(),
-                        preferencesManager.getEnabledReminderTypes()
-                    )
                     _syncState.value = SyncState.Success(
                         Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
                         metadata.calendarYear
@@ -136,6 +134,9 @@ class CalendarRepository(
                 }.getOrNull()
             } else {
                 null
+            }
+            if (pdfFile != null) {
+                PDFBoxResourceLoader.init(context.applicationContext)
             }
             val pdfText = pdfFile?.let { runCatching { parser.extractText(it) }.getOrNull() }
             val pageText = runCatching {
@@ -179,19 +180,30 @@ class CalendarRepository(
                 )
             )
 
-            reminderScheduler.scheduleUpcomingReminders(
-                events,
-                preferencesManager.getReminderTimeMinutes(),
-                preferencesManager.getEnabledReminderTypes()
-            )
+            if (scheduleReminders) {
+                reminderScheduler.scheduleUpcomingReminders(
+                    events,
+                    preferencesManager.getReminderTimeMinutes(),
+                    preferencesManager.getEnabledReminderTypes()
+                )
+            }
             preferencesManager.setCalendarLogicVersion(PreferencesManager.CALENDAR_LOGIC_VERSION)
 
             _syncState.value = SyncState.Success(Instant.now(), currentYear)
             currentYear
         }.onFailure { error ->
+            if (error is CancellationException) throw error
             _syncState.value = SyncState.Error(error.message ?: "Erreur inconnue")
         }
     }
+
+    /** Précharge le calendrier pendant l’onboarding, sans toucher aux prefs / alarmes. */
+    suspend fun prefetchCalendar(commune: VexinCommune): Result<Int> =
+        ensureCalendarSynced(
+            force = true,
+            communeOverride = commune,
+            scheduleReminders = false
+        )
 
     suspend fun hasCachedCalendar(): Boolean = isCachedCalendarForSelectedCommune()
 

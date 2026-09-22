@@ -6,6 +6,7 @@ import android.content.Intent
 import com.collectes.app.data.CalendarRepository
 import com.collectes.app.data.PreferencesManager
 import com.collectes.app.data.ReminderTypeFilter
+import com.collectes.app.data.WasteType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,10 +28,13 @@ class ReminderReceiver : BroadcastReceiver() {
                 val collectionDate = intent.getStringExtra(EXTRA_COLLECTION_DATE)?.let(LocalDate::parse)
                     ?: LocalDate.now().plusDays(1)
 
-                val types = ReminderTypeFilter.filterTypes(
-                    repository.getCollectionsOn(collectionDate),
-                    enabledTypes
-                )
+                val fromExtras = intent.getStringArrayExtra(EXTRA_WASTE_TYPES)
+                    ?.mapNotNull { WasteType.fromStorage(it) }
+                    .orEmpty()
+                val rawTypes = fromExtras.ifEmpty {
+                    repository.getCollectionsOn(collectionDate)
+                }
+                val types = ReminderTypeFilter.filterTypes(rawTypes, enabledTypes)
                 if (types.isEmpty()) return@launch
 
                 val message = ReminderScheduler.formatReminderMessage(collectionDate, types)

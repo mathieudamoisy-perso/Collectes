@@ -21,6 +21,7 @@ class PreferencesManager(private val context: Context) {
     private val calendarLogicVersionKey = intPreferencesKey("calendar_logic_version")
     private val useBrandColorsKey = booleanPreferencesKey("use_brand_colors")
     private val reminderTypesKey = stringPreferencesKey("reminder_enabled_types")
+    private val reliabilitySetupDoneKey = booleanPreferencesKey("reliability_setup_done")
 
     val reminderTimeMinutes: Flow<Int> = context.dataStore.data.map { prefs ->
         resolveReminderTimeMinutes(prefs)
@@ -33,6 +34,11 @@ class PreferencesManager(private val context: Context) {
     /** True dès qu'une commune a été choisie explicitement (manuel ou géoloc). */
     val hasCompletedCommuneSetup: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs.contains(communeSlugKey)
+    }
+
+    /** True après l’écran autorisations rappels (onboarding ou rattrapage). */
+    val hasCompletedReliabilitySetup: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[reliabilitySetupDoneKey] == true
     }
 
     val useBrandColors: Flow<Boolean> = context.dataStore.data.map { prefs ->
@@ -63,7 +69,26 @@ class PreferencesManager(private val context: Context) {
         cachedSelectedCommune = commune
     }
 
+    /** Fin d’onboarding : commune + heure + reliability en une seule écriture (évite un flash UI). */
+    suspend fun completeInitialSetup(commune: VexinCommune, reminderTimeMinutes: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[reminderMinutesKey] = ReminderTime.coerce(reminderTimeMinutes)
+            prefs.remove(legacyReminderHourKey)
+            prefs[communeSlugKey] = commune.slug
+            prefs[reliabilitySetupDoneKey] = true
+        }
+        cachedSelectedCommune = commune
+    }
+
     suspend fun hasCompletedCommuneSetup(): Boolean = hasCompletedCommuneSetup.first()
+
+    suspend fun setReliabilitySetupDone(done: Boolean = true) {
+        context.dataStore.edit { prefs ->
+            prefs[reliabilitySetupDoneKey] = done
+        }
+    }
+
+    suspend fun hasCompletedReliabilitySetup(): Boolean = hasCompletedReliabilitySetup.first()
 
     suspend fun setUseBrandColors(enabled: Boolean) {
         context.dataStore.edit { prefs ->

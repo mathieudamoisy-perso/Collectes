@@ -17,24 +17,35 @@ import java.util.Locale
 class ReminderScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val zoneId = ZoneId.of("Europe/Paris")
+    private val schedulePrefs by lazy {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     fun scheduleUpcomingReminders(
         events: List<CollectionDay>,
         reminderTimeMinutes: Int,
         enabledTypes: Set<WasteType> = WasteType.entries.toSet()
     ) {
-        events.forEach { cancelReminder(it) }
         val filtered = ReminderTypeFilter.filterEvents(events, enabledTypes)
         val now = LocalDateTime.now(zoneId)
+        val today = LocalDate.now(zoneId)
+        val horizon = today.plusDays(SCHEDULE_HORIZON_DAYS)
         val hour = reminderTimeMinutes / 60
         val minute = reminderTimeMinutes % 60
 
-        filtered.forEach { event ->
+        val toSchedule = filtered.filter { event ->
             val reminderDateTime = event.date.minusDays(1).atTime(hour, minute)
-            if (reminderDateTime.isAfter(now)) {
-                scheduleReminder(event, reminderDateTime)
-            }
+            reminderDateTime.isAfter(now) && !event.date.isAfter(horizon)
         }
+        val fingerprint = buildFingerprint(toSchedule, reminderTimeMinutes, enabledTypes)
+        if (fingerprint == schedulePrefs.getString(KEY_FINGERPRINT, null)) return
+
+        filtered.forEach { cancelReminder(it) }
+        toSchedule.forEach { event ->
+            val reminderDateTime = event.date.minusDays(1).atTime(hour, minute)
+            scheduleReminder(event, reminderDateTime)
+        }
+        schedulePrefs.edit().putString(KEY_FINGERPRINT, fingerprint).apply()
     }
 
     private fun cancelReminder(event: CollectionDay) {
@@ -86,12 +97,28 @@ class ReminderScheduler(private val context: Context) {
     }
 
     companion object {
+        private const val PREFS_NAME = "reminder_schedule"
+        private const val KEY_FINGERPRINT = "fingerprint"
+        const val SCHEDULE_HORIZON_DAYS = 30L
+
         fun formatReminderMessage(collectionDate: LocalDate, wasteTypes: List<WasteType>): String {
             val formattedDate = collectionDate.format(
                 DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
             )
             val bins = wasteTypes.joinToString(" + ") { it.notificationLabel }
             return "Demain ($formattedDate) : sortir $bins"
+        }
+
+        private fun buildFingerprint(
+            events: List<CollectionDay>,
+            reminderTimeMinutes: Int,
+            enabledTypes: Set<WasteType>
+        ): String {
+            val typesKey = enabledTypes.sortedBy { it.ordinal }.joinToString(",") { it.name }
+            val eventsKey = events.joinToString(";") { event ->
+                "${event.date.toEpochDay()}:${event.wasteTypes.sortedBy { it.ordinal }.joinToString(",") { it.name }}"
+            }
+            return "$reminderTimeMinutes|$typesKey|$eventsKey"
         }
     }
 }

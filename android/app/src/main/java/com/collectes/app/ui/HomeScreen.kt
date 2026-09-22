@@ -41,14 +41,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -67,6 +67,7 @@ import com.collectes.app.data.WasteType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,12 +99,19 @@ fun HomeScreen(
         label = "refreshAlpha"
     )
     val pullRefreshState = rememberPullToRefreshState()
-    val pullRefreshScope = rememberCoroutineScope()
-    val pullRefreshEnabled = !showSkeleton
-    var refreshFromPull by remember { mutableStateOf(false) }
+    var isPullRefreshing by remember { mutableStateOf(false) }
+    val bottomInset = LocalBottomBarInset.current
 
-    val showPullRefresh = isRefreshing && refreshFromPull
-    val bottomInset = LocalBottomBarInset.current * LocalBottomBarVisibility.current
+    // Possède l’état Material : true dès le geste, false quand le sync quitte Loading
+    // (ou s’il ne démarre pas — évite l’indicateur bloqué).
+    LaunchedEffect(isPullRefreshing, uiState.syncState) {
+        if (!isPullRefreshing) return@LaunchedEffect
+        if (uiState.syncState is SyncState.Loading) return@LaunchedEffect
+        delay(150)
+        if (isPullRefreshing && uiState.syncState !is SyncState.Loading) {
+            isPullRefreshing = false
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         CollectesAppHeader(
@@ -119,25 +127,19 @@ fun HomeScreen(
             )
         }
         PullToRefreshBox(
-            isRefreshing = showPullRefresh,
+            isRefreshing = isPullRefreshing,
             onRefresh = {
-                if (pullRefreshEnabled) {
-                    refreshFromPull = true
-                    onRefresh()
-                }
+                isPullRefreshing = true
+                onRefresh()
             },
             state = pullRefreshState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             indicator = {
-                CollectesPullRefreshIndicator(
+                PullToRefreshDefaults.Indicator(
                     state = pullRefreshState,
-                    isRefreshing = showPullRefresh,
-                    onComplete = {
-                        refreshFromPull = false
-                        pullRefreshScope.launch { pullRefreshState.snapTo(0f) }
-                    },
+                    isRefreshing = isPullRefreshing,
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             },
@@ -146,7 +148,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .alpha(contentAlpha)
-                    .collectesNestedScroll(),
+                    .pagerNestedScroll(),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,

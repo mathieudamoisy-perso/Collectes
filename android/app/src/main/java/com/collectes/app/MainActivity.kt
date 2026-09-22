@@ -1,14 +1,11 @@
 package com.collectes.app
 
-import android.Manifest
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -36,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -46,6 +44,7 @@ import com.collectes.app.data.PreferencesManager
 import com.collectes.app.data.VexinCommune
 import com.collectes.app.data.VexinCommunes
 import com.collectes.app.data.WasteType
+import com.collectes.app.notifications.NotificationHelper
 import com.collectes.app.ui.AppTab
 import com.collectes.app.ui.BottomBarOverlay
 import com.collectes.app.ui.CollectesTheme
@@ -54,34 +53,26 @@ import com.collectes.app.ui.GuideScreen
 import com.collectes.app.ui.HomeScreen
 import com.collectes.app.ui.HomeViewModel
 import com.collectes.app.ui.HomeViewModelFactory
-import com.collectes.app.ui.LocalBottomBarHideScroll
 import com.collectes.app.ui.LocalBottomBarInset
-import com.collectes.app.ui.LocalBottomBarVisibility
 import com.collectes.app.ui.LocalPagerNestedScroll
+import com.collectes.app.ui.ReliabilitySetupScreen
 import com.collectes.app.ui.SettingsScreen
 import com.collectes.app.ui.SettingsViewModel
 import com.collectes.app.ui.SettingsViewModelFactory
 import com.collectes.app.ui.rememberBottomBarFallbackHeight
-import com.collectes.app.ui.rememberBottomBarHideScrollConnection
 import com.collectes.app.ui.rememberBottomBarInset
-import com.collectes.app.ui.rememberBottomBarScrollState
-import com.collectes.app.ui.rememberBottomBarVisibility
 import com.collectes.app.ui.rememberPagerNestedScrollConnection
+import com.collectes.app.util.BatteryOptimizationHelper
+import com.collectes.app.util.ExactAlarmHelper
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class MainActivity : ComponentActivity() {
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         title = getString(R.string.app_name)
         enableEdgeToEdge()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
 
         val repository = CalendarRepository(applicationContext)
         val preferencesManager = PreferencesManager(applicationContext)
@@ -90,12 +81,44 @@ class MainActivity : ComponentActivity() {
             val darkTheme = isSystemInDarkTheme()
             val useBrandColors by preferencesManager.useBrandColors.collectAsState(initial = true)
             val scope = rememberCoroutineScope()
-            var communeSetupDone by remember { mutableStateOf<Boolean?>(null) }
+            val context = LocalContext.current
+            // Initial non-null : 1er frame = vraie UI (évite splash Android 12+ coincé).
+            val communeSetupDone by preferencesManager.hasCompletedCommuneSetup.collectAsState(initial = false)
+            val reliabilitySetupDone by preferencesManager.hasCompletedReliabilitySetup.collectAsState(initial = true)
+            var needsReliabilityCatchUp by remember { mutableStateOf(false) }
+            var calendarPrefetchJob by remember { mutableStateOf<Job?>(null) }
+            val lifecycleOwner = LocalLifecycleOwner.current
 
-            LaunchedEffect(preferencesManager) {
-                preferencesManager.hasCompletedCommuneSetup.collect { done ->
-                    communeSetupDone = done
+            fun refreshReliabilityCatchUp(communeDone: Boolean, reliabilityDone: Boolean) {
+                needsReliabilityCatchUp = communeDone &&
+                    !reliabilityDone &&
+                    (
+                        !NotificationHelper.canPostNotifications(context) ||
+                            !ExactAlarmHelper.canScheduleExactAlarms(context) ||
+                            !BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
+                    )
+            }
+
+            LaunchedEffect(communeSetupDone, reliabilitySetupDone) {
+                refreshReliabilityCatchUp(communeSetupDone, reliabilitySetupDone)
+                if (communeSetupDone && !reliabilitySetupDone) {
+                    val missing = !NotificationHelper.canPostNotifications(context) ||
+                        !ExactAlarmHelper.canScheduleExactAlarms(context) ||
+                        !BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
+                    if (!missing) {
+                        preferencesManager.setReliabilitySetupDone(true)
+                    }
                 }
+                reportFullyDrawn()
+            }
+            DisposableEffect(lifecycleOwner, context, communeSetupDone, reliabilitySetupDone) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        refreshReliabilityCatchUp(communeSetupDone, reliabilitySetupDone)
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
             CollectesTheme(useBrandColors = useBrandColors) {
@@ -115,29 +138,54 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    when (communeSetupDone) {
-                        null -> Box(modifier = Modifier.fillMaxSize())
-                        false -> Box(
+                    when {
+                        !communeSetupDone -> Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(WindowInsets.statusBars.asPaddingValues())
                         ) {
                             OnboardingSetupScreen(
                                 communes = VexinCommunes.all,
+                                onCommuneSelected = { commune ->
+                                    calendarPrefetchJob?.cancel()
+                                    calendarPrefetchJob = scope.launch {
+                                        try {
+                                            repository.prefetchCalendar(commune)
+                                        } catch (_: CancellationException) {
+                                            // changement de commune pendant l’onboarding
+                                        }
+                                    }
+                                },
                                 onSetupComplete = { commune, reminderTimeMinutes ->
                                     scope.launch {
                                         completeOnboarding(
                                             repository = repository,
                                             preferencesManager = preferencesManager,
                                             commune = commune,
-                                            reminderTimeMinutes = reminderTimeMinutes
+                                            reminderTimeMinutes = reminderTimeMinutes,
+                                            prefetchJob = calendarPrefetchJob
                                         )
                                     }
                                 },
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
-                        true -> CollectesMainApp(
+                        needsReliabilityCatchUp -> Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(WindowInsets.statusBars.asPaddingValues())
+                        ) {
+                            ReliabilitySetupScreen(
+                                onContinue = {
+                                    scope.launch {
+                                        preferencesManager.setReliabilitySetupDone(true)
+                                    }
+                                },
+                                stepLabel = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        else -> CollectesMainApp(
                             repository = repository,
                             preferencesManager = preferencesManager
                         )
@@ -151,11 +199,21 @@ class MainActivity : ComponentActivity() {
         repository: CalendarRepository,
         preferencesManager: PreferencesManager,
         commune: VexinCommune,
-        reminderTimeMinutes: Int
+        reminderTimeMinutes: Int,
+        prefetchJob: Job?
     ) {
-        preferencesManager.setReminderTime(reminderTimeMinutes)
-        repository.setCommune(commune)
-        repository.ensureCalendarSynced(force = true)
+        try {
+            prefetchJob?.join()
+        } catch (_: CancellationException) {
+            // prefetch annulé : sync ci-dessous si besoin
+        }
+        preferencesManager.completeInitialSetup(commune, reminderTimeMinutes)
+        if (!repository.hasCachedCalendar()) {
+            repository.ensureCalendarSynced(force = true)
+        } else {
+            repository.ensureCalendarSynced(force = false)
+        }
+        repository.rescheduleReminders(reminderTimeMinutes)
     }
 }
 
@@ -179,7 +237,6 @@ private fun CollectesMainApp(
         initialPage = 0,
         pageCount = { tabs.size }
     )
-    val bottomBarScrollState = rememberBottomBarScrollState()
     var bottomBarMeasuredHeight by remember { mutableStateOf(0.dp) }
     val bottomBarFallbackHeight = rememberBottomBarFallbackHeight()
     val bottomBarHeight = if (bottomBarMeasuredHeight > 0.dp) {
@@ -188,18 +245,13 @@ private fun CollectesMainApp(
         bottomBarFallbackHeight
     }
     val bottomBarInset = rememberBottomBarInset(bottomBarHeight)
-    val bottomBarVisibility = rememberBottomBarVisibility(bottomBarScrollState)
     val pagerNestedScrollConnection = rememberPagerNestedScrollConnection(pagerState)
-    val bottomBarHideScrollConnection = rememberBottomBarHideScrollConnection(
-        bottomBarScrollState
-    )
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { page ->
             if (tabs[page] != AppTab.Guide) {
                 guideDetailType = null
             }
-            bottomBarScrollState.show()
         }
     }
 
@@ -208,7 +260,6 @@ private fun CollectesMainApp(
         if (tab != AppTab.Guide) {
             guideDetailType = null
         }
-        bottomBarScrollState.show()
         scope.launch {
             pagerState.animateScrollToPage(page)
         }
@@ -231,9 +282,7 @@ private fun CollectesMainApp(
     ) {
         CompositionLocalProvider(
             LocalPagerNestedScroll provides pagerNestedScrollConnection,
-            LocalBottomBarHideScroll provides bottomBarHideScrollConnection,
-            LocalBottomBarInset provides bottomBarInset,
-            LocalBottomBarVisibility provides bottomBarVisibility
+            LocalBottomBarInset provides bottomBarInset
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -282,7 +331,6 @@ private fun CollectesMainApp(
 
         BottomBarOverlay(
             pagerState = pagerState,
-            visibility = bottomBarVisibility,
             onTabSelected = ::selectTab,
             onHeightChanged = { bottomBarMeasuredHeight = it },
             modifier = Modifier.align(Alignment.BottomCenter)
