@@ -56,6 +56,7 @@ class HomeViewModel(
                 upcoming = snapshot.upcoming,
                 commune = commune.displayName,
                 contentCommuneSlug = commune.slug,
+                syncState = SyncState.Success(snapshot.lastSync, snapshot.calendarYear),
                 isInitialLoading = false
             )
         } else {
@@ -118,9 +119,8 @@ class HomeViewModel(
                             isInitialLoading = false
                         )
                     }
-                    else -> {
-                        _uiState.value = _uiState.value.copy(syncState = sync)
-                    }
+                    // Idle : ne pas effacer une Success déjà lue depuis le cache local
+                    is SyncState.Idle -> Unit
                 }
             }
         }
@@ -158,6 +158,13 @@ class HomeViewModel(
         val tomorrow = today.plusDays(1)
         val tomorrowTypes = repository.getCollectionsOn(tomorrow, filter = null)
         val filteredUpcoming = repository.getUpcomingEvents(filter = filter)
+        val cachedSync = repository.getCachedSyncSuccess()
+        val currentSync = _uiState.value.syncState
+        val nextSync = when (currentSync) {
+            is SyncState.Loading, is SyncState.Error -> currentSync
+            is SyncState.Success -> currentSync
+            is SyncState.Idle -> cachedSync ?: currentSync
+        }
 
         _uiState.value = _uiState.value.copy(
             tomorrowLabel = tomorrow.format(dateFormatter).replaceFirstChar {
@@ -168,9 +175,10 @@ class HomeViewModel(
             activeFilter = filter,
             commune = commune.displayName,
             contentCommuneSlug = commune.slug,
+            syncState = nextSync,
             isLoadingNewCommune = false,
             isInitialLoading = !repository.hasCachedCalendar() &&
-                _uiState.value.syncState !is SyncState.Error
+                nextSync !is SyncState.Error
         )
         repository.refreshHomeSnapshotCache(filter)
     }

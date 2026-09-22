@@ -102,3 +102,32 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("org.robolectric:robolectric:4.11.1")
 }
+
+// Stage l’APK pour l’icône « Reset Collectes » sur l’émulateur.
+afterEvaluate {
+    tasks.named("installDebug").configure {
+        doLast {
+            val apk = layout.buildDirectory.file("outputs/apk/debug/app-debug.apk").get().asFile
+            if (!apk.exists()) {
+                logger.warn("APK debug introuvable, stage reset ignoré: ${apk.absolutePath}")
+                return@doLast
+            }
+            val adbHome = System.getenv("ANDROID_HOME")
+                ?: System.getenv("ANDROID_SDK_ROOT")
+                ?: "${System.getenv("LOCALAPPDATA")}/Android/Sdk"
+            val adbExt = if (System.getProperty("os.name").startsWith("Windows")) ".exe" else ""
+            val adb = "$adbHome/platform-tools/adb$adbExt"
+            val serial = System.getenv("ANDROID_SERIAL") ?: "emulator-5554"
+            val process = ProcessBuilder(
+                adb, "-s", serial, "push", apk.absolutePath, "/data/local/tmp/collectes-debug.apk"
+            ).redirectErrorStream(true).start()
+            val output = process.inputStream.bufferedReader().readText()
+            val code = process.waitFor()
+            if (code != 0) {
+                logger.warn("Stage reset APK échoué ($code): $output")
+            } else {
+                logger.lifecycle("APK stagé pour Reset Collectes → /data/local/tmp/collectes-debug.apk")
+            }
+        }
+    }
+}

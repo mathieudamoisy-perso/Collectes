@@ -82,12 +82,15 @@ class MainActivity : ComponentActivity() {
             val useBrandColors by preferencesManager.useBrandColors.collectAsState(initial = true)
             val scope = rememberCoroutineScope()
             val context = LocalContext.current
-            // Initial non-null : 1er frame = vraie UI (évite splash Android 12+ coincé).
-            val communeSetupDone by preferencesManager.hasCompletedCommuneSetup.collectAsState(initial = false)
-            val reliabilitySetupDone by preferencesManager.hasCompletedReliabilitySetup.collectAsState(initial = true)
+            // null = prefs pas encore lues (évite flash Bienvenue avant DataStore).
+            val communeSetupDone by preferencesManager.hasCompletedCommuneSetup
+                .collectAsState(initial = null as Boolean?)
+            val reliabilitySetupDone by preferencesManager.hasCompletedReliabilitySetup
+                .collectAsState(initial = null as Boolean?)
             var needsReliabilityCatchUp by remember { mutableStateOf(false) }
             var calendarPrefetchJob by remember { mutableStateOf<Job?>(null) }
             val lifecycleOwner = LocalLifecycleOwner.current
+            val prefsReady = communeSetupDone != null && reliabilitySetupDone != null
 
             fun refreshReliabilityCatchUp(communeDone: Boolean, reliabilityDone: Boolean) {
                 needsReliabilityCatchUp = communeDone &&
@@ -100,8 +103,10 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(communeSetupDone, reliabilitySetupDone) {
-                refreshReliabilityCatchUp(communeSetupDone, reliabilitySetupDone)
-                if (communeSetupDone && !reliabilitySetupDone) {
+                val communeDone = communeSetupDone ?: return@LaunchedEffect
+                val reliabilityDone = reliabilitySetupDone ?: return@LaunchedEffect
+                refreshReliabilityCatchUp(communeDone, reliabilityDone)
+                if (communeDone && !reliabilityDone) {
                     val missing = !NotificationHelper.canPostNotifications(context) ||
                         !ExactAlarmHelper.canScheduleExactAlarms(context) ||
                         !BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
@@ -114,7 +119,11 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(lifecycleOwner, context, communeSetupDone, reliabilitySetupDone) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_RESUME) {
-                        refreshReliabilityCatchUp(communeSetupDone, reliabilitySetupDone)
+                        val communeDone = communeSetupDone
+                        val reliabilityDone = reliabilitySetupDone
+                        if (communeDone != null && reliabilityDone != null) {
+                            refreshReliabilityCatchUp(communeDone, reliabilityDone)
+                        }
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
@@ -139,7 +148,10 @@ class MainActivity : ComponentActivity() {
 
                 Surface(color = MaterialTheme.colorScheme.background) {
                     when {
-                        !communeSetupDone -> Box(
+                        !prefsReady -> {
+                            Box(modifier = Modifier.fillMaxSize())
+                        }
+                        communeSetupDone != true -> Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(WindowInsets.statusBars.asPaddingValues())

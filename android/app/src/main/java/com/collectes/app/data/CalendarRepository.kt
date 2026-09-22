@@ -27,7 +27,9 @@ data class HomeSnapshot(
     val tomorrowLabel: String,
     val tomorrowWasteTypes: List<WasteType>,
     val upcoming: List<CollectionDay>,
-    val communeSlug: String
+    val communeSlug: String,
+    val lastSync: Instant,
+    val calendarYear: Int
 )
 
 class CalendarRepository(
@@ -70,6 +72,7 @@ class CalendarRepository(
 
     private suspend fun buildHomeSnapshot(filter: WasteType?): HomeSnapshot? {
         if (!isCachedCalendarForSelectedCommune()) return null
+        val metadata = syncMetadataDao.get() ?: return null
         val today = LocalDate.now(zoneId)
         val tomorrow = today.plusDays(1)
         val commune = preferencesManager.getSelectedCommune()
@@ -80,7 +83,19 @@ class CalendarRepository(
             tomorrowLabel = tomorrowLabel,
             tomorrowWasteTypes = tomorrowTypes,
             upcoming = upcoming,
-            communeSlug = commune.slug
+            communeSlug = commune.slug,
+            lastSync = Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
+            calendarYear = metadata.calendarYear
+        )
+    }
+
+    /** Date de synchro locale, sans attendre ensureCalendarSynced. */
+    suspend fun getCachedSyncSuccess(): SyncState.Success? = withContext(Dispatchers.IO) {
+        if (!isCachedCalendarForSelectedCommune()) return@withContext null
+        val metadata = syncMetadataDao.get() ?: return@withContext null
+        SyncState.Success(
+            Instant.ofEpochMilli(metadata.lastSyncEpochMillis),
+            metadata.calendarYear
         )
     }
 
