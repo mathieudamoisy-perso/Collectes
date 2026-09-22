@@ -14,7 +14,7 @@ import java.io.File
 
 /**
  * Icône émulateur : pose un drapeau dans le stockage privé de l’app.
- * Le daemon on-device (root) le lit et fait uninstall + reinstall.
+ * Le daemon on-device le lit et fait install -r + clear (icône home conservée).
  */
 class ResetActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

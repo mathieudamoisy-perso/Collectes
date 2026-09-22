@@ -19,6 +19,7 @@ function Invoke-Adb {
     return $LASTEXITCODE
 }
 
+# root optionnel (images userdebug) ; Play Store / user → shell + run-as suffisent
 Invoke-Adb root 2>$null | Out-Null
 Invoke-Adb wait-for-device | Out-Null
 

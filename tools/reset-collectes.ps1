@@ -1,4 +1,4 @@
-# Full Collectes reset on emulator from PC: uninstall + installDebug + start.
+# Full Collectes reset on emulator from PC: installDebug + clear + start (no uninstall).
 # Usage: powershell -File tools/reset-collectes.ps1
 
 $ErrorActionPreference = "Stop"
@@ -8,9 +8,7 @@ $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
 $serial = if ($env:ANDROID_SERIAL) { $env:ANDROID_SERIAL } else { "emulator-5554" }
 
 Write-Host "Reset Collectes on $serial"
-& $adb -s $serial root | Out-Null
 & $adb -s $serial wait-for-device | Out-Null
-& $adb -s $serial shell pm uninstall com.collectes.app 2>$null | Out-Null
 
 $env:ANDROID_SERIAL = $serial
 Push-Location $androidDir
@@ -21,6 +19,8 @@ try {
     Pop-Location
 }
 
+# clear après install -r : données à zéro, icône home inchangée
+& $adb -s $serial shell pm clear com.collectes.app | Out-Null
 & $adb -s $serial shell am force-stop com.collectes.app
 & $adb -s $serial shell am start -n com.collectes.app/.MainActivity
-Write-Host "OK - Collectes reinstalled fresh."
+Write-Host "OK - Collectes reinstalled fresh (launcher icon kept)."
