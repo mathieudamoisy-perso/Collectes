@@ -12,4 +12,17 @@ Dès qu’une modification de l’app Android est demandée et livrée (UI, logi
 3. `gradlew :app:installDebug` avec `ANDROID_SERIAL=emulator-5554`
 4. Relancer l’app : `adb shell am force-stop com.collectes.app` puis `am start -n com.collectes.app/.MainActivity`
 
+## Démarrage émulateur (sans fenêtre CMD)
+
+Sous Windows, ne pas utiliser `Start-Process emulator` (affiche une console). Lancer ainsi :
+
+```powershell
+$psi = New-Object System.Diagnostics.ProcessStartInfo
+$psi.FileName = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"
+$psi.Arguments = "-avd Collectes_API36 -netdelay none -netspeed full"
+$psi.CreateNoWindow = $true
+$psi.UseShellExecute = $false
+[void][System.Diagnostics.Process]::Start($psi)
+```
+
 Ne pas attendre que Mathieu redemande un relancement. Exceptions : pure doc / règles / questions sans changement de code.

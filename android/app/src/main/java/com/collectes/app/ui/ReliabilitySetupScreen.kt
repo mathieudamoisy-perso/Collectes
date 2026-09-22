@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,9 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -99,7 +104,7 @@ fun ReliabilitySetupScreen(
                 Spacer(modifier = Modifier.width(12.dp))
             }
             Text(
-                text = "Pour que les rappels arrivent",
+                text = "Rappels à l’heure",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -112,14 +117,16 @@ fun ReliabilitySetupScreen(
                 modifier = Modifier.padding(start = 12.dp)
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Android peut mettre Collectes en veille. " +
-                "Ces autorisations aident le rappel à arriver à l’heure.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
+        if (!allGranted) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Android peut mettre Collectes en veille. " +
+                    "Ces autorisations aident le rappel à arriver à l’heure.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
@@ -129,11 +136,41 @@ fun ReliabilitySetupScreen(
                 .padding(horizontal = 12.dp)
         ) {
             if (allGranted) {
-                Text(
-                    text = "Tout est prêt : les rappels peuvent être planifiés à l’heure.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(56.dp)
+                        )
+                        Text(
+                            text = "Tout est prêt",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Les rappels pourront arriver à l’heure. " +
+                                "Vous pouvez accéder au calendrier des collectes.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             } else {
                 if (!canPostNotifications) {
                     Text(
@@ -235,7 +272,10 @@ fun ReliabilitySetupScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Text(if (allGranted) "Continuer" else "Continuer sans tout autoriser")
+            Text(
+                if (allGranted) "Voir le calendrier des collectes"
+                else "Continuer sans tout autoriser"
+            )
         }
         if (!allGranted) {
             Text(
