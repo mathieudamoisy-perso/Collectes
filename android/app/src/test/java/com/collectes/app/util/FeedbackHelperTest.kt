@@ -25,6 +25,27 @@ class FeedbackHelperTest {
     }
 
     @Test
+    fun buildTechnicalInfoIncludesReliabilityDiagnosticsWhenProvided() {
+        val info = FeedbackHelper.buildTechnicalInfo(
+            appVersion = "1.2.3",
+            communeName = "Bouconvillers",
+            androidRelease = "16",
+            androidSdk = 36,
+            deviceManufacturer = "Xiaomi",
+            deviceModel = "24115RA8EG",
+            canPostNotifications = true,
+            canScheduleExactAlarms = false,
+            ignoringBatteryOptimizations = true,
+            communeSetupDone = true
+        )
+
+        assertTrue(info.contains("Setup commune : oui"))
+        assertTrue(info.contains("Notifications : oui"))
+        assertTrue(info.contains("Alarmes exactes : non"))
+        assertTrue(info.contains("Batterie non restreinte : oui"))
+    }
+
+    @Test
     fun buildWhatsAppBodyLeavesRoomForMessageAboveTechnicalInfo() {
         val body = FeedbackHelper.buildWhatsAppBody(
             appVersion = "1.2.3",

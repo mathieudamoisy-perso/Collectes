@@ -21,10 +21,15 @@ class ReminderScheduler(private val context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
+    /**
+     * @param force true = replanifie même si le fingerprint n’a pas changé
+     * (alarmes parfois annulées par le système / OEM sans toucher aux prefs).
+     */
     fun scheduleUpcomingReminders(
         events: List<CollectionDay>,
         reminderTimeMinutes: Int,
-        enabledTypes: Set<WasteType> = WasteType.entries.toSet()
+        enabledTypes: Set<WasteType> = WasteType.entries.toSet(),
+        force: Boolean = false
     ) {
         val filtered = ReminderTypeFilter.filterEvents(events, enabledTypes)
         val now = LocalDateTime.now(zoneId)
@@ -38,7 +43,7 @@ class ReminderScheduler(private val context: Context) {
             reminderDateTime.isAfter(now) && !event.date.isAfter(horizon)
         }
         val fingerprint = buildFingerprint(toSchedule, reminderTimeMinutes, enabledTypes)
-        if (fingerprint == schedulePrefs.getString(KEY_FINGERPRINT, null)) return
+        if (!force && fingerprint == schedulePrefs.getString(KEY_FINGERPRINT, null)) return
 
         filtered.forEach { cancelReminder(it) }
         toSchedule.forEach { event ->

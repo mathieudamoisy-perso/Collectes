@@ -286,13 +286,18 @@ class CalendarRepository(
         return getCollectionsOn(tomorrow, filter)
     }
 
-    suspend fun rescheduleReminders(reminderTimeMinutes: Int) = withContext(Dispatchers.IO) {
+    /** Replanifie les alarmes ; force=true par défaut (OEM peut les avoir annulées). */
+    suspend fun rescheduleReminders(
+        reminderTimeMinutes: Int,
+        force: Boolean = true
+    ) = withContext(Dispatchers.IO) {
         val events = collectionDao.getEventsFrom(LocalDate.now(zoneId).toEpochDay())
             .mapNotNull { it.toCollectionDay() }
         reminderScheduler.scheduleUpcomingReminders(
             events,
             reminderTimeMinutes,
-            preferencesManager.getEnabledReminderTypes()
+            preferencesManager.getEnabledReminderTypes(),
+            force = force
         )
     }
 

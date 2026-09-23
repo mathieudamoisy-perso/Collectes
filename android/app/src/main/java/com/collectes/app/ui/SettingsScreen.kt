@@ -505,7 +505,11 @@ fun SettingsScreen(
                                 recipient = context.getString(R.string.developer_contact_email),
                                 subject = context.getString(R.string.feedback_email_subject),
                                 appVersion = versionName,
-                                communeName = selectedCommune.displayName
+                                communeName = selectedCommune.displayName,
+                                canPostNotifications = canPostNotifications,
+                                canScheduleExactAlarms = canScheduleExactAlarms,
+                                ignoringBatteryOptimizations = ignoringBatteryOptimizations,
+                                communeSetupDone = true
                             ).onFailure {
                                 feedbackEmailError = "Impossible d'ouvrir l'application mail"
                             }
@@ -534,7 +538,11 @@ fun SettingsScreen(
                                 context = context,
                                 phoneE164 = context.getString(R.string.developer_whatsapp_phone),
                                 appVersion = versionName,
-                                communeName = selectedCommune.displayName
+                                communeName = selectedCommune.displayName,
+                                canPostNotifications = canPostNotifications,
+                                canScheduleExactAlarms = canScheduleExactAlarms,
+                                ignoringBatteryOptimizations = ignoringBatteryOptimizations,
+                                communeSetupDone = true
                             ).onFailure {
                                 feedbackWhatsAppError = "Impossible d'ouvrir WhatsApp"
                             }

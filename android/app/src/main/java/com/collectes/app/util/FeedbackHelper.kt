@@ -14,13 +14,24 @@ object FeedbackHelper {
         androidRelease: String = Build.VERSION.RELEASE,
         androidSdk: Int = Build.VERSION.SDK_INT,
         deviceManufacturer: String = Build.MANUFACTURER,
-        deviceModel: String = Build.MODEL
-    ): String = """
-        • Application : Collectes v$appVersion
-        • Commune : $communeName
-        • Android : $androidRelease (API $androidSdk)
-        • Appareil : $deviceManufacturer $deviceModel
-    """.trimIndent()
+        deviceModel: String = Build.MODEL,
+        canPostNotifications: Boolean? = null,
+        canScheduleExactAlarms: Boolean? = null,
+        ignoringBatteryOptimizations: Boolean? = null,
+        communeSetupDone: Boolean? = null
+    ): String {
+        val lines = mutableListOf(
+            "• Application : Collectes v$appVersion",
+            "• Commune : $communeName",
+            "• Android : $androidRelease (API $androidSdk)",
+            "• Appareil : $deviceManufacturer $deviceModel"
+        )
+        communeSetupDone?.let { lines.add("• Setup commune : ${ouiNon(it)}") }
+        canPostNotifications?.let { lines.add("• Notifications : ${ouiNon(it)}") }
+        canScheduleExactAlarms?.let { lines.add("• Alarmes exactes : ${ouiNon(it)}") }
+        ignoringBatteryOptimizations?.let { lines.add("• Batterie non restreinte : ${ouiNon(it)}") }
+        return lines.joinToString("\n")
+    }
 
     fun buildWhatsAppBody(
         appVersion: String,
@@ -28,14 +39,22 @@ object FeedbackHelper {
         androidRelease: String = Build.VERSION.RELEASE,
         androidSdk: Int = Build.VERSION.SDK_INT,
         deviceManufacturer: String = Build.MANUFACTURER,
-        deviceModel: String = Build.MODEL
+        deviceModel: String = Build.MODEL,
+        canPostNotifications: Boolean? = null,
+        canScheduleExactAlarms: Boolean? = null,
+        ignoringBatteryOptimizations: Boolean? = null,
+        communeSetupDone: Boolean? = null
     ): String = buildFeedbackBody(
         appVersion,
         communeName,
         androidRelease,
         androidSdk,
         deviceManufacturer,
-        deviceModel
+        deviceModel,
+        canPostNotifications,
+        canScheduleExactAlarms,
+        ignoringBatteryOptimizations,
+        communeSetupDone
     )
 
     fun buildFeedbackBody(
@@ -44,14 +63,22 @@ object FeedbackHelper {
         androidRelease: String = Build.VERSION.RELEASE,
         androidSdk: Int = Build.VERSION.SDK_INT,
         deviceManufacturer: String = Build.MANUFACTURER,
-        deviceModel: String = Build.MODEL
+        deviceModel: String = Build.MODEL,
+        canPostNotifications: Boolean? = null,
+        canScheduleExactAlarms: Boolean? = null,
+        ignoringBatteryOptimizations: Boolean? = null,
+        communeSetupDone: Boolean? = null
     ): String = "\n\n---\n${buildTechnicalInfo(
         appVersion,
         communeName,
         androidRelease,
         androidSdk,
         deviceManufacturer,
-        deviceModel
+        deviceModel,
+        canPostNotifications,
+        canScheduleExactAlarms,
+        ignoringBatteryOptimizations,
+        communeSetupDone
     )}"
 
     fun buildMailtoUri(recipient: String, subject: String, body: String): Uri =
@@ -66,14 +93,27 @@ object FeedbackHelper {
     private fun encodeUrlComponent(value: String): String =
         URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
 
+    private fun ouiNon(value: Boolean): String = if (value) "oui" else "non"
+
     fun openDeveloperEmail(
         context: Context,
         recipient: String,
         subject: String,
         appVersion: String,
-        communeName: String
+        communeName: String,
+        canPostNotifications: Boolean? = null,
+        canScheduleExactAlarms: Boolean? = null,
+        ignoringBatteryOptimizations: Boolean? = null,
+        communeSetupDone: Boolean? = null
     ): Result<Unit> {
-        val body = buildFeedbackBody(appVersion, communeName)
+        val body = buildFeedbackBody(
+            appVersion = appVersion,
+            communeName = communeName,
+            canPostNotifications = canPostNotifications,
+            canScheduleExactAlarms = canScheduleExactAlarms,
+            ignoringBatteryOptimizations = ignoringBatteryOptimizations,
+            communeSetupDone = communeSetupDone
+        )
         val intent = Intent(
             Intent.ACTION_SENDTO,
             buildMailtoUri(recipient, subject, body)
@@ -85,9 +125,20 @@ object FeedbackHelper {
         context: Context,
         phoneE164: String,
         appVersion: String,
-        communeName: String
+        communeName: String,
+        canPostNotifications: Boolean? = null,
+        canScheduleExactAlarms: Boolean? = null,
+        ignoringBatteryOptimizations: Boolean? = null,
+        communeSetupDone: Boolean? = null
     ): Result<Unit> {
-        val body = buildWhatsAppBody(appVersion, communeName)
+        val body = buildWhatsAppBody(
+            appVersion = appVersion,
+            communeName = communeName,
+            canPostNotifications = canPostNotifications,
+            canScheduleExactAlarms = canScheduleExactAlarms,
+            ignoringBatteryOptimizations = ignoringBatteryOptimizations,
+            communeSetupDone = communeSetupDone
+        )
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(buildWhatsAppUrl(phoneE164, body))).apply {
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
