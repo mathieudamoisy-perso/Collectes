@@ -3,7 +3,8 @@ name: deploy
 description: >-
   Prépare une release Play Store Collectes : bump de version, build AAB,
   mise à jour README/PLAY_STORE/politique de confidentialité, notes de
-  version Play Console, et e-mail d’annonce beta fermée prêt à coller.
+  version Play Console, et e-mail d’annonce beta fermée prêt à coller
+  (lien Play Store + liste BCC des testeurs).
   Use when the user runs /deploy or asks to release, publish, ship a beta,
   or generate an AAB for Collectes.
 disable-model-invocation: true
@@ -23,7 +24,7 @@ Deploy Progress:
 - [ ] 4. Mettre à jour la politique de confidentialité si besoin
 - [ ] 5. Builder l’AAB release
 - [ ] 6. Livrer les notes de version (copie-coller) + résumé
-- [ ] 7. Livrer l’e-mail d’annonce beta (copie-coller)
+- [ ] 7. Livrer l’e-mail d’annonce beta (lien Play + liste BCC testeurs)
 ```
 
 ## 1. Analyser les changements
@@ -148,9 +149,10 @@ Structurer la réponse ainsi :
 1. **Version** : `X.Y.Z` (`versionCode` N)
 2. **AAB** : chemin absolu ou relatif du fichier généré + confirmation OK
 3. **Notes de version** : bloc prêt à coller (fenced, sans backticks internes) — **exactement** le texte mis dans `PLAY_STORE.md`
-4. **E-mail beta** : objet + corps prêts à coller (voir §7)
-5. **Docs** : liste des fichiers touchés (README, PLAY_STORE, privacy si applicable)
-6. **Prochaines étapes manuelles** (courtes) :
+4. **Destinataires BCC** : liste §7.1 prête à coller en Cci (obligatoire à chaque deploy)
+5. **E-mail beta** : objet + corps prêts à coller (voir §7) — le corps **doit** contenir le lien Play §7.2
+6. **Docs** : liste des fichiers touchés (README, PLAY_STORE, privacy si applicable)
+7. **Prochaines étapes manuelles** (courtes) :
    - (si privacy modifiée) push `main` pour GitHub Pages
    - Play Console → Tests fermés → Créer une version → uploader l’AAB → coller les notes
    - vérifier Data safety + URL privacy
@@ -173,19 +175,64 @@ Interface : barre de navigation plus stable au défilement.
 
 À produire **systématiquement** en fin de deploy (même si Mathieu n’envoie pas tout de suite). Texte **prêt à copier-coller** dans Gmail (ou autre), en français, ton simple et personnel.
 
-### Destinataires
+Chaque fin de deploy doit livrer **trois** blocs collables : **BCC** (§7.1) + **objet** + **corps** (avec lien §7.2).
 
-- **À** : Mathieu (lui-même) ou laisser vide
-- **Cci (BCC)** : **toutes** les adresses de la liste Play Console → Tests → Tests fermés → Testeurs
-- Ne **jamais** committer la liste d’e-mails dans le repo
-- Ne pas mettre les testeurs en **À** / **Cc** (respect de la vie privée entre testeurs)
+### 7.1 Destinataires (BCC)
+
+- **À** : laisser vide (ou Mathieu lui-même)
+- **Cci (BCC)** : coller **toutes** les adresses ci-dessous (une par ligne ou séparées par des virgules selon le client mail)
+- Ne **jamais** mettre les testeurs en **À** / **Cc** (respect de la vie privée entre testeurs)
+- Ne **pas** recopier cette liste dans `README.md`, `PLAY_STORE.md`, privacy, ni dans le corps du mail aux testeurs
 - N’envoyer **qu’après** que la version soit disponible sur le track test fermé (sinon le lien Play ne propose pas encore la MAJ)
+- Si Mathieu ajoute/retire un testeur : **mettre à jour la liste ci-dessous** dans ce skill (source de vérité pour `/deploy`)
 
-Si Mathieu demande explicitement d’**envoyer** le mail via Gmail MCP : s’authentifier si besoin, puis brouillon/envoi avec BCC. Sinon : uniquement le texte à coller.
+Liste BCC à coller (source de vérité) :
+
+```
+Angeline.diot@gmail.com
+Supernaut870@gmail.com
+audrey.dychus@gmail.com
+axel.basle@live.fr
+boeselthibaut@gmail.com
+dychus.sylvie2@gmail.com
+emiliekerguinas.ek@gmail.com
+julien@boesel.fr
+mdamoisy@gmail.com
+melissarahmoune@gmail.com
+nath1basle@gmail.com
+paulwindev@gmail.com
+richard.daffniet@gmail.com
+sophie27godard@gmail.com
+sylvain.montergous@gmail.com
+vanessa@boesel.fr
+```
+
+Dans la réponse à Mathieu, afficher cette liste sous un titre du type **Destinataires (BCC)** / **Cci :** avant l’objet du mail.
+
+Si Mathieu demande explicitement d’**envoyer** le mail via Gmail MCP : s’authentifier si besoin, puis brouillon/envoi avec BCC = liste §7.1. Sinon : uniquement le texte à coller.
+
+### 7.2 Lien de téléchargement / mise à jour
+
+Lien **obligatoire** dans le corps du mail (ne pas inventer d’autre URL) :
+
+```
+https://play.google.com/store/apps/details?id=com.collectes.app
+```
+
+Lien d’opt-in test fermé (optionnel, seulement si un testeur n’a pas encore rejoint le programme) :
+
+```
+https://play.google.com/apps/testing/com.collectes.app
+```
 
 ### Format de la réponse (obligatoire)
 
-Deux blocs distincts, texte brut (pas de markdown dans le corps collable) :
+Trois blocs distincts, texte brut (pas de markdown dans le corps collable) :
+
+**Cci :**
+```
+(adresses de §7.1, une par ligne)
+```
 
 **Objet :**
 ```
@@ -203,7 +250,9 @@ Nouveautés :
 - Bullet utilisateur 2
 - …
 
-Pour mettre à jour : ouvrir Play Store → Collectes (ou le lien d’invitation au test) → Mettre à jour.
+Télécharger / mettre à jour depuis le téléphone :
+https://play.google.com/store/apps/details?id=com.collectes.app
+
 Après installation : ouvrir l’app et tirer pour rafraîchir le calendrier si besoin.
 
 Un souci ou une idée ? Répondre à ce mail ou utiliser Contact développeur dans les réglages de l’app.
@@ -218,7 +267,8 @@ Mathieu
 - 3 à 6 puces max ; pas de jargon technique
 - Mentionner une **nouvelle commune** en premier si c’est le cas
 - Si privacy / domaines changent : une phrase du type « la politique de confidentialité a été mise à jour »
-- Pas de lien deep-play inventé ; parler du Play Store / lien d’invitation déjà connu des testeurs
+- Toujours inclure le lien §7.2 dans le corps (bloc « Télécharger / mettre à jour… »)
+- Toujours livrer la liste BCC §7.1 dans la réponse (hors corps du mail)
 - Pas d’emojis sauf si Mathieu le demande
 
 ### Exemple de ton
@@ -232,7 +282,9 @@ Nouveautés :
 - Cabourg : nouvelle commune (calendrier Normandie Cabourg Pays d’Auge)
 - Calendrier : ordures et emballages affichés correctement le même jour quand les deux sont collectés
 
-Pour mettre à jour : ouvrir Play Store → Collectes → Mettre à jour.
+Télécharger / mettre à jour depuis le téléphone :
+https://play.google.com/store/apps/details?id=com.collectes.app
+
 Après installation : ouvrir l’app et tirer pour rafraîchir le calendrier si besoin.
 
 Un souci ou une idée ? Répondre à ce mail ou utiliser Contact développeur dans les réglages de l’app.

@@ -1,7 +1,7 @@
 # Publication Google Play — Collectes
 
 Application : **Collectes** (`com.collectes.app`)  
-Version actuelle : `1.8.0` (`versionCode` 12)
+Version actuelle : `1.9.0` (`versionCode` 13)
 
 ## 1. Compte développeur
 
@@ -81,9 +81,18 @@ Après la première synchronisation, le calendrier fonctionne hors ligne. Aucun 
 
 **Catégorie :** Outils (ou Style de vie)
 
-### Notes de version — test fermé 1.8.0
+### Notes de version — test fermé 1.9.0
 
 À coller dans Play Console → Tests fermés → Notes de version :
+
+```
+Rappels plus fiables : assistant pour autoriser notifications et alarmes exactes.
+Réglages : accès rapide si les autorisations de rappel manquent.
+Mise à jour de l’app : les rappels sont replanifiés automatiquement.
+Accueil : libellé « Aucune collecte prévue » plus clair.
+```
+
+### Notes de version — test fermé 1.8.0 (historique)
 
 ```
 Premier lancement : assistant pour choisir la commune et l’heure du rappel.
