@@ -462,7 +462,7 @@ private fun TomorrowCard(
                     ) {
                         NoCollectionIcon(size = 20.dp)
                         Text(
-                            "Rien à sortir",
+                            "Aucune collecte prévue",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
