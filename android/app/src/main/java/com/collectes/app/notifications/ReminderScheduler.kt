@@ -43,19 +43,40 @@ class ReminderScheduler(private val context: Context) {
             reminderDateTime.isAfter(now) && !event.date.isAfter(horizon)
         }
         val fingerprint = buildFingerprint(toSchedule, reminderTimeMinutes, enabledTypes)
-        if (!force && fingerprint == schedulePrefs.getString(KEY_FINGERPRINT, null)) return
+        val previousEpochDays = loadScheduledEpochDays()
+        val nextEpochDays = toSchedule.map { it.date.toEpochDay() }.toSet()
+        if (!force &&
+            fingerprint == schedulePrefs.getString(KEY_FINGERPRINT, null) &&
+            previousEpochDays == nextEpochDays
+        ) {
+            return
+        }
 
-        filtered.forEach { cancelReminder(it) }
+        // Annule l’horizon + l’ancien set (alarmes orphelines hors calendrier actuel).
+        cancelRemindersInRange(today, horizon)
+        previousEpochDays.forEach { cancelReminder(it) }
         toSchedule.forEach { event ->
             val reminderDateTime = event.date.minusDays(1).atTime(hour, minute)
             scheduleReminder(event, reminderDateTime)
         }
-        schedulePrefs.edit().putString(KEY_FINGERPRINT, fingerprint).apply()
+        schedulePrefs.edit()
+            .putString(KEY_FINGERPRINT, fingerprint)
+            .putString(KEY_SCHEDULED_EPOCH_DAYS, encodeEpochDays(nextEpochDays))
+            .apply()
     }
 
-    private fun cancelReminder(event: CollectionDay) {
+    private fun cancelRemindersInRange(today: LocalDate, horizon: LocalDate) {
+        var epoch = today.toEpochDay()
+        val endEpoch = horizon.toEpochDay()
+        while (epoch <= endEpoch) {
+            cancelReminder(epoch)
+            epoch++
+        }
+    }
+
+    private fun cancelReminder(epochDay: Long) {
         val intent = Intent(context, ReminderReceiver::class.java)
-        val requestCode = event.date.toEpochDay().toInt()
+        val requestCode = epochDay.toInt()
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             requestCode,
@@ -66,6 +87,11 @@ class ReminderScheduler(private val context: Context) {
             alarmManager.cancel(it)
             it.cancel()
         }
+    }
+
+    private fun loadScheduledEpochDays(): Set<Long> {
+        val raw = schedulePrefs.getString(KEY_SCHEDULED_EPOCH_DAYS, null) ?: return emptySet()
+        return decodeEpochDays(raw)
     }
 
     private fun scheduleReminder(event: CollectionDay, reminderDateTime: LocalDateTime) {
@@ -104,6 +130,7 @@ class ReminderScheduler(private val context: Context) {
     companion object {
         private const val PREFS_NAME = "reminder_schedule"
         private const val KEY_FINGERPRINT = "fingerprint"
+        private const val KEY_SCHEDULED_EPOCH_DAYS = "scheduled_epoch_days"
         const val SCHEDULE_HORIZON_DAYS = 30L
 
         fun formatReminderMessage(collectionDate: LocalDate, wasteTypes: List<WasteType>): String {
@@ -113,6 +140,14 @@ class ReminderScheduler(private val context: Context) {
             val bins = wasteTypes.joinToString(" + ") { it.notificationLabel }
             return "Demain ($formattedDate) : sortir $bins"
         }
+
+        fun encodeEpochDays(epochDays: Set<Long>): String =
+            epochDays.sorted().joinToString(",")
+
+        fun decodeEpochDays(raw: String): Set<Long> =
+            raw.split(',')
+                .mapNotNull { it.trim().toLongOrNull() }
+                .toSet()
 
         private fun buildFingerprint(
             events: List<CollectionDay>,

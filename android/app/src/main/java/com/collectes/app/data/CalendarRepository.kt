@@ -222,6 +222,12 @@ class CalendarRepository(
 
     suspend fun hasCachedCalendar(): Boolean = isCachedCalendarForSelectedCommune()
 
+    /** True s’il reste au moins un événement en base pour la commune courante. */
+    suspend fun hasAnyCachedEvents(): Boolean = withContext(Dispatchers.IO) {
+        if (!isCachedCalendarForSelectedCommune()) return@withContext false
+        collectionDao.getEventsFrom(LocalDate.of(1970, 1, 1).toEpochDay()).isNotEmpty()
+    }
+
     suspend fun getSelectedCommune(): VexinCommune = preferencesManager.getSelectedCommune()
 
     suspend fun setCommune(commune: VexinCommune) {

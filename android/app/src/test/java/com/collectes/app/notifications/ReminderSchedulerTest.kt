@@ -41,4 +41,12 @@ class ReminderSchedulerTest {
             message
         )
     }
+
+    @Test
+    fun encodeDecodeScheduledEpochDaysRoundTrip() {
+        val days = setOf(20_000L, 20_014L, 20_007L)
+        val encoded = ReminderScheduler.encodeEpochDays(days)
+        assertEquals("20000,20007,20014", encoded)
+        assertEquals(days, ReminderScheduler.decodeEpochDays(encoded))
+    }
 }
