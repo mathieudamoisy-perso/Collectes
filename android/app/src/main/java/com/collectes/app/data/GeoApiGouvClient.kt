@@ -9,7 +9,9 @@ data class GeoCommune(
     val codeDepartement: String,
     val codesPostaux: List<String>,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    /** Code SIREN de l’EPCI (intercommunalité), si connu. */
+    val codeEpci: String? = null
 ) {
     val subtitle: String
         get() = codesPostaux.firstOrNull().orEmpty()
@@ -21,7 +23,7 @@ data class GeoCommune(
  */
 object GeoApiGouvClient {
     private const val BASE = "https://geo.api.gouv.fr/communes"
-    private const val FIELDS = "nom,code,codesPostaux,codeDepartement,centre"
+    private const val FIELDS = "nom,code,codesPostaux,codeDepartement,centre,codeEpci"
     private val postalCodeRegex = Regex("^\\d{5}$")
 
     /** Recherche unifiée : code postal (5 chiffres) ou nom de commune. */
@@ -123,6 +125,7 @@ object GeoApiGouvClient {
         val code = stringField(obj, "code")?.ifBlank { null } ?: return null
         val dept = stringField(obj, "codeDepartement").orEmpty()
         val cps = stringArrayField(obj, "codesPostaux")
+        val codeEpci = stringField(obj, "codeEpci")?.ifBlank { null }
         // GeoJSON centre.coordinates : [longitude, latitude]
         val coords = doubleArrayUnder(obj, "coordinates")
         val lon = coords.getOrNull(0) ?: 0.0
@@ -133,7 +136,8 @@ object GeoApiGouvClient {
             codeDepartement = dept,
             codesPostaux = cps,
             latitude = lat,
-            longitude = lon
+            longitude = lon,
+            codeEpci = codeEpci
         )
     }
 

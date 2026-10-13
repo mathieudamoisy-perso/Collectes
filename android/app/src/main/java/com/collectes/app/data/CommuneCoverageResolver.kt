@@ -6,22 +6,35 @@ sealed class CommuneCoverageResult {
     data class Covered(
         val commune: VexinCommune,
         /** Libellé court pour l’UI (ex. « SMIRTOM du Vexin »). */
-        val sourceLabel: String
+        val sourceLabel: String,
+        /** L’utilisateur doit indiquer sa rue avant de continuer. */
+        val needsStreet: Boolean = false
     ) : CommuneCoverageResult()
 
-    data class NotCovered(val geoName: String) : CommuneCoverageResult()
+    data class NotCovered(
+        val geoName: String,
+        val detail: String? = null
+    ) : CommuneCoverageResult()
 }
 
 /**
  * Résout une commune geo.api.gouv vers une source de calendrier supportée.
- * Cascade : index national → catalogue local → SMIRTOM (règles / fiche live).
+ * Cascade : index → catalogue → SMIRTOM → découverte multi-sources
+ * (mairie, EPCI, opérateurs liés).
  */
 object CommuneCoverageResolver {
 
     fun resolve(
         geo: GeoCommune,
         indexLookup: (String) -> IndexedCommune? = { null },
-        smirtomPageExists: (String) -> Boolean = ::probeSmirtomPage
+        smirtomPageExists: (String) -> Boolean = ::probeSmirtomPage,
+        discoverCalendar: (GeoCommune) -> DiscoveredCalendar? = { geo ->
+            CommuneCalendarDiscovery.discover(
+                geo = geo,
+                fetchText = { url -> runCatching { SmirtomHttp.get(url) }.getOrNull() }
+            )
+        },
+        openDataLookup: (GeoCommune) -> DiscoveredCalendar? = OpenDataScheduleLookup::find
     ): CommuneCoverageResult {
         indexLookup(geo.codeInsee)?.let { indexed ->
             return CommuneCoverageResult.Covered(
@@ -39,6 +52,16 @@ object CommuneCoverageResolver {
             return CommuneCoverageResult.Covered(
                 commune = smirtomDiscovered(geo, slug),
                 sourceLabel = "SMIRTOM du Vexin"
+            )
+        }
+
+        val discovered = runCatching { discoverCalendar(geo) }.getOrNull()
+            ?: runCatching { openDataLookup(geo) }.getOrNull()
+        if (discovered != null) {
+            return CommuneCoverageResult.Covered(
+                commune = discoveredCommune(geo, discovered),
+                sourceLabel = discovered.sourceLabel,
+                needsStreet = discovered.needsStreet
             )
         }
 
@@ -65,6 +88,17 @@ object CommuneCoverageResolver {
         )
     }
 
+    fun discoveredCommune(geo: GeoCommune, discovered: DiscoveredCalendar): VexinCommune {
+        return VexinCommune(
+            slug = VexinCommunes.nameToSlug(geo.nom),
+            displayName = geo.nom,
+            officialCalendarUrl = discovered.calendarUrl,
+            infoPageUrl = discovered.infoPageUrl,
+            latitude = geo.latitude,
+            longitude = geo.longitude
+        )
+    }
+
     fun sourceLabelFor(commune: VexinCommune): String = when {
         commune.usesSmirtomNetwork -> "SMIRTOM du Vexin"
         commune.usesEmeraudeCalendarSource -> "Syndicat Emeraude"
@@ -75,9 +109,16 @@ object CommuneCoverageResolver {
         else -> "Calendrier officiel"
     }
 
+    fun notCoveredMessage(result: CommuneCoverageResult.NotCovered): String {
+        result.detail?.let { return it }
+        return "Calendrier introuvable pour ${result.geoName} pour le moment. " +
+            "Aucun PDF de collecte n’a été trouvé sur les sites liés à la commune " +
+            "(mairie, intercommunalité, opérateurs)."
+    }
+
+    /** @deprecated Préférer [notCoveredMessage] avec [CommuneCoverageResult.NotCovered]. */
     fun notCoveredMessage(geoName: String): String =
-        "Calendrier introuvable pour $geoName pour le moment. " +
-            "Cette commune n’est pas encore dans l’index Collectes."
+        notCoveredMessage(CommuneCoverageResult.NotCovered(geoName))
 
     private fun VexinCommune.withGeoFallback(geo: GeoCommune): VexinCommune {
         if (latitude != 0.0 || longitude != 0.0) return this

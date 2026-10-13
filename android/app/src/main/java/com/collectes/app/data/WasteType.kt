@@ -48,6 +48,8 @@ data class CollectionRules(
     val emballagesRecurrence: CollectionRecurrence = CollectionRecurrence.BIWEEKLY,
     val verreRecurrence: CollectionRecurrence = CollectionRecurrence.EVERY_FOUR_WEEKS,
     val verreMonthOrdinal: Int? = null,
+    /** Plusieurs passages verre / mois (ex. 2ᵉ et 4ᵉ vendredi). */
+    val verreMonthOrdinals: Set<Int> = emptySet(),
     val encombrantsDay: java.time.DayOfWeek? = null,
     val encombrantsMonthOrdinal: Int? = null,
     val vegetauxSchedule: VegetauxSchedule? = null,

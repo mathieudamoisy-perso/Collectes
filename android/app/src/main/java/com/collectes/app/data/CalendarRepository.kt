@@ -138,6 +138,41 @@ class CalendarRepository(
 
             _syncState.value = SyncState.Loading
 
+            if (OpenDataCalendarParser.isRecordsUrl(commune.officialCalendarUrl)) {
+                if (commune.streetHint.isBlank()) {
+                    throw CalendarFetchException(
+                        "Indiquez votre rue pour afficher les jours de collecte à ${commune.displayName}."
+                    )
+                }
+                val openDataEvents = OpenDataCalendarParser.parse(
+                    recordsUrl = commune.officialCalendarUrl,
+                    street = commune.streetHint,
+                    year = currentYear
+                ) ?: throw CalendarFetchException(
+                    "Rue introuvable dans les données ouvertes de ${commune.displayName}."
+                )
+                collectionDao.clearAll()
+                collectionDao.insertAll(openDataEvents.map { it.toEntity() })
+                syncMetadataDao.upsert(
+                    SyncMetadataEntity(
+                        calendarYear = currentYear,
+                        lastSyncEpochMillis = System.currentTimeMillis(),
+                        pdfUrl = commune.officialCalendarUrl,
+                        communeSlug = commune.slug
+                    )
+                )
+                if (scheduleReminders) {
+                    reminderScheduler.scheduleUpcomingReminders(
+                        openDataEvents,
+                        preferencesManager.getReminderTimeMinutes(),
+                        preferencesManager.getEnabledReminderTypes()
+                    )
+                }
+                preferencesManager.setCalendarLogicVersion(PreferencesManager.CALENDAR_LOGIC_VERSION)
+                _syncState.value = SyncState.Success(Instant.now(), currentYear)
+                return@runCatching currentYear
+            }
+
             val pdfUrl = commune.officialCalendarUrl.takeIf { it.isNotBlank() }
                 ?: runCatching { fetcher.findPdfUrl(currentYear, commune) }.getOrNull()
             val pdfFile = if (pdfUrl != null) {
@@ -158,30 +193,23 @@ class CalendarRepository(
                 communeRulesFetcher.fetchText(commune)
             }.getOrNull()
 
-            val ccvtEvents = pdfFile?.let { CcvtCalendarParser.parseIfPresent(it, currentYear) }
-            val events = if (ccvtEvents != null) {
-                ccvtEvents
+            val readEvents = CalendarEventsReader.read(
+                year = currentYear,
+                commune = commune,
+                pdfFile = pdfFile,
+                pdfText = pdfText,
+                pageText = pageText
+            ) ?: throw CalendarFetchException(
+                "Calendrier trouvé pour ${commune.displayName}, " +
+                    "mais ce format n’est pas encore lisible automatiquement."
+            )
+            val events = if (commune.usesSmirtomNetwork) {
+                val encombrantsEvents = encombrantsFetcher.toCollectionDays(
+                    encombrantsFetcher.fetchDates(currentYear, commune)
+                )
+                CollectionDayMerger.merge(readEvents + encombrantsEvents)
             } else {
-                val rules = CalendarReconciler.reconcile(
-                    pdfText = pdfText,
-                    pageText = pageText,
-                    commune = commune,
-                    year = currentYear
-                )
-                val regularEvents = CalendarDateGenerator.generate(
-                    currentYear,
-                    rules,
-                    includeNextYearJanuary = true
-                )
-                val encombrantsEvents = if (rules.encombrantsMonthOrdinal != null) {
-                    CalendarDateGenerator.encombrantsDates(currentYear, rules, includeNextYearJanuary = true)
-                        .map { date -> CollectionDay(date, listOf(WasteType.ENCOMBRANTS)) }
-                } else {
-                    encombrantsFetcher.toCollectionDays(
-                        encombrantsFetcher.fetchDates(currentYear, commune)
-                    )
-                }
-                CollectionDayMerger.merge(regularEvents + encombrantsEvents)
+                readEvents
             }
 
             collectionDao.clearAll()

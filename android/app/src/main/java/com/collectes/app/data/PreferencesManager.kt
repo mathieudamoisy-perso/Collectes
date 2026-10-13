@@ -26,6 +26,7 @@ class PreferencesManager(private val context: Context) {
     private val communeCustomKey = booleanPreferencesKey("commune_custom")
     private val communeCalendarUrlKey = stringPreferencesKey("commune_calendar_url")
     private val communeInfoPageUrlKey = stringPreferencesKey("commune_info_page_url")
+    private val communeStreetKey = stringPreferencesKey("commune_street")
     private val calendarLogicVersionKey = intPreferencesKey("calendar_logic_version")
     private val useBrandColorsKey = booleanPreferencesKey("use_brand_colors")
     private val reminderTypesKey = stringPreferencesKey("reminder_enabled_types")
@@ -159,7 +160,8 @@ class PreferencesManager(private val context: Context) {
             officialCalendarUrl = prefs[communeCalendarUrlKey].orEmpty(),
             infoPageUrl = if (smirtom) null else prefs[communeInfoPageUrlKey],
             latitude = prefs[communeLatKey]?.toDoubleOrNull() ?: 0.0,
-            longitude = prefs[communeLonKey]?.toDoubleOrNull() ?: 0.0
+            longitude = prefs[communeLonKey]?.toDoubleOrNull() ?: 0.0,
+            streetHint = prefs[communeStreetKey].orEmpty()
         )
     }
 
@@ -174,6 +176,7 @@ class PreferencesManager(private val context: Context) {
             prefs.remove(communeCustomKey)
             prefs.remove(communeCalendarUrlKey)
             prefs.remove(communeInfoPageUrlKey)
+            prefs.remove(communeStreetKey)
         } else {
             prefs[communeCustomKey] = true
             prefs[communeDisplayNameKey] = commune.displayName
@@ -181,6 +184,11 @@ class PreferencesManager(private val context: Context) {
             prefs[communeLonKey] = commune.longitude.toString()
             prefs[communeDiscoveredSmirtomKey] = commune.usesSmirtomNetwork
             prefs[communeCalendarUrlKey] = commune.officialCalendarUrl
+            if (commune.streetHint.isBlank()) {
+                prefs.remove(communeStreetKey)
+            } else {
+                prefs[communeStreetKey] = commune.streetHint
+            }
             val info = commune.infoPageUrl
             if (info.isNullOrBlank()) {
                 prefs.remove(communeInfoPageUrlKey)
@@ -196,7 +204,7 @@ class PreferencesManager(private val context: Context) {
     }
 
     companion object {
-        const val CALENDAR_LOGIC_VERSION = 21
+        const val CALENDAR_LOGIC_VERSION = 22
 
         @Volatile
         var cachedSelectedCommune: VexinCommune? = null

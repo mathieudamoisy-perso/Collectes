@@ -163,8 +163,14 @@ object CalendarDateGenerator {
         return when (rules.verreRecurrence) {
             CollectionRecurrence.EVERY_FOUR_WEEKS -> emptyList()
             CollectionRecurrence.MONTHLY_NTH_WEEKDAY -> {
-                val ordinal = rules.verreMonthOrdinal ?: return emptyList()
-                monthlyNthWeekdays(year, rules.verreDay, ordinal, includeNextYearJanuary)
+                val ordinals = buildSet {
+                    addAll(rules.verreMonthOrdinals)
+                    rules.verreMonthOrdinal?.let { add(it) }
+                }
+                if (ordinals.isEmpty()) return emptyList()
+                ordinals.flatMap { ordinal ->
+                    monthlyNthWeekdays(year, rules.verreDay, ordinal, includeNextYearJanuary)
+                }.distinct().sorted()
             }
             else -> emptyList()
         }

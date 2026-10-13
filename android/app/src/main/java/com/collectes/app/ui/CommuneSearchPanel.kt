@@ -128,7 +128,7 @@ fun CommuneSearchPanel(
             resolving = false
             when (result) {
                 is CommuneCoverageResult.Covered -> {
-                    if (asLocationSuggestion) {
+                    if (asLocationSuggestion || result.needsStreet) {
                         coveredSuggestion = result
                     } else {
                         onCommuneChosen(result.commune)
@@ -136,7 +136,7 @@ fun CommuneSearchPanel(
                 }
                 is CommuneCoverageResult.NotCovered -> {
                     coveredSuggestion = null
-                    coverageError = CommuneCoverageResolver.notCoveredMessage(result.geoName)
+                    coverageError = CommuneCoverageResolver.notCoveredMessage(result)
                 }
             }
         }
@@ -263,6 +263,14 @@ fun CommuneSearchPanel(
                     }
                 }
             )
+            if (resolving) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Recherche du calendrier (mairie, intercommunalité, opérateurs)…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             searchError?.let { message ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -286,7 +294,7 @@ fun CommuneSearchPanel(
                 Spacer(modifier = Modifier.height(12.dp))
                 CoveredSuggestionCard(
                     covered = match,
-                    onConfirm = { onCommuneChosen(match.commune) }
+                    onConfirm = { commune -> onCommuneChosen(commune) }
                 )
             }
         }
@@ -341,8 +349,10 @@ fun CommuneSearchPanel(
 @Composable
 private fun CoveredSuggestionCard(
     covered: CommuneCoverageResult.Covered,
-    onConfirm: () -> Unit
+    onConfirm: (VexinCommune) -> Unit
 ) {
+    var street by remember(covered.commune.slug) { mutableStateOf("") }
+    val streetReady = !covered.needsStreet || street.trim().length >= 3
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -368,9 +378,34 @@ private fun CoveredSuggestionCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )
+            if (covered.needsStreet) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Les jours changent selon la rue.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = street,
+                    onValueChange = { street = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Votre rue") },
+                    placeholder = { Text("Ex. boulevard Émile Romanet") }
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
             Button(
-                onClick = onConfirm,
+                onClick = {
+                    val chosen = if (covered.needsStreet) {
+                        covered.commune.copy(streetHint = street.trim())
+                    } else {
+                        covered.commune
+                    }
+                    onConfirm(chosen)
+                },
+                enabled = streetReady,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Continuer avec ${covered.commune.displayName}")

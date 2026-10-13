@@ -11,7 +11,9 @@ data class VexinCommune(
     val infoPageUrl: String? = null,
     /** Centre approximatif de la commune (WGS84), pour la suggestion géolocalisée. */
     val latitude: Double = 0.0,
-    val longitude: Double = 0.0
+    val longitude: Double = 0.0,
+    /** Rue saisie quand les jours viennent d’un fichier ouvert (ex. Nantes). */
+    val streetHint: String = ""
 ) {
     val pageUrl: String
         get() = infoPageUrl ?: "https://smirtomduvexin.net/informations_utiles/$slug/"
