@@ -74,7 +74,6 @@ import kotlinx.coroutines.delay
 fun HomeScreen(
     uiState: HomeUiState,
     commune: VexinCommune,
-    communes: List<VexinCommune>,
     onCommuneSelected: (VexinCommune) -> Unit,
     onRefresh: () -> Unit,
     onFilterChange: (WasteType?) -> Unit,
@@ -120,7 +119,6 @@ fun HomeScreen(
         )
         if (showCommunePicker) {
             CommunePickerBottomSheet(
-                communes = communes,
                 selectedSlug = commune.slug,
                 onSelect = onCommuneSelected,
                 onDismiss = { showCommunePicker = false }

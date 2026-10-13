@@ -42,7 +42,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.collectes.app.data.CalendarRepository
 import com.collectes.app.data.PreferencesManager
 import com.collectes.app.data.VexinCommune
-import com.collectes.app.data.VexinCommunes
 import com.collectes.app.data.WasteType
 import com.collectes.app.notifications.NotificationHelper
 import com.collectes.app.ui.AppTab
@@ -157,7 +156,6 @@ class MainActivity : ComponentActivity() {
                                 .padding(WindowInsets.statusBars.asPaddingValues())
                         ) {
                             OnboardingSetupScreen(
-                                communes = VexinCommunes.all,
                                 onCommuneSelected = { commune ->
                                     calendarPrefetchJob?.cancel()
                                     calendarPrefetchJob = scope.launch {
@@ -364,7 +362,6 @@ private fun CollectesTab(
     HomeScreen(
         uiState = homeState,
         commune = commune,
-        communes = settingsViewModel.communes,
         onCommuneSelected = { settingsViewModel.setCommune(it) },
         onRefresh = onRefresh,
         onFilterChange = onFilterChange,

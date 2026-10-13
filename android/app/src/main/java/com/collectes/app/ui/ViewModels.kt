@@ -9,7 +9,6 @@ import com.collectes.app.data.PreferencesManager
 import com.collectes.app.data.ReminderTime
 import com.collectes.app.data.SyncState
 import com.collectes.app.data.VexinCommune
-import com.collectes.app.data.VexinCommunes
 import com.collectes.app.data.WasteType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -238,8 +237,6 @@ class SettingsViewModel(
     private val _availableReminderTypes = MutableStateFlow(WasteType.entries.toList())
     val availableReminderTypes: StateFlow<List<WasteType>> = _availableReminderTypes.asStateFlow()
 
-    val communes: List<VexinCommune> = VexinCommunes.all
-
     private val _calendarError = MutableStateFlow<String?>(null)
     val calendarError: StateFlow<String?> = _calendarError.asStateFlow()
 
@@ -281,7 +278,10 @@ class SettingsViewModel(
         }
     }
 
-    fun officialCalendarViewUrl(): String = selectedCommune.value.officialCalendarUrl
+    fun officialCalendarViewUrl(): String {
+        val commune = selectedCommune.value
+        return commune.officialCalendarUrl.ifBlank { commune.pageUrl }
+    }
 
     fun reportCalendarOpenError() {
         _calendarError.value = "Impossible d'ouvrir le navigateur"

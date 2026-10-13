@@ -2,6 +2,7 @@ package com.collectes.app.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -18,6 +19,13 @@ class PreferencesManager(private val context: Context) {
     private val reminderMinutesKey = intPreferencesKey("reminder_minutes_of_day")
     private val legacyReminderHourKey = intPreferencesKey("reminder_hour")
     private val communeSlugKey = stringPreferencesKey("commune_slug")
+    private val communeDisplayNameKey = stringPreferencesKey("commune_display_name")
+    private val communeLatKey = stringPreferencesKey("commune_lat")
+    private val communeLonKey = stringPreferencesKey("commune_lon")
+    private val communeDiscoveredSmirtomKey = booleanPreferencesKey("commune_discovered_smirtom")
+    private val communeCustomKey = booleanPreferencesKey("commune_custom")
+    private val communeCalendarUrlKey = stringPreferencesKey("commune_calendar_url")
+    private val communeInfoPageUrlKey = stringPreferencesKey("commune_info_page_url")
     private val calendarLogicVersionKey = intPreferencesKey("calendar_logic_version")
     private val useBrandColorsKey = booleanPreferencesKey("use_brand_colors")
     private val reminderTypesKey = stringPreferencesKey("reminder_enabled_types")
@@ -64,7 +72,7 @@ class PreferencesManager(private val context: Context) {
 
     suspend fun setCommune(commune: VexinCommune) {
         context.dataStore.edit { prefs ->
-            prefs[communeSlugKey] = commune.slug
+            writeCommune(prefs, commune)
         }
         cachedSelectedCommune = commune
     }
@@ -74,7 +82,7 @@ class PreferencesManager(private val context: Context) {
         context.dataStore.edit { prefs ->
             prefs[reminderMinutesKey] = ReminderTime.coerce(reminderTimeMinutes)
             prefs.remove(legacyReminderHourKey)
-            prefs[communeSlugKey] = commune.slug
+            writeCommune(prefs, commune)
             prefs[reliabilitySetupDoneKey] = true
         }
         cachedSelectedCommune = commune
@@ -133,9 +141,53 @@ class PreferencesManager(private val context: Context) {
         val slug = VexinCommunes.normalizeSlug(
             prefs[communeSlugKey] ?: VexinCommunes.default.slug
         )
-        val commune = VexinCommunes.bySlug(slug) ?: VexinCommunes.default
+        val commune = VexinCommunes.bySlug(slug)
+            ?: resolveDiscoveredCommune(prefs, slug)
+            ?: VexinCommunes.default
         cachedSelectedCommune = commune
         return commune
+    }
+
+    private fun resolveDiscoveredCommune(prefs: Preferences, slug: String): VexinCommune? {
+        val custom = prefs[communeCustomKey] == true || prefs[communeDiscoveredSmirtomKey] == true
+        if (!custom) return null
+        val name = prefs[communeDisplayNameKey]?.ifBlank { null } ?: return null
+        val smirtom = prefs[communeDiscoveredSmirtomKey] == true
+        return VexinCommune(
+            slug = slug,
+            displayName = name,
+            officialCalendarUrl = prefs[communeCalendarUrlKey].orEmpty(),
+            infoPageUrl = if (smirtom) null else prefs[communeInfoPageUrlKey],
+            latitude = prefs[communeLatKey]?.toDoubleOrNull() ?: 0.0,
+            longitude = prefs[communeLonKey]?.toDoubleOrNull() ?: 0.0
+        )
+    }
+
+    private fun writeCommune(prefs: MutablePreferences, commune: VexinCommune) {
+        prefs[communeSlugKey] = commune.slug
+        val catalog = VexinCommunes.bySlug(commune.slug)
+        if (catalog != null) {
+            prefs.remove(communeDisplayNameKey)
+            prefs.remove(communeLatKey)
+            prefs.remove(communeLonKey)
+            prefs.remove(communeDiscoveredSmirtomKey)
+            prefs.remove(communeCustomKey)
+            prefs.remove(communeCalendarUrlKey)
+            prefs.remove(communeInfoPageUrlKey)
+        } else {
+            prefs[communeCustomKey] = true
+            prefs[communeDisplayNameKey] = commune.displayName
+            prefs[communeLatKey] = commune.latitude.toString()
+            prefs[communeLonKey] = commune.longitude.toString()
+            prefs[communeDiscoveredSmirtomKey] = commune.usesSmirtomNetwork
+            prefs[communeCalendarUrlKey] = commune.officialCalendarUrl
+            val info = commune.infoPageUrl
+            if (info.isNullOrBlank()) {
+                prefs.remove(communeInfoPageUrlKey)
+            } else {
+                prefs[communeInfoPageUrlKey] = info
+            }
+        }
     }
 
     private fun resolveEnabledReminderTypes(prefs: Preferences): Set<WasteType> {

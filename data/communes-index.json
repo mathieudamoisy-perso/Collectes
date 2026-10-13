@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-13",
+  "communes": [
+    {
+      "insee": "60074",
+      "slug": "blaincourt-les-precy",
+      "name": "Blaincourt-lès-Précy",
+      "source": "direct",
+      "calendarUrl": "https://www.thelloise.fr/images/documents/fichiers/calendrier-collecte-2026cctcompressed.pdf",
+      "infoPageUrl": "https://www.blaincourtlesprecy.fr/informations-pratiques-2/",
+      "lat": 49.2271,
+      "lon": 2.3455
+    },
+    {
+      "insee": "60090",
+      "slug": "bouconvillers",
+      "name": "Bouconvillers",
+      "source": "direct",
+      "calendarUrl": "https://vexinthelle.fr/wp-content/uploads/2026/01/BOUCONVILLERS-2026.pdf",
+      "infoPageUrl": "https://bouconvillers.fr/vie-pratique/environnement/le-tri-selectif-2/",
+      "lat": 49.174,
+      "lon": 1.9053
+    },
+    {
+      "insee": "14117",
+      "slug": "cabourg",
+      "name": "Cabourg",
+      "source": "direct",
+      "calendarUrl": "https://www.normandiecabourgpaysdauge.fr/app/uploads/2026/03/Cabourg-Calendrier-de-collecte-2026.pdf",
+      "infoPageUrl": "https://www.cabourg.fr/habiter/votre-quotidien/environnement/dechets/",
+      "lat": 49.2837,
+      "lon": -0.1201
+    },
+    {
+      "insee": "95177",
+      "slug": "cormeilles-en-vexin",
+      "name": "Cormeilles-en-Vexin",
+      "source": "smirtom",
+      "calendarUrl": "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf",
+      "lat": 49.1145,
+      "lon": 2.0171
+    },
+    {
+      "insee": "95213",
+      "slug": "epiais-rhus",
+      "name": "Épiais-Rhus",
+      "source": "smirtom",
+      "calendarUrl": "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-13-Cormeilles-Epiais.pdf",
+      "lat": 49.1249,
+      "lon": 2.0703
+    },
+    {
+      "insee": "95219",
+      "slug": "ermont",
+      "name": "Ermont",
+      "source": "direct",
+      "calendarUrl": "https://www.ermont.fr/Statics/Actualites/2026/EMERAUDE/Calendrier_collecte_2026.pdf",
+      "infoPageUrl": "https://www.ermont.fr/195/dechets-menagers.htm",
+      "lat": 48.9891,
+      "lon": 2.258
+    },
+    {
+      "insee": "95355",
+      "slug": "magny-en-vexin",
+      "name": "Magny-en-Vexin",
+      "source": "smirtom",
+      "calendarUrl": "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-01-Magny-en-vexin-Charmont.pdf",
+      "lat": 49.162,
+      "lon": 1.8058
+    },
+    {
+      "insee": "95582",
+      "slug": "sannois",
+      "name": "Sannois",
+      "source": "direct",
+      "calendarUrl": "https://www.ville-sannois.fr/sites/sannois/files/document/2026-01/calendrier-2026-sannois.pdf",
+      "infoPageUrl": "https://www.ville-sannois.fr/media/10163",
+      "lat": 48.9731,
+      "lon": 2.2509
+    },
+    {
+      "insee": "95610",
+      "slug": "themericourt",
+      "name": "Théméricourt",
+      "source": "smirtom",
+      "calendarUrl": "https://smirtomduvexin.net/wp-content/uploads/2026/02/Calendrier-09-Avernes-Themericourt-et-Wy.pdf",
+      "lat": 49.0882,
+      "lon": 1.9064
+    },
+    {
+      "insee": "95011",
+      "slug": "ambleville",
+      "name": "Ambleville",
+      "source": "smirtom",
+      "lat": 49.151,
+      "lon": 1.6959
+    },
+    {
+      "insee": "95024",
+      "slug": "arthies",
+      "name": "Arthies",
+      "source": "smirtom",
+      "lat": 49.0935,
+      "lon": 1.7977
+    },
+    {
+      "insee": "95046",
+      "slug": "banthelu",
+      "name": "Banthelu",
+      "source": "smirtom",
+      "lat": 49.1258,
+      "lon": 1.8151
+    },
+    {
+      "insee": "95141",
+      "slug": "charmont",
+      "name": "Charmont",
+      "source": "smirtom",
+      "lat": 49.1388,
+      "lon": 1.7901
+    },
+    {
+      "insee": "95166",
+      "slug": "clery-en-vexin",
+      "name": "Cléry-en-Vexin",
+      "source": "smirtom",
+      "lat": 49.1317,
+      "lon": 1.8493
+    },
+    {
+      "insee": "95270",
+      "slug": "genainville",
+      "name": "Genainville",
+      "source": "smirtom",
+      "lat": 49.1142,
+      "lon": 1.7558
+    },
+    {
+      "insee": "95309",
+      "slug": "hodent",
+      "name": "Hodent",
+      "source": "smirtom",
+      "lat": 49.1425,
+      "lon": 1.7624
+    },
+    {
+      "insee": "95139",
+      "slug": "la-chapelle-en-vexin",
+      "name": "La Chapelle-en-Vexin",
+      "source": "smirtom",
+      "lat": 49.1836,
+      "lon": 1.7274
+    },
+    {
+      "insee": "95379",
+      "slug": "maudetour-en-vexin",
+      "name": "Maudétour-en-Vexin",
+      "source": "smirtom",
+      "lat": 49.1093,
+      "lon": 1.7775
+    },
+    {
+      "insee": "95459",
+      "slug": "nucourt",
+      "name": "Nucourt",
+      "source": "smirtom",
+      "lat": 49.1584,
+      "lon": 1.8582
+    },
+    {
+      "insee": "95462",
+      "slug": "omerville",
+      "name": "Omerville",
+      "source": "smirtom",
+      "lat": 49.1404,
+      "lon": 1.7183
+    },
+    {
+      "insee": "95554",
+      "slug": "saint-gervais",
+      "name": "Saint-Gervais",
+      "source": "smirtom",
+      "lat": 49.1655,
+      "lon": 1.7583
+    },
+    {
+      "insee": "95690",
+      "slug": "wy-dit-joli-village",
+      "name": "Wy-dit-Joli-Village",
+      "source": "smirtom",
+      "lat": 49.0964,
+      "lon": 1.8249
+    }
+  ]
+}
